@@ -1921,7 +1921,12 @@ List corecpp(arma::mat x,
 
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
-      projmat=pred_pls(x,lcm,xTdata,fparpls);
+      
+    ///////////////////////////////////////////////////////////////// news  
+      List res=knn_Armadillo(x,xTdata,fparknn);
+      arma::mat POS_knn=res[0];
+      projmat=pred_pls_pos(x,lcm,xTdata,10,POS_knn);  
+    //////////  projmat=pred_pls(x,lcm,xTdata,fparpls);
       //min_val is modified to avoid a warning
       double min_val=0;
       min_val++;
