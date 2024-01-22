@@ -1298,7 +1298,7 @@ arma::ivec KNNPLSDACV(arma::mat x,arma::ivec cl,arma::ivec constrain,int k,arma:
 
   
       
-      List resELM =  elm_train_rcpp(Xtrain, Ytrain, 200, "relu");
+      List resELM =  elm_train_rcpp(Xtrain, Ytrain, k, "relu");
      
       Ytest.rows(w1)=elm_predict_rcpp(resELM,Xtest);
 
@@ -2386,7 +2386,7 @@ List corecpp(arma::mat x,
         
          List res=knn_Armadillo(posxy,posxyTdata,10);
          arma::mat POS_knn=res[0];
-         projmat=pred_pls_pos(x,lcm,xTdata,10,POS_knn);  
+         projmat=pred_pls_pos(x,lcm,xTdata,fparpls,POS_knn);  
       }else{
         projmat=pred_pls(x,lcm,xTdata,fparpls);
       }
@@ -2404,7 +2404,7 @@ List corecpp(arma::mat x,
     }
     if(FUN==2){
       arma::mat lcm=transformy(clbest);
-      List resELM =  elm_train_rcpp(x, lcm, 200, "relu");
+      List resELM =  elm_train_rcpp(x, lcm, fparpls, "relu");
      
       projmat=elm_predict_rcpp(resELM,xTdata);
       if(x.n_rows==posxy.n_rows){
