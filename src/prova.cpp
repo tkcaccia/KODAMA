@@ -997,7 +997,6 @@ arma::mat pred_pls_pos(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int nco
 
     //int w = Xtest.n_rows;
     int k=POS.n_cols;
-    double* nn_index = POS.memptr();
     arma::umat Mtest(w,m);
     Mtest.zeros();
     for(int j=0;j<w;j++){
@@ -2413,15 +2412,16 @@ List corecpp(arma::mat x,
 
 
 
-         int w = Xtest.n_rows;
+         int w = xTdata.n_rows;
+         int m = xTdata.n_cols;
           
-         double* nn_index = POS.memptr();
+   //      double* nn_index = POS_knn.memptr();
          arma::umat Mtest(w,m);
          Mtest.zeros();
          for(int j=0;j<w;j++){
-          // m is the number of column of Ytrain
+          // m is the number of columns of Ytrain
            for(int i=0;i<10;i++){
-              arma::umat temp=Ytrain.row(POS(j,i)-1)==1;
+              arma::umat temp=xTdata.row(POS_knn(j,i)-1)==1;
               Mtest.row(j)= temp || Mtest.row(j)==1;
            }
          
