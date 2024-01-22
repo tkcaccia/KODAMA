@@ -1777,8 +1777,7 @@ List corecpp(arma::mat x,
              bool shake,
              int proj,
              arma::mat posxy,
-             arma::mat posxyTdata,
-             int flag_spatial) {
+             arma::mat posxyTdata) {
   
   arma::ivec cvpred=clbest;
   arma::ivec cvpredbest;
@@ -1922,9 +1921,8 @@ List corecpp(arma::mat x,
 
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
-      if(flag_spatial==1){
-    ///////////////////////////////////////////////////////////////// news  
-
+      if(x.n_rows==posxy.n_rows){
+        
          List res=knn_Armadillo(posxy,posxyTdata,10);
          arma::mat POS_knn=res[0];
          projmat=pred_pls_pos(x,lcm,xTdata,10,POS_knn);  
