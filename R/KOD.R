@@ -453,7 +453,7 @@ quality_control = function(data_row,data_col,spatial_row,FUN,data=NULL,
 
   } 
 
-  if (f.par.pls > data_col & (matchFUN == 1 | matchFUN == 2)) {
+  if (f.par.pls > data_col & (matchFUN == 1)) {
     message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_col)
     f.par.pls = data_col
   }
