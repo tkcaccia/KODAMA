@@ -2412,14 +2412,16 @@ List corecpp(arma::mat x,
          int k=POS_knn.n_cols;
          int w = xTdata.n_rows;
          int m = xTdata.n_cols;
-        Rcpp::Rcout<<"k:"<<k<<"\n";
-        Rcpp::Rcout<<"w:"<<w<<"\n";
-        Rcpp::Rcout<<"m:"<<m<<"\n";
+
          arma::umat Mtest(w,m);
          Mtest.zeros();
          for(int j=0;j<w;j++){
           
            for(int i=0;i<k;i++){
+        Rcpp::Rcout<<"k:"<<k<<"\n";  //10
+        Rcpp::Rcout<<"w:"<<w<<"\n";//37
+        Rcpp::Rcout<<"m:"<<m<<"\n";  //4
+             
               arma::umat temp=xTdata.row(POS_knn(j,i)-1)==1;
               Mtest.row(j)= temp || Mtest.row(j)==1;
            }
