@@ -2423,7 +2423,7 @@ List corecpp(arma::mat x,
              
         Rcpp::Rcout<<"POS_knn(j,i):"<<POS_knn(j,i)<<"\n";//37
              
-              arma::umat temp=xTdata.row(POS_knn(j,i)-1)==1;
+              arma::umat temp=lcm.row(POS_knn(j,i)-1)==1;
               Mtest.row(j)= temp || Mtest.row(j)==1;
            }
          
