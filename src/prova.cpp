@@ -2412,6 +2412,15 @@ List corecpp(arma::mat x,
          int k=POS_knn.n_cols;
          int w = xTdata.n_rows;
          int m = xTdata.n_cols;
+        Rcout<< "k =";
+        Rcout<< k;
+        Rcout<< "\n;
+                  Rcout<< "k =";
+        Rcout<< w;
+        Rcout<< "\n;
+                  Rcout<< "k =";
+        Rcout<< m;
+        Rcout<< "\n;
          arma::umat Mtest(w,m);
          Mtest.zeros();
          for(int j=0;j<w;j++){
