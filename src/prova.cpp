@@ -2418,17 +2418,9 @@ List corecpp(arma::mat x,
          for(int j=0;j<w;j++){
           
            for(int i=0;i<k;i++){
-        Rcpp::Rcout<<"k:"<<i<<"\n";  //10
-        Rcpp::Rcout<<"w:"<<j<<"\n";//37
-             
-        Rcpp::Rcout<<"POS_knn(j,i):"<<POS_knn(j,i)<<"\n";//37
-                             Rcpp::Rcout<<"******************************\n";//37
-                Rcpp::Rcout<<"lcm.n_rows:"<<"\n"<<lcm.n_rows<<"\n"<<"\n";//37
-                Rcpp::Rcout<<"lcm.n_cols:"<<"\n"<<lcm.n_cols<<"\n"<<"\n";//37
+           
               arma::umat temp=lcm.row(POS_knn(j,i)-1)==1;
              
-                Rcpp::Rcout<<"Mtest.n_rows:"<<"\n"<<Mtest.n_rows<<"\n"<<"\n";//37
-                Rcpp::Rcout<<"Mtest.n_cols:"<<"\n"<<Mtest.n_cols<<"\n"<<"\n";//37
               Mtest.row(j)= temp || Mtest.row(j)==1;
            }
          
