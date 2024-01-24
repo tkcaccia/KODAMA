@@ -2411,7 +2411,7 @@ List corecpp(arma::mat x,
          arma::mat POS_knn=res[0];
          int k=POS_knn.n_cols;
          int w = xTdata.n_rows;
-         int m = xTdata.n_cols;
+         int m = lcm.n_cols;
 
          arma::umat Mtest(w,m);
          Mtest.zeros();
