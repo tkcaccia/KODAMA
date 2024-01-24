@@ -2409,18 +2409,14 @@ List corecpp(arma::mat x,
       if(x.n_rows==posxy.n_rows){
          List res=knn_Armadillo(posxy,posxyTdata,10);
          arma::mat POS_knn=res[0];
-
-
-
+         int k=POS.n_cols;
          int w = xTdata.n_rows;
          int m = xTdata.n_cols;
-          
-   //      double* nn_index = POS_knn.memptr();
          arma::umat Mtest(w,m);
          Mtest.zeros();
          for(int j=0;j<w;j++){
-          // m is the number of columns of Ytrain
-           for(int i=0;i<10;i++){
+          
+           for(int i=0;i<k;i++){
               arma::umat temp=xTdata.row(POS_knn(j,i)-1)==1;
               Mtest.row(j)= temp || Mtest.row(j)==1;
            }
@@ -2428,16 +2424,8 @@ List corecpp(arma::mat x,
         
       
         }
-        
-    
-
-    projmat=projmat % Mtest;
-    
-    
-
-
-
-        
+         projmat=projmat % Mtest;
+     
       }
       
       //min_val is modified to avoid a warning
