@@ -572,7 +572,7 @@ function (data,                       # Dataset
     }
 
     if(!is.null(W)){
-      SV_startingvector = W[landpoints][ssa]
+      SV_startingvector = W[landpoints]
       unw = unique(SV_startingvector)
       unw = unw[-which(is.na(unw))]
       ghg = is.na(SV_startingvector)
