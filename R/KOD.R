@@ -1188,91 +1188,83 @@ knn.double.cv = function(Xdata,
 
 
 
-
-
-frequency_matching = function(data,label,times=5,seed=1234){
-
-  data=as.data.frame(data)
-  data2=data
-  for(i in 1:ncol(data2)){
-    if(is.numeric(data2[,i])){
-    
-    v <- quantile(data2[,i],prob=seq(0,0.99,0.2))
-    data2[,i]= findInterval(data2[,i], v)
+                   frequency_matching =
+function (data, label, times = 5, seed = 1234) 
+{
+  data = as.data.frame(data)
+  data2 = data
+  for (i in 1:ncol(data2)) {
+    if (is.numeric(data2[, i])) {
+      v <- quantile(data2[, i], prob = seq(0, 0.99, 0.2))
+      data2[, i] = findInterval(data2[, i], v)
     }
   }
-  if(is.null(rownames(data2))){
-    rownames(data2)=paste("S",1:nrow(data2),sep="")
-    rownames(data)=paste("S",1:nrow(data),sep="")
+  if (is.null(rownames(data2))) {
+    rownames(data2) = paste("S", 1:nrow(data2), sep = "")
+    rownames(data) = paste("S", 1:nrow(data), sep = "")
   }
-  names(label)=rownames(data2)
-  data2=as.matrix(data2[!is.na(label),])
-  label=label[!is.na(label)]
-  
-  minor=names(which.min(table(label)))
-  major=names(which.max(table(label)))
-  data_minor=data2[label==minor,,drop=FALSE]
-  data_major=data2[label==major,,drop=FALSE]
-  
-  nc=ncol(data2)
-  grid=list()
-  count=list()
-  rest=list()
-  for(j in 1:nc){
-    
-    lis=list()
-    
-    h=1
-    for(i in j:nc){
-      lis[[h]]=levels(as.factor(data2[,i]))
-      h=h+1
+  names(label) = rownames(data2)
+  data2 = as.matrix(data2[!is.na(label), ])
+  label = label[!is.na(label)]
+  minor = names(which.min(table(label)))
+  major = names(which.max(table(label)))
+  data_minor = data2[label == minor, , drop = FALSE]
+  data_major = data2[label == major, , drop = FALSE]
+  nc = ncol(data2)
+  grid = list()
+  count = list()
+  rest = list()
+  for (j in 1:nc) {
+    lis = list()
+    h = 1
+    for (i in j:nc) {
+      lis[[h]] = levels(as.factor(data2[, i]))
+      h = h + 1
     }
-    grid[[j]]=as.matrix(expand.grid(lis))
-    
-    co = apply(grid[[j]],1,function(y) sum(apply(as.matrix(data_minor)[,j:nc,drop=FALSE],1,function(x) all(y==x))))
-    count[[j]]=co*times
+    grid[[j]] = as.matrix(expand.grid(lis))
+    co = apply(grid[[j]], 1, function(y) sum(apply(as.matrix(data_minor)[, 
+                                                                         j:nc, drop = FALSE], 1, function(x) all(y == x))))
+    count[[j]] = co * times
   }
-  rest=list()
-  rest[[1]]=count[[1]]
-  selected=rep(FALSE,nrow(data_major))
-  names(selected)=rownames(data_major)
-  for(j in 1:nc){
-    if(sum(rest[[j]])>0){
-      for(i in 1:nrow(grid[[j]])){
-        if(rest[[j]][i]!=0){
-          who=apply(as.matrix(data_major[,j:nc]),1,function(x) all(grid[[j]][i,]==x))
-          n_who=min(sum(who[!selected]),rest[[j]][i])
-          rest[[j]][i]=rest[[j]][i]-n_who
+  rest = list()
+  rest[[1]] = count[[1]]
+  selected = rep(FALSE, nrow(data_major))
+  names(selected) = rownames(data_major)
+  for (j in 1:nc) {
+    if (sum(rest[[j]]) > 0) {
+      for (i in 1:nrow(grid[[j]])) {
+        if (rest[[j]][i] != 0) {
+          who = apply(as.matrix(data_major[, j:nc]), 
+                      1, function(x) all(grid[[j]][i, ] == x))
+          n_who = min(sum(who[!selected]), rest[[j]][i])
+          rest[[j]][i] = rest[[j]][i] - n_who
           set.seed(seed)
-          ss=sample(names(which(who[!selected])),n_who)
-          selected[ss]=TRUE
+          ss = sample(names(which(who[!selected])), n_who)
+          selected[ss] = TRUE
         }
       }
-      if(j<nc){
-        temp=list()
-        for(ii in 2:ncol(grid[[j]]))   temp[[ii-1]]=as.matrix(grid[[j]])[,ii]
-        rest[[j+1]]=aggregate(rest[[j]], by=temp, FUN=sum, na.rm=TRUE)[,"x"]
-      }else{
-        rest[[j+1]]=sum(rest[[j]])
+      if (j < nc) {
+        temp = list()
+        for (ii in 2:ncol(grid[[j]])) temp[[ii - 1]] = as.matrix(grid[[j]])[,  ii]
+        rest[[j + 1]] = aggregate(rest[[j]], by = temp, 
+                                  FUN = sum, na.rm = TRUE)[, "x"]
       }
-      
     }
+    else {
+      rest[[j + 1]] = sum(rest[[j]])
+    }
+    
   }
-  if(sum(rest[[j]])>0){
+  if (sum(rest[[j]]) > 0) {
     set.seed(seed)
-    ss=sample(which(!selected),rest[[j+1]])   ###BUGGGG
-    selected[ss]=TRUE
+    ss = sample(which(!selected), rest[[j + 1]])
+    selected[ss] = TRUE
   }
-  
-  selection=c(rownames(data_major[selected,,drop=FALSE]),rownames(data_minor))
-  
-  
-  data=data[selection,]
-  data2=data2[selection,]
-  label=label[selection]
-  return(list(data=data,label=label,selection=selection))#,grid=grid,rest=rest))
+  selection = c(rownames(data_major[selected, , drop = FALSE]), 
+                rownames(data_minor))
+  data = data[selection, ]
+  data2 = data2[selection, ]
+  label = label[selection]
+  return(list(data = data, label = label, selection = selection))
 }
-
-
-                    
-
+                      
