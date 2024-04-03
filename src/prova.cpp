@@ -2232,7 +2232,8 @@ List corecpp(arma::mat x,
              int FUN,
              int fparknn, 
              int fparpls, 
-             arma::ivec constrain,
+             arma::ivec Xconstrain,
+             arma::ivec Tconstrain,
              NumericVector fix,
              bool shake,
              int proj,
@@ -2241,16 +2242,17 @@ List corecpp(arma::mat x,
   
   arma::ivec cvpred=clbest;
   arma::ivec cvpredbest;
-
+  arma::ivec clbest_dirty=clbest;
+  
   if(FUN==1){
-    cvpredbest=PLSDACV(x,clbest,constrain,fparpls);   
+    cvpredbest=PLSDACV(x,clbest,Xconstrain,fparpls);   
 
   }
   if(FUN==2){
-     cvpredbest=KNNPLSDACV(x,clbest,constrain,fparpls,x,fparknn);
+     cvpredbest=KNNPLSDACV(x,clbest,Xconstrain,fparpls,x,fparknn);
   }
   if(FUN==3){
-    cvpredbest=KNNCV(x,clbest,constrain,fparknn); 
+    cvpredbest=KNNCV(x,clbest,Xconstrain,fparknn); 
   }
 
   double accbest;
@@ -2272,17 +2274,17 @@ List corecpp(arma::mat x,
   }
   
     
-  arma::ivec sup1= unique(constrain);
+  arma::ivec sup1= unique(Xconstrain);
   int nconc=sup1.size();
   
-  NumericVector constrain2=as<NumericVector>(wrap(constrain));
+  NumericVector Xconstrain2=as<NumericVector>(wrap(Xconstrain));
   NumericVector fix2=as<NumericVector>(wrap(fix));
   
   while (j < Tcycle && !success) {
     Rcpp::checkUserInterrupt();
     j++;
-    arma::ivec cl = clbest;
-    
+    arma::ivec cl = clbest; 
+    arma::ivec cl_dirty = clbest_dirty;
     IntegerVector sup2=seq_len(nconc);
 
     int nn_temp=(unif_rand()*nconc)+1;
@@ -2312,12 +2314,15 @@ List corecpp(arma::mat x,
   //////////////////////////////////////////////////
   
   //////////////////////////////////////////////////
-  
-  
+
+   cl_dirty=cl;
+    
+  // Constraining cleaning
+    
     IntegerVector ss=samplewithoutreplace(sup2,nn_temp);
 
     for (int* k = ss.begin(); k != ss.end(); ++k) {
-      LogicalVector sele=((constrain2 == *k) & (fix2!=1));
+      LogicalVector sele=((Xconstrain2 == *k) & (fix2!=1));
       double flag = std::accumulate(sele.begin(),sele.end(), 0.0);
       if (flag != 0) {
         arma::uvec whi=which(sele);
@@ -2344,18 +2349,19 @@ List corecpp(arma::mat x,
     
 
     if(FUN==1){
-      cvpred=PLSDACV(x,cl,constrain,fparpls);  
+      cvpred=PLSDACV(x,cl,Xconstrain,fparpls);  
     }
     if(FUN==2){
-      cvpred=KNNPLSDACV(x,cl,constrain,fparpls,x,fparknn);  
+      cvpred=KNNPLSDACV(x,cl,Xconstrain,fparpls,x,fparknn);  
     }
     if(FUN==3){
-      cvpred=KNNCV(x,cl,constrain,fparknn);
+      cvpred=KNNCV(x,cl,Xconstrain,fparknn);
     }
     double accTOT= accuracy(cl,cvpred);
     if (accTOT > accbest) {
       cvpredbest = cvpred;
       clbest = cl;
+      clbest_dirty=cl_dirty;
       accbest = accTOT;
     }
     
@@ -2382,10 +2388,12 @@ List corecpp(arma::mat x,
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
       if(x.n_rows==posxy.n_rows){
+        projmat=pred_pls(x,lcm,xTdata,fparpls);
+
         
-         List res=knn_Armadillo(posxy,posxyTdata,10);
-         arma::mat POS_knn=res[0];
-         projmat=pred_pls_pos(x,lcm,xTdata,fparpls,POS_knn);  
+    //     List res=knn_Armadillo(posxy,posxyTdata,10);
+    //     arma::mat POS_knn=res[0];
+    //     projmat=pred_pls_pos(x,lcm,xTdata,fparpls,POS_knn);  
       }else{
         projmat=pred_pls(x,lcm,xTdata,fparpls);
       }
@@ -2405,31 +2413,31 @@ List corecpp(arma::mat x,
       arma::mat lcm=transformy(clbest);
       List resELM =  elm_train_rcpp(x, lcm, fparpls, "relu");
      
-      projmat=elm_predict_rcpp(resELM,xTdata);
-      if(x.n_rows==posxy.n_rows){
-         List res=knn_Armadillo(posxy,posxyTdata,10);
-         arma::mat POS_knn=res[0];
-         int k=POS_knn.n_cols;
-         int w = xTdata.n_rows;
-         int m = lcm.n_cols;
+      projmat=elm_predict_rcpp(resELM,xTdata)
+ //     if(x.n_rows==posxy.n_rows){
+ //        List res=knn_Armadillo(posxy,posxyTdata,10);
+ //        arma::mat POS_knn=res[0];
+ //        int k=POS_knn.n_cols;
+ ///        int w = xTdata.n_rows;
+ //        int m = lcm.n_cols;
 
-         arma::umat Mtest(w,m);
-         Mtest.zeros();
-         for(int j=0;j<w;j++){
+//         arma::umat Mtest(w,m);
+ //        Mtest.zeros();
+  //       for(int j=0;j<w;j++){
           
-           for(int i=0;i<k;i++){
+    //       for(int i=0;i<k;i++){
            
-              arma::umat temp=lcm.row(POS_knn(j,i)-1)==1;
+   //           arma::umat temp=lcm.row(POS_knn(j,i)-1)==1;
              
-              Mtest.row(j)= temp || Mtest.row(j)==1;
-           }
+   //           Mtest.row(j)= temp || Mtest.row(j)==1;
+   //        }
          
         
       
-        }
-         projmat=projmat % Mtest;
+   //     }
+   //      projmat=projmat % Mtest;
      
-      }
+  //    }
       
       //min_val is modified to avoid a warning
       double min_val=0;
@@ -2448,6 +2456,9 @@ List corecpp(arma::mat x,
       arma::imat temp70=knn_kodama(x,clbest,xTdata,fparknn);
       pp=temp70.col(fparknn-1);
     }
+
+
+    
     return List::create(Named("clbest") = clbest,
                         Named("accbest") = accbest,
                         Named("vect_acc") = vect_acc2,
