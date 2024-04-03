@@ -609,8 +609,18 @@ function (data,                       # Dataset
       yatta$vect_proj = as.vector(yatta$vect_proj)
       yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
 
-      res[k, landpoints] = clbest
-      res[k, -landpoints] = yatta$vect_proj
+      temp=rep(NA,nsample)
+      temp[landpoints] = clbest
+      temp[-landpoints] = yatta$vect_proj
+
+
+      tab = apply(table(temp, constrain), 2, which.max)
+      temp = as.numeric(as.factor(tab[as.character(constrain)]))
+
+      
+      res[k,]=temp
+   //   res[k, landpoints] = clbest
+   //   res[k, -landpoints] = yatta$vect_proj
 
 
 
