@@ -2460,6 +2460,7 @@ List corecpp(arma::mat x,
 
     
     return List::create(Named("clbest") = clbest,
+                        Named("clbest_dirty") = clbest_dirty,
                         Named("accbest") = accbest,
                         Named("vect_acc") = vect_acc2,
                         Named("vect_proj") = pp
