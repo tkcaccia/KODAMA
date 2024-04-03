@@ -225,8 +225,8 @@ RcppExport SEXP KODAMA_double_knn_cv(SEXP xSEXP, SEXP yySEXP, SEXP constrainSEXP
   END_RCPP
 }
 // corecpp
-List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparknn, int fparpls, arma::ivec constrain, NumericVector fix, bool shake, int proj, arma::mat posxy, arma::mat posxyTdata);
-RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparknnSEXP, SEXP fparplsSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP, SEXP posxySEXP, SEXP posxyTdataSEXP) {
+List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparknn, int fparpls, arma::ivec Xconstrain, arma::ivec Tconstrain, NumericVector fix, bool shake, int proj, arma::mat posxy, arma::mat posxyTdata);
+RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparknnSEXP, SEXP fparplsSEXP, SEXP XconstrainSEXP, SEXP TconstrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP, SEXP posxySEXP, SEXP posxyTdataSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -237,13 +237,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type FUN(FUNSEXP);
     Rcpp::traits::input_parameter< int >::type fparknn(fparknnSEXP);
     Rcpp::traits::input_parameter< int >::type fparpls(fparplsSEXP);
-    Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type Xconstrain(XconstrainSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type Tconstrain(TconstrainSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type fix(fixSEXP);
     Rcpp::traits::input_parameter< bool >::type shake(shakeSEXP);
     Rcpp::traits::input_parameter< int >::type proj(projSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type posxy(posxySEXP);
     Rcpp::traits::input_parameter< arma::mat >::type posxyTdata(posxyTdataSEXP);
-    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparknn, fparpls, constrain, fix, shake, proj,posxy,posxyTdata));
+    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparknn, fparpls, Xconstrain, Tconstrain, fix, shake, proj,posxy,posxyTdata));
     return __result;
 END_RCPP
 }
