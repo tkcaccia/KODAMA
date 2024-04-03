@@ -549,8 +549,6 @@ function (data,                       # Dataset
     Xfix = fix[landpoints]
     whF = which(!Xfix)
     whT = which(Xfix)
-    Tconstrain = as.numeric(as.factor(constrain[-landpoints]))
-    Xconstrain = as.numeric(as.factor(constrain[landpoints]))
     Xspatial = spatial[landpoints, , drop = FALSE]
     Tspatial = spatial[-landpoints, , drop = FALSE]
 
@@ -558,10 +556,17 @@ function (data,                       # Dataset
  
 
     if (spatial_flag) {
-      spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
-      tab = apply(table(spatialclusters, Xconstrain), 2,which.max)
-      Xconstrain = as.numeric(as.factor(tab[as.character(Xconstrain)]))  
+      clu=sample(sample,nspatialclusters)
+      spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
+      tab = apply(table(spatialclusters, constrain), 2,which.max)
+      constrain = as.numeric(as.factor(tab[as.character(constrain)]))
+   #####   spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
+  #####   tab = apply(table(spatialclusters, Xconstrain), 2,which.max)
+  #####    Xconstrain = as.numeric(as.factor(tab[as.character(Xconstrain)]))  
     }
+    
+    Tconstrain = as.numeric(as.factor(constrain[-landpoints]))
+    Xconstrain = as.numeric(as.factor(constrain[landpoints]))
   
     if (landmarks<200) {
       XW = Xconstrain
@@ -589,7 +594,7 @@ function (data,                       # Dataset
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                            f.par.knn,f.par.pls,
-                           Xconstrain, Xfix, shake, Xspatial, 
+                           Xconstrain, Tconstrain, Xfix, shake, Xspatial, 
                            Tspatial), silent = FALSE)
 
     }
