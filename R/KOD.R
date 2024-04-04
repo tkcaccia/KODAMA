@@ -565,7 +565,6 @@ function (data,                       # Dataset
   #####    Xconstrain = as.numeric(as.factor(tab[as.character(Xconstrain)]))  
     }
     
-    Tconstrain = as.numeric(as.factor(constrain[-landpoints]))
     Xconstrain = as.numeric(as.factor(constrain[landpoints]))
   
     if (landmarks<200) {
@@ -594,7 +593,7 @@ function (data,                       # Dataset
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                            f.par.knn,f.par.pls,
-                           Xconstrain, Tconstrain, Xfix, shake, Xspatial, 
+                           Xconstrain, Xfix, shake, Xspatial, 
                            Tspatial), silent = FALSE)
 
     }
