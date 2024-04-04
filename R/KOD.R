@@ -618,8 +618,8 @@ function (data,                       # Dataset
 
       
       res[k,]=temp
-   //   res[k, landpoints] = clbest
-   //   res[k, -landpoints] = yatta$vect_proj
+   #   res[k, landpoints] = clbest
+   #   res[k, -landpoints] = yatta$vect_proj
 
 
 
