@@ -2412,7 +2412,7 @@ List corecpp(arma::mat x,
       arma::mat lcm=transformy(clbest);
       List resELM =  elm_train_rcpp(x, lcm, fparpls, "relu");
      
-      projmat=elm_predict_rcpp(resELM,xTdata)
+      projmat=elm_predict_rcpp(resELM,xTdata);
  //     if(x.n_rows==posxy.n_rows){
  //        List res=knn_Armadillo(posxy,posxyTdata,10);
  //        arma::mat POS_knn=res[0];
