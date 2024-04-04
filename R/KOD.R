@@ -476,7 +476,7 @@ function (data,                       # Dataset
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
           splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
 {
-  neighbors = min(c(landmarks, nrow(data)/3)) + 1
+  neighbors = min(c(landmarks, nrow(data)/3),500) + 1
   if (sum(is.na(data)) > 0) {
     stop("Missing values are present")
   } 
