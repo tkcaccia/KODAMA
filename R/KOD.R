@@ -490,10 +490,17 @@ function (data,                       # Dataset
   }  else {
     spatial_flag = TRUE
   }
-  if (is.null(fix)) 
-    fix = rep(FALSE, nsample)
-  if (is.null(constrain)) 
-    constrain = 1:nsample
+if (is.null(fix)) 
+  fix = rep(FALSE, nsample)
+if (is.null(constrain)) 
+  constrain = 1:nsample
+is.na.constrain=is.na(constrain)
+if(any(is.na.constrain)){
+  constrain=as.numeric(as.factor(constrain))
+  constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
+}
+
+     
   shake = FALSE
   
   if(nsample<=landmarks){
@@ -552,11 +559,10 @@ function (data,                       # Dataset
     Xspatial = spatial[landpoints, , drop = FALSE]
     Tspatial = spatial[-landpoints, , drop = FALSE]
 
-    
  
 
     if (spatial_flag) {
-      clu=sample(sample,nspatialclusters)
+      clu=sample(nsample,nspatialclusters)
       spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
       tab = apply(table(spatialclusters, constrain), 2,which.max)
       constrain = as.numeric(as.factor(tab[as.character(constrain)]))
@@ -567,13 +573,7 @@ function (data,                       # Dataset
     
     Xconstrain = as.numeric(as.factor(constrain[landpoints]))
   
-    if (landmarks<200) {
-      XW = Xconstrain
-    } else {
-      clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-      tab = apply(table(clust, Xconstrain), 2, which.max)
-      XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-    }
+
 
     if(!is.null(W)){
       SV_startingvector = W[landpoints]
@@ -583,6 +583,14 @@ function (data,                       # Dataset
       SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
       tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
       XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+    }else{
+      if (landmarks<200) {
+        XW = Xconstrain
+      } else {
+        clust = as.numeric(kmeans(Xdata, splitting)$cluster)
+        tab = apply(table(clust, Xconstrain), 2, which.max)
+        XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+      }
     }
    
     
@@ -606,7 +614,8 @@ function (data,                       # Dataset
       vect_acc[k, ] = yatta$vect_acc
       
       yatta$vect_proj = as.vector(yatta$vect_proj)
-      yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
+      if(!is.null(W))
+         yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
 
       temp=rep(NA,nsample)
       temp[landpoints] = clbest
