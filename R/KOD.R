@@ -753,6 +753,7 @@ KODAMA.visualization=function(kk,method=c("t-SNE","MDS","UMAP"),config=NULL){
 
     
     u=umap.knn(kk$knn_Armadillo$nn_index[,1:numap],kk$knn_Armadillo$distances[,1:numap])
+    u$distances[u$distances==Inf]=max(u$distances[u$distances!=Inf])
     config$knn=u
    
     dimensions = umap(kk$data,knn=u,config=config,n_sgd_threads=config$n_sgd_threads,n_threads=config$n_threads)$layout
