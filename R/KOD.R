@@ -565,15 +565,15 @@ if(any(is.na.constrain)){
       clu=sample(nsample,nspatialclusters)
       spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
       tab = apply(table(spatialclusters, constrain), 2,which.max)
-      constrain = as.numeric(as.factor(tab[as.character(constrain)]))
+      Xconstrain = as.numeric(as.factor(tab[as.character(constrain)]))
    #####   spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
   #####   tab = apply(table(spatialclusters, Xconstrain), 2,which.max)
   #####    Xconstrain = as.numeric(as.factor(tab[as.character(Xconstrain)]))  
-    }
+    }else{
     
-    Xconstrain = as.numeric(as.factor(constrain[landpoints]))
+       Xconstrain = as.numeric(as.factor(constrain[landpoints]))
   
-
+    }
 
     if(!is.null(W)){
       SV_startingvector = W[landpoints]
