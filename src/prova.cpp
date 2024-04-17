@@ -16,7 +16,12 @@
 #include "ANN/ANN.h"        // ANN library header
 #include "NN.h"             // ANN library header
 #include <R.h>              // R header
-#include "RcppArmadillo.h"  // RcppArmadillo library header
+//#include "RcppArmadillo.h"  // RcppArmadillo library header
+
+#define ARMA_64BIT_WORD 1
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(cpp11)]] 
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
