@@ -41,7 +41,6 @@ using namespace std;
 using namespace Rcpp;
 
 
-// [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
 arma::mat satlins(arma::mat x) {
