@@ -1087,7 +1087,7 @@ arma::mat pred_pls(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) 
   UU.zeros();
   
   //  B<-matrix(0,ncol=m,nrow=p)
-  arma::cube B(p,m,ncomp);
+  arma::mat B(p,m);
   B.zeros();
   
   // Ypred <- matrix(0,ncol=m,nrow=n)
@@ -1155,10 +1155,11 @@ arma::mat pred_pls(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) 
     QQ.col(a)=qq;
     VV.col(a)=vv;
     UU.col(a)=uu;
-    B.slice(a)=RR*trans(QQ);
+  //  B.slice(a)=RR*trans(QQ);
   //  Ypred.slice(a)=Xtest*B.slice(a);                               ///////////////////////////////////////////
   } 
-  Ypred=Xtest*B.slice(a); 
+  B=RR*trans(QQ);
+  Ypred=Xtest*B; 
 //  for (int a=0; a<ncomp; a++) {
 //    arma::mat temp1=Ypred.slice(a);                            ///////////////////////////////////////////
 //    temp1.each_row()+=mY;
