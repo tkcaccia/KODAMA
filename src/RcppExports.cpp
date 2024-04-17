@@ -2,7 +2,6 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 
-#define ARMA_64BIT_WORD 1
 
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
