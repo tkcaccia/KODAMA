@@ -16,7 +16,6 @@
 #include "ANN/ANN.h"        // ANN library header
 #include "NN.h"             // ANN library header
 #include <R.h>              // R header
-//#include "RcppArmadillo.h"  // RcppArmadillo library header
 
 #define ARMA_64BIT_WORD 1
 #include "RcppArmadillo.h"
@@ -43,7 +42,6 @@ using namespace Rcpp;
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(cpp11)]] 
 
 // [[Rcpp::export]]
 arma::mat satlins(arma::mat x) {
