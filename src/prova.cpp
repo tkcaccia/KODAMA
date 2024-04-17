@@ -20,8 +20,6 @@
 
 #define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(cpp11)]] 
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
@@ -44,6 +42,8 @@ using namespace std;
 using namespace Rcpp;
 
 
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(cpp11)]] 
 
 // [[Rcpp::export]]
 arma::mat satlins(arma::mat x) {
