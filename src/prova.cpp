@@ -1,5 +1,4 @@
 #define R_NO_REMAP
-#define ARMA_64BIT_WORD 1
 
 #include <map>
 #include <vector>
