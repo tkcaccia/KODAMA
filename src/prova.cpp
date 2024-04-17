@@ -1091,8 +1091,9 @@ arma::mat pred_pls(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) 
   B.zeros();
   
   // Ypred <- matrix(0,ncol=m,nrow=n)
-  arma::cube Ypred(w,m,ncomp);
-  Ypred.zeros();  
+  //arma::cube Ypred(w,m,ncomp);                ///////////////////////////////////////////
+  arma::mat Ypred(w,m);
+  Ypred.zeros();                  ///////////////////////////////////////////
   
   
   arma::mat qq;
@@ -1106,7 +1107,8 @@ arma::mat pred_pls(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) 
   arma::mat vv;
 
   // for(a in 1:ncomp){
-  for (int a=0; a<ncomp; a++) {
+  int a;
+  for (a=0; a<ncomp; a++) {
     //qq<-svd(S)$v[,1]
     //rr <- S%*%qq    
 
@@ -1154,18 +1156,22 @@ arma::mat pred_pls(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) 
     VV.col(a)=vv;
     UU.col(a)=uu;
     B.slice(a)=RR*trans(QQ);
-    Ypred.slice(a)=Xtest*B.slice(a);
+  //  Ypred.slice(a)=Xtest*B.slice(a);                               ///////////////////////////////////////////
   } 
-  for (int a=0; a<ncomp; a++) {
-    arma::mat temp1=Ypred.slice(a);
-    temp1.each_row()+=mY;
-    Ypred.slice(a)=temp1;
-  }  
+  Ypred=Xtest*B.slice(a); 
+//  for (int a=0; a<ncomp; a++) {
+//    arma::mat temp1=Ypred.slice(a);                            ///////////////////////////////////////////
+//    temp1.each_row()+=mY;
+//    Ypred.slice(a)=temp1;                  ///////////////////////////////////////////
+//  }  
+ 
+    Ypred.each_row()+=mY;
 
-  arma::mat sli=Ypred.slice(ncomp-1);
+    
+//  arma::mat sli=Ypred.slice(ncomp-1);                         ///////////////////////////////////////////
   
-  return sli;
-  
+//  return sli;                                    ///////////////////////////////////////////
+  return Ypred;
   
 }
 
@@ -2393,8 +2399,8 @@ List corecpp(arma::mat x,
     //     List res=knn_Armadillo(posxy,posxyTdata,10);
     //     arma::mat POS_knn=res[0];
     //     projmat=pred_pls_pos(x,lcm,xTdata,fparpls,POS_knn);  
-      }else{
-        projmat=pred_pls(x,lcm,xTdata,fparpls);
+    //  }else{
+    //   projmat=pred_pls(x,lcm,xTdata,fparpls);
       }
       //min_val is modified to avoid a warning
       double min_val=0;
