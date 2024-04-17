@@ -19,7 +19,7 @@
 //#include "RcppArmadillo.h"  // RcppArmadillo library header
 
 #define ARMA_64BIT_WORD 1
-#include <RcppArmadillo.h>
+#include "RcppArmadillo.h"
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
