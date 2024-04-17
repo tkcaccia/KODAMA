@@ -1,4 +1,5 @@
 #define R_NO_REMAP
+#define ARMA_64BIT_WORD 1
 
 #include <map>
 #include <vector>
@@ -17,8 +18,8 @@
 #include "NN.h"             // ANN library header
 #include <R.h>              // R header
 
-#define ARMA_64BIT_WORD 1
-#include "RcppArmadillo.h"
+
+#include <RcppArmadillo.h>
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
