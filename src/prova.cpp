@@ -2244,9 +2244,7 @@ List corecpp(arma::mat x,
              arma::ivec Xconstrain,
              NumericVector fix,
              bool shake,
-             int proj,
-             arma::mat posxy,
-             arma::mat posxyTdata) {
+             int proj) {
   
   arma::ivec cvpred=clbest;
   arma::ivec cvpredbest;
@@ -2297,28 +2295,7 @@ List corecpp(arma::mat x,
 
     int nn_temp=(unif_rand()*nconc)+1;
   
- //   int xknn=xNeighbors.n_cols;
-  //  int clbest_elem=clbest.n_elem;
- //   for(unsigned jj=0;jj<clbest_elem;jj++){
-//
-//      int check=0;
-//      for(int jj_knn=0; jj_knn<xknn; jj_knn++){
-//        
-//        unsigned wjj_knn_sele=xNeighbors(jj,jj_knn)-1;
 
-        
- //       if(cvpredbest[jj]==cl[wjj_knn_sele]){
- //         check=1;
- //       }
- //     }
- //     if(check==0){
-  //      cvpredbest[jj]=cl[jj];
- //     }
-      
-
- //   }
-    
-  
   //////////////////////////////////////////////////
   
   //////////////////////////////////////////////////
@@ -2349,12 +2326,6 @@ List corecpp(arma::mat x,
         cl.elem(whi)=as<arma::ivec>(soso2);
       }
     }
-    
-    
-    
-    
-    
-    
 
     if(FUN==1){
       cvpred=PLSDACV(x,cl,Xconstrain,fparpls);  
@@ -2395,16 +2366,9 @@ List corecpp(arma::mat x,
 
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
-      if(x.n_rows==posxy.n_rows){
-        projmat=pred_pls(x,lcm,xTdata,fparpls);
+      projmat=pred_pls(x,lcm,xTdata,fparpls);
 
-        
-    //     List res=knn_Armadillo(posxy,posxyTdata,10);
-    //     arma::mat POS_knn=res[0];
-    //     projmat=pred_pls_pos(x,lcm,xTdata,fparpls,POS_knn);  
-    //  }else{
-    //   projmat=pred_pls(x,lcm,xTdata,fparpls);
-      }
+      
       //min_val is modified to avoid a warning
       double min_val=0;
       min_val++;
@@ -2421,32 +2385,7 @@ List corecpp(arma::mat x,
       arma::mat lcm=transformy(clbest);
       List resELM =  elm_train_rcpp(x, lcm, fparpls, "relu");
      
-      projmat=elm_predict_rcpp(resELM,xTdata);
- //     if(x.n_rows==posxy.n_rows){
- //        List res=knn_Armadillo(posxy,posxyTdata,10);
- //        arma::mat POS_knn=res[0];
- //        int k=POS_knn.n_cols;
- ///        int w = xTdata.n_rows;
- //        int m = lcm.n_cols;
-
-//         arma::umat Mtest(w,m);
- //        Mtest.zeros();
-  //       for(int j=0;j<w;j++){
-          
-    //       for(int i=0;i<k;i++){
-           
-   //           arma::umat temp=lcm.row(POS_knn(j,i)-1)==1;
-             
-   //           Mtest.row(j)= temp || Mtest.row(j)==1;
-   //        }
-         
-        
-      
-   //     }
-   //      projmat=projmat % Mtest;
-     
-  //    }
-      
+      projmat=elm_predict_rcpp(resELM,xTdata);      
       //min_val is modified to avoid a warning
       double min_val=0;
       min_val++;
