@@ -442,7 +442,7 @@ pca = function(x,...){
 }
 
 
-quality_control = function(data_row,data_col,spatial_row,FUN,data=NULL,
+quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,
                            f.par.knn, f.par.pls){
   matchFUN = pmatch(FUN[1], c("PLS","PK", "KNN"))
   if (is.na(matchFUN)) 
@@ -601,8 +601,7 @@ if(any(is.na.constrain)){
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                            f.par.knn,f.par.pls,
-                           Xconstrain, Xfix, shake, Xspatial, 
-                           Tspatial), silent = FALSE)
+                           Xconstrain, Xfix, shake), silent = FALSE)
 
     }
     options(warn = 0)
@@ -855,14 +854,11 @@ core_cpp <- function(x,
                      f.par.knn = 5, f.par.pls = 5,
                      constrain=NULL, 
                      fix=NULL, 
-                     shake=FALSE,
-                     posxy=NULL,
-                     posxyTdata=NULL) {
+                     shake=FALSE) {
 
 
     QC=quality_control(data_row = nrow(x),
                      data_col = ncol(x),
-                     spatial_row = nrow(posxy),
                      FUN = FUN,
                      f.par.knn = f.par.knn,
                      f.par.pls = f.par.pls)
@@ -881,14 +877,8 @@ core_cpp <- function(x,
   }else{
     proj=2
   }
-  if(is.null(posxyTdata)){
-    posxyTdata=matrix(1,ncol=1,nrow=1)
-  }
-  if(is.null(posxy)){
-    posxy=matrix(1,ncol=1,nrow=1)
-  }
 
-  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.knn , f.par.pls, constrain, fix, shake,proj,posxy, posxyTdata)
+  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.knn , f.par.pls, constrain, fix, shake,proj)
   return(out)
 }
 
