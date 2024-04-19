@@ -225,8 +225,8 @@ RcppExport SEXP KODAMA_double_knn_cv(SEXP xSEXP, SEXP yySEXP, SEXP constrainSEXP
   END_RCPP
 }
 // corecpp
-List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparknn, int fparpls, arma::ivec Xconstrain, NumericVector fix, bool shake, int proj, arma::mat posxy, arma::mat posxyTdata);
-RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparknnSEXP, SEXP fparplsSEXP, SEXP XconstrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP, SEXP posxySEXP, SEXP posxyTdataSEXP) {
+List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparknn, int fparpls, arma::ivec Xconstrain, NumericVector fix, bool shake, int proj);
+RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparknnSEXP, SEXP fparplsSEXP, SEXP XconstrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -241,9 +241,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type fix(fixSEXP);
     Rcpp::traits::input_parameter< bool >::type shake(shakeSEXP);
     Rcpp::traits::input_parameter< int >::type proj(projSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type posxy(posxySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type posxyTdata(posxyTdataSEXP);
-    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparknn, fparpls, Xconstrain, fix, shake, proj,posxy,posxyTdata));
+    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparknn, fparpls, Xconstrain, fix, shake, proj));
     return __result;
 END_RCPP
 }
