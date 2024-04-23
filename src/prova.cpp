@@ -17,7 +17,7 @@
 #include "NN.h"             // ANN library header
 #include <R.h>              // R header
 
-
+#define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
 
 
