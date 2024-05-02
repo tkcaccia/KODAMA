@@ -229,6 +229,8 @@ function (name, x, y,
     if (!total.column) {
         v = v[, -(nn + 2)]
     }
+    sha=shapiro.test(x)$p.value 
+    attr(v, "shapiro test") = sha                              
     attr(v, "p-value") = pval
     return(v)
 } 
