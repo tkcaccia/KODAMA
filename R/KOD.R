@@ -43,6 +43,15 @@ umap.defaults <- list(
 class(umap.defaults) <- "umap.config"
 
 
+as.data.matrix = function(x){
+  cn=colnames(x)
+  rn=rownames(x)
+  x=matrix(as.numeric(as.matrix(x)),ncol=ncol(x))
+  colnames(x)=cn
+  rownames(x)=rn
+  x
+}
+
 MDS.defaults <- list(
   dims = 2
 )
