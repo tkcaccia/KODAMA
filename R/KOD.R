@@ -157,15 +157,16 @@ kabsch <- function(pm, qm) {
 
 continuous.test =
 function (name, x, y, 
+          center = c("median", "mean"),
           digits = 3, 
           scientific = FALSE, 
-          range = c("IQR",  "95%CI"), 
+          range = c("IQR", "95%CI", "range", "sd"), 
           logchange = FALSE, pos = 2,
           method = c("non-parametric",    "parametric"), 
           total.column = FALSE, ...) 
 {
-    matchFUN = pmatch(method[1], c("non-parametric", "parametric"))
-    if (matchFUN != 1 & matchFUN != 2) {
+    matchFUN.test = pmatch(method[1], c("non-parametric", "parametric"))
+    if (matchFUN.test != 1 & matchFUN.test != 2) {
         stop("Method argument should one of \"non-parametric\",\"parametric\"")
     }
     y = as.factor(y)
@@ -177,10 +178,10 @@ function (name, x, y,
     v = data.frame(matrix(nrow = 1, ncol = nn + 3))
     v[1, 1] = name
     if (nn == 2 & nn2 > 1) {
-        if (matchFUN == 1) {
+        if (matchFUN.test == 1) {
             pval = wilcox.test(x ~ y, exact = FALSE, ...)$p.value
         }
-        if (matchFUN == 2) {
+        if (matchFUN.test == 2) {
             pval = t.test(x ~ y, ...)$p.value
         }
         if (logchange == TRUE) {
@@ -188,18 +189,18 @@ function (name, x, y,
         }
     }
     if (nn > 2 & nn2 > 1) {
-        if (matchFUN == 1) {
+        if (matchFUN.test == 1) {
             pval = kruskal.test(x ~ y, ...)$p.value
         }
-        if (matchFUN == 2) {
+        if (matchFUN.test == 2) {
             pval = summary.aov(aov(x ~ y, ...))[[1]]$`Pr(>F)`[1]
         }
         logchange = FALSE
     }
     if (nn > 1) {
-        v[1, 2:(1 + nn)] = tapply(x, y, function(x) txtsummary(x, 
+        v[1, 2:(1 + nn)] = tapply(x, y, function(x) txtsummary(x, f=center,
                                                                digits = digits, scientific = scientific, range = range))
-        v[1, nn + 2] = txtsummary(x, digits = digits, scientific = scientific)
+        v[1, nn + 2] = txtsummary(x, f=center,digits = digits, scientific = scientific)
         if (nn2 == 1) {
             v[1, nn + 3] = NA
         }
@@ -207,24 +208,16 @@ function (name, x, y,
             v[1, nn + 3] = format(pval, digits = 3, scientific = TRUE)
         }
     }
-    matchFUN = pmatch(range[1], c("IQR", "95%CI"))
+
     if (pos == 1) {
-        if (matchFUN == 1) {
-            names(v) = c("Feature", paste(levels(y), ", median [IQR]", 
-                                          sep = ""), "Total, median [IQR]", "p-value")
-        }
-        if (matchFUN == 2) {
-            names(v) = c("Feature", paste(levels(y), ", median [95%CI]", 
-                                          sep = ""), "Total, median [95%CI]", "p-value")
-        }
+            names(v) = c("Feature", paste(levels(y), ", ",center[1]," [",range[1],"]",sep = ""), 
+                         paste("Total, ",center[1]," [",range[1],"]",sep = ""),
+                               "p-value")  
     }
     else {
-        if (matchFUN == 1) {
-            v[1, 1] = paste(name, ", median [IQR]", sep = "")
-        }
-        if (matchFUN == 2) {
-            v[1, 1] = paste(name, ", median [95%CI]", sep = "")
-        }
+        
+        v[1, 1] = paste(name,", ",center[1]," [",range[1],"]",sep = "")
+                            
         names(v) = c("Feature", levels(y), "Total", "p-value")
     }
     v[v == "NA [NA NA]"] = "-"
