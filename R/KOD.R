@@ -364,6 +364,7 @@ categorical.test =
       cc=cc[,-(nn+2)]
     }
     attr(cc,"p-value")=p.value
+    attr(cc, "shapiro test")=NA
     return(cc)
   }
 
@@ -1288,3 +1289,29 @@ function (data, label, times = 5, seed = 1234)
   label = label[selection]
   return(list(data = data, label = label, selection = selection))
 }
+
+
+multi_test = function(x, labels, ...){
+  name_features=colnames(x)
+  da=NULL
+  pval=NULL
+  shapiro=NULL
+  for(i in 1:length(name_features)){
+    if(is.numeric(x[,i])){
+      temp=continuous.test(name_features[i],x[,i],labels, ...)
+    } else{
+      temp=categorical.test(name_features[i],x[,i],labels, ...)      
+    }
+    pval[i]=attr(temp,"p-value")
+    shapiro[i]=attr(temp, "shapiro test")
+
+     da=rbind(da,temp) 
+  }
+
+     
+  
+  attr(da,"p-value")=pval
+  attr(da,"shapiro test")=shapiro
+  return(da)
+}
+                        
