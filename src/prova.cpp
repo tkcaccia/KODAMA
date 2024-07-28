@@ -602,7 +602,7 @@ double accuracy(arma::ivec cl,arma::ivec cvpred){// This is a C++ version.
   }
   accuracy_list=accuracy_list/number_list;
 
-  double m=mean(accuracy_list);
+  double m=nn*mean(accuracy_list);
   return m;
 }
 
