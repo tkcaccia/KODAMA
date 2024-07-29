@@ -572,39 +572,34 @@ List scalecpp(arma::mat Xtrain,arma::mat Xtest,int type){
 }
 
 
-
-//double accuracy(arma::ivec cl,arma::ivec cvpred){
-//  double acc=0;
-//  for(unsigned i=0;i<cl.size();i++){
-//    if(cl[i]==cvpred[i])
-//      acc++;
-//  }
-//  acc=acc/cl.size();
-//  return acc; 
-//}
-
-double accuracy(arma::ivec cl,arma::ivec cvpred){// This is a C++ version.
-
-  arma::ivec uni=unique(cl);
-  int nn=uni.size();
-
-  arma::vec accuracy_list(nn,arma::fill::zeros);
-  arma::vec number_list(nn,arma::fill::zeros);
-
+double accuracy(arma::ivec cl,arma::ivec cvpred){
+  double acc=0;
   for(unsigned i=0;i<cl.size();i++){
-    for(unsigned j=0;j<nn;j++){
-      if(uni[j]==cl[i]){
-        number_list[j]=number_list[j]+1;
-        if(cl[i]==cvpred[i])
-          accuracy_list[j]=accuracy_list[j]+1;
-      }
-    }
+    if(cl[i]==cvpred[i])
+      acc++;
   }
-  accuracy_list=accuracy_list/number_list;
-
-  double m=mean(accuracy_list)/log2(nn);
-  return m;
+  acc=acc/cl.size();
+  return acc; 
 }
+
+// double accuracy(arma::ivec cl,arma::ivec cvpred){// This is a C++ version.
+//   arma::ivec uni=unique(cl);
+//   int nn=uni.size();
+//   arma::vec accuracy_list(nn,arma::fill::zeros);
+//   arma::vec number_list(nn,arma::fill::zeros);
+//   for(unsigned i=0;i<cl.size();i++){
+//     for(unsigned j=0;j<nn;j++){
+//       if(uni[j]==cl[i]){
+//         number_list[j]=number_list[j]+1;
+//         if(cl[i]==cvpred[i])
+//           accuracy_list[j]=accuracy_list[j]+1;
+//       }
+//     }
+//   }
+//   accuracy_list=accuracy_list/number_list;
+//   double m=mean(accuracy_list)/log2(nn);
+//   return m;
+// }
 
 
 
