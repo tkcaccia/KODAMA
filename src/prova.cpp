@@ -728,7 +728,7 @@ arma::imat knn_kodama_c(arma::mat Xtrain,arma::ivec Ytrain,arma::mat Xtest,int k
   arma::ivec cla=unique(Ytrain);
   int maxlabel=max(Ytrain);
   double* data = Xtrain1.memptr();
-  int *label=Ytrain.memptr();
+  long long int *label=Ytrain.memptr();
   double* query = Xtest1.memptr();
   int D=Xtrain1.n_cols;
   int ND=Xtrain1.n_rows;
