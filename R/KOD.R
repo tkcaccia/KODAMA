@@ -1206,8 +1206,7 @@ knn.double.cv = function(Xdata,
 
 
 
-
-                   frequency_matching =
+frequency_matching =
 function (data, label, times = 5, seed = 1234) 
 {
   data = as.data.frame(data)
@@ -1217,9 +1216,9 @@ function (data, label, times = 5, seed = 1234)
       v <- quantile(data2[, i], prob = seq(0, 0.99, 0.2))
       data2[, i] = findInterval(data2[, i], v)
     }
-    data2[, i]=as.vector(data2[,i])
-    data2[is.na(data2[, i] ), i]="NA" 
-    data2[, i]=as.factor(data2[,i])
+    data2[, i] = as.vector(data2[, i])
+    data2[is.na(data2[, i]), i] = "NA"
+    data2[, i] = as.factor(data2[, i])
   }
   if (is.null(rownames(data2))) {
     rownames(data2) = paste("S", 1:nrow(data2), sep = "")
@@ -1228,20 +1227,15 @@ function (data, label, times = 5, seed = 1234)
   names(label) = rownames(data2)
   data2 = as.matrix(data2[!is.na(label), ])
   label = label[!is.na(label)]
-  
-  tal=table(label)
+  tal = table(label)
   minor = names(which.min(tal))
-  
-  labels_to_match=names(tal)[names(tal)!=minor]
-  
+  labels_to_match = names(tal)[names(tal) != minor]
   data_minor = data2[label == minor, , drop = FALSE]
   nc = ncol(data2)
-  selection=NULL
-  for(lll in 1:length(labels_to_match)){
-  
+  selection = NULL
+  for (lll in 1:length(labels_to_match)) {
     major = labels_to_match[lll]
     data_major = data2[label == major, , drop = FALSE]
-
     grid = list()
     count = list()
     rest = list()
@@ -1254,7 +1248,8 @@ function (data, label, times = 5, seed = 1234)
       }
       grid[[j]] = as.matrix(expand.grid(lis))
       co = apply(grid[[j]], 1, function(y) sum(apply(as.matrix(data_minor)[, 
-                                                                           j:nc, drop = FALSE], 1, function(x) all(y == x))))
+                                                                           j:nc, drop = FALSE], 1, function(x) all(y == 
+                                                                                                                     x))))
       count[[j]] = co * times
     }
     rest = list()
@@ -1270,38 +1265,40 @@ function (data, label, times = 5, seed = 1234)
             n_who = min(sum(who[!selected]), rest[[j]][i])
             rest[[j]][i] = rest[[j]][i] - n_who
             set.seed(seed)
-            ss = sample(names(which(who[!selected])), n_who)
+            ss = sample(names(which(who[!selected])), 
+                        n_who)
             selected[ss] = TRUE
           }
         }
         if (j < nc) {
           temp = list()
-          for (ii in 2:ncol(grid[[j]])) temp[[ii - 1]] = as.matrix(grid[[j]])[,  ii]
+          for (ii in 2:ncol(grid[[j]])) temp[[ii - 1]] = as.matrix(grid[[j]])[, 
+                                                                              ii]
           rest[[j + 1]] = aggregate(rest[[j]], by = temp, 
                                     FUN = sum, na.rm = TRUE)[, "x"]
         }
+        
+        else {
+          rest[[j + 1]] = sum(rest[[j]])
+        }
       }
-      else {
-        rest[[j + 1]] = sum(rest[[j]])
-      }
-    
     }
     if (sum(rest[[j]]) > 0) {
       set.seed(seed)
       ss = sample(which(!selected), rest[[j + 1]])
       selected[ss] = TRUE
     }
-    selection = c(selection,rownames(data_major[selected, , drop = FALSE]))
+    selection = c(selection, rownames(data_major[selected, 
+                                                 , drop = FALSE]))
   }
-  
-  selection = c(selection,rownames(data_minor))
+  selection = c(selection, rownames(data_minor))
   data = data[selection, ]
   data2 = data2[selection, ]
   label = label[selection]
   return(list(data = data, label = label, selection = selection))
 }
 
-
+                        
 multi_test = function(x, labels, ...){
   name_features=colnames(x)
   da=NULL
