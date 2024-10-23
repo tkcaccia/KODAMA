@@ -173,7 +173,7 @@ void annError(const char* msg, ANNerr level)
 {
 	if (level == ANNabort) {
 #ifdef RANN
-		perror("RANN: %s",msg);
+		error("RANN: %s",msg);
 #else
 		cerr << "ANN: ERROR------->" << msg << "<-------------ERROR\n";
 		exit(1);
