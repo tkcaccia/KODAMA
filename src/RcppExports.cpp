@@ -277,7 +277,7 @@ RcppExport SEXP KODAMA_knn_Armadillo(SEXP XtrainSEXP, SEXP XtestSEXP, SEXP kSEXP
 
 
 static const R_CallMethodDef CallEntries[] = {
-  {"KODAMA_PLSCVDA2", (DL_FUNC) &KODAMA_PLSDACV2, 4}
+  {"KODAMA_PLSCVDA2", (DL_FUNC) &KODAMA_PLSDACV2, 4},
   {NULL, NULL, 0}
 };
 
