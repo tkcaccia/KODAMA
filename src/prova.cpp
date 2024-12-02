@@ -12,7 +12,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include <fastPLS.h>
 
 #include "ANN/ANN.h"        // ANN library header
 #include "NN.h"             // ANN library header
