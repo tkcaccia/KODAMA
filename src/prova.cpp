@@ -1216,12 +1216,11 @@ arma::mat transformy(arma::ivec y){
 
 
 
-#define pls_light_sig arma::mat, arma::mat, arma::mat, int
 
 
 // [[Rcpp::export]]
 arma::ivec PLSDACV2(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) {
-  static SEXP(*c_pls_light)(pls_light_sig) = (SEXP(*)(pls_light_sig)) R_GetCCallable("fastPLS", "pls_light");
+  static SEXP(*c_pls_light)(SEXP,SEXP,SEXP, SEXP) = (SEXP(*)(SEXP,SEXP,SEXP, SEXP)) R_GetCCallable("fastPLS", "pls_light");
   
   arma::mat clmatrix=transformy(cl);
   
