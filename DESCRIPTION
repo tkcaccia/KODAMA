@@ -10,9 +10,9 @@ Description: An unsupervised and semi-supervised learning algorithm that perform
   groups on all samples in a data set. Based on Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA. 
   (2017) Bioinformatics <doi:10.1093/bioinformatics/btw705> and Cacciatore S, Luchinat C, Tenori L. (2014) 
   Proc Natl Acad Sci USA <doi:10.1073/pnas.1220873111>.
-Depends: R (>= 2.10.0), stats, minerva, Rtsne, umap
-Imports: Rcpp (>= 0.12.4)
-LinkingTo: Rcpp, RcppArmadillo
+Depends: R (>= 2.10.0), stats, minerva, Rtsne, umap, fastPLS
+Imports: Rcpp (>= 0.12.4), fastPLS
+LinkingTo: Rcpp, RcppArmadillo, fastPLS
 Suggests: rgl, knitr, rmarkdown
 VignetteBuilder: knitr
 SuggestsNote: No suggestions
