@@ -105,6 +105,20 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// PLSDACV
+arma::ivec PLSDACV2(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
+RcppExport SEXP KODAMA_PLSDACV2SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type cl(clSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    __result = Rcpp::wrap(PLSDACV2(x, cl, constrain, k));
+    return __result;
+END_RCPP
+}
 // pls_kodama
 List pls_kodama(arma::mat Xtrain, arma::mat Ytrain, arma::mat Xtest, int ncomp,int scaling);
 RcppExport SEXP KODAMA_pls_kodama(SEXP XtrainSEXP, SEXP YtrainSEXP, SEXP XtestSEXP, SEXP ncompSEXP, SEXP scalingSEXP) {
@@ -259,3 +273,19 @@ RcppExport SEXP KODAMA_knn_Armadillo(SEXP XtrainSEXP, SEXP XtestSEXP, SEXP kSEXP
   return __result;
   END_RCPP
 }
+
+
+
+static const R_CallMethodDef CallEntries[] = {
+  {"KODAMA_PLSCVDA2", (DL_FUNC) &KODAMA_PLSDACV2, 4}
+  {NULL, NULL, 0}
+};
+
+RcppExport void R_initKODAMA(DllInfo *dll) {
+  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+  R_useDynamicSymbols(dll, FALSE);
+}
+
+
+
+
