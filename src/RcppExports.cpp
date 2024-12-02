@@ -107,7 +107,7 @@ END_RCPP
 }
 // PLSDACV
 arma::ivec PLSDACV2(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
-RcppExport SEXP KODAMA_PLSDACV2SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
+RcppExport SEXP KODAMA_PLSDACV2(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
