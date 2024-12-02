@@ -279,7 +279,7 @@ RcppExport SEXP KODAMA_knn_Armadillo(SEXP XtrainSEXP, SEXP XtestSEXP, SEXP kSEXP
 
 
 static const R_CallMethodDef CallEntries[] = {
-  {"KODAMA_IRLB", (DL_FUNC) &fastPLS_IRLB, 7},
+  {"KODAMA_IRLB", (DL_FUNC) &KODAMA_IRLB, 7},
   {NULL, NULL, 0}
 };
 
