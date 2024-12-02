@@ -1216,6 +1216,72 @@ arma::mat transformy(arma::ivec y){
 
 
 
+#define pls_light_sig arma::mat, arma::mat, arma::mat, int
+
+
+// [[Rcpp::export]]
+arma::ivec PLSDACV2(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) {
+  static SEXP(*c_pls_light)(pls_light_sig) = (SEXP(*)(pls_light_sig)) R_GetCCallable("fastPLS", "pls_light");
+  
+  arma::mat clmatrix=transformy(cl);
+  
+  arma::mat Ytest(clmatrix.n_rows,clmatrix.n_cols);
+  
+  int xsa_t = max(constrain);
+  
+  IntegerVector frame = seq_len(xsa_t);
+
+  IntegerVector v=samplewithoutreplace(frame,xsa_t);
+  
+  
+  int mm=constrain.size();
+  arma::ivec fold(mm);
+  for (int i=0; i<mm; i++) 
+    fold[i]=v[constrain(i)-1]%10;
+  
+  
+  
+  for (int i=0; i<10; i++) {
+    arma::uvec w1,w9;
+    arma::ivec temp;
+    arma::mat Xtrain,Xtest;
+    arma::mat Ytrain;
+    
+    w1=find(fold==i);
+    w9=find(fold!=i);
+    temp=unique(cl(w9));    //  I changed this temp=unique(cl(w1));
+    if(temp.size()>1){
+      Xtrain=x.rows(w9);
+      Xtest=x.rows(w1);
+      Ytrain=clmatrix.rows(w9);
+
+      
+
+      Ytest.rows(w1)=pls_light(Xtrain,Ytrain,Xtest,k);
+
+    }else{
+      Ytest.rows(w1)=clmatrix.rows(w1);
+
+    }
+  }  
+  
+  int mm2=constrain.size();
+  arma::ivec pp(mm2);
+  
+  //min_val is modified to avoid a warning
+  double min_val=0;
+  min_val++;
+  arma::uvec ww;
+  for (int i=0; i<mm2; i++) {
+    ww=i;
+    arma::mat v22=Ytest.rows(ww);
+    arma::uword index;                                                                                                                                                                                                                                                                                                                
+    min_val = v22.max(index);
+    pp(i)=index+1;
+  }
+  return pp;
+}
+
 
 
 // [[Rcpp::export]]
@@ -2276,7 +2342,9 @@ List corecpp(arma::mat x,
   if(FUN==3){
     cvpredbest=KNNCV(x,clbest,Xconstrain,fparknn); 
   }
-
+  if(FUN==4){
+    cvpredbest=PLSDACV2(x,clbest,Xconstrain,fparpls);   
+  }
   double accbest;
   if (shake == FALSE) {
     accbest = accuracy(clbest,cvpredbest);
@@ -2351,6 +2419,9 @@ List corecpp(arma::mat x,
     }
     if(FUN==3){
       cvpred=KNNCV(x,cl,Xconstrain,fparknn);
+    }    
+    if(FUN==4){
+      cvpred=PLSDACV2(x,cl,Xconstrain,fparpls);  
     }
     double accTOT= accuracy(cl,cvpred);
     if (accTOT > accbest) {
