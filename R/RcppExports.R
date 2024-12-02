@@ -89,6 +89,10 @@ PLSDACV <- function(x, cl, constrain, k) {
     .Call('KODAMA_PLSDACV', PACKAGE = 'KODAMA', x, cl, constrain, k)
 }
 
+PLSDACV2 <- function(x, cl, constrain, k) {
+    .Call('KODAMA_PLSDACV2', PACKAGE = 'KODAMA', x, cl, constrain, k)
+}
+
 KNNPLSDACV <- function(x, cl, constrain, k, pos, knn) {
     .Call('KODAMA_KNNPLSDACV', PACKAGE = 'KODAMA', x, cl, constrain, k, pos, knn)
 }
