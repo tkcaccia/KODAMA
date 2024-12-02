@@ -451,7 +451,7 @@ pca = function(x,...){
 
 quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,
                            f.par.knn, f.par.pls){
-  matchFUN = pmatch(FUN[1], c("PLS","PK", "KNN"))
+  matchFUN = pmatch(FUN[1], c("PLS","PK", "KNN","PLS2"))
   if (is.na(matchFUN)) 
     stop("The method to be considered must be  \"PLS\", \"PK\", or \"KNN\".")
   if (!is.null(spatial_row)){
