@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 
+#include <fastPLS.h>
 
 #include "ANN/ANN.h"        // ANN library header
 #include "NN.h"             // ANN library header
@@ -1220,7 +1221,7 @@ arma::mat transformy(arma::ivec y){
 
 // [[Rcpp::export]]
 arma::ivec PLSDACV2(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) {
-  static SEXP(*c_pls_light)(SEXP,SEXP,SEXP, SEXP) = (SEXP(*)(SEXP,SEXP,SEXP, SEXP)) R_GetCCallable("fastPLS", "pls_light");
+
   
   arma::mat clmatrix=transformy(cl);
   
@@ -1256,7 +1257,7 @@ arma::ivec PLSDACV2(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) {
 
       
 
-      Ytest.rows(w1)=c_pls_light(Xtrain,Ytrain,Xtest,k);
+      Ytest.rows(w1)=fastPLS::pls_light(Xtrain,Ytrain,Xtest,k);
 
     }else{
       Ytest.rows(w1)=clmatrix.rows(w1);
