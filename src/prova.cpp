@@ -1257,7 +1257,7 @@ arma::ivec PLSDACV2(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) {
 
       
 
-      Ytest.rows(w1)=pls_light(Xtrain,Ytrain,Xtest,k);
+      Ytest.rows(w1)=c_pls_light(Xtrain,Ytrain,Xtest,k);
 
     }else{
       Ytest.rows(w1)=clmatrix.rows(w1);
