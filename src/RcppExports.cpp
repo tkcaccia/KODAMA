@@ -276,15 +276,19 @@ RcppExport SEXP KODAMA_knn_Armadillo(SEXP XtrainSEXP, SEXP XtestSEXP, SEXP kSEXP
 
 
 
+
+
 static const R_CallMethodDef CallEntries[] = {
-  {"KODAMA_PLSCVDA2", (DL_FUNC) &KODAMA_PLSDACV2, 4},
+  {"KODAMA_IRLB", (DL_FUNC) &fastPLS_IRLB, 7},
   {NULL, NULL, 0}
 };
 
-RcppExport void R_initKODAMA(DllInfo *dll) {
+RcppExport void R_initfastPLS(DllInfo *dll) {
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
 }
+
+
 
 
 
