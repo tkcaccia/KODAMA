@@ -18,7 +18,6 @@
 
 #include <RcppArmadillo.h>
 
-#include "../inst/include/irlb/irlb.h"
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
 
