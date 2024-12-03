@@ -81,17 +81,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-// unic
-int unic(arma::mat x);
-RcppExport SEXP KODAMA_unic(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    __result = Rcpp::wrap(unic(x));
-    return __result;
-END_RCPP
-}
 
 // corecpp
 List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparpls, arma::ivec Xconstrain, NumericVector fix, bool shake, int proj);
