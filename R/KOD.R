@@ -121,7 +121,7 @@ function (clusterlabels, location, shape = "square")
   }  else {
     print("Select shape='hexagon' for Visium data, 'square' for ST data.")
   }
-  temp = knn_Armadillo(location, location, num_obs + 1)$nn_index
+  temp = Rnanoflann::nn(location, location, num_obs + 1)$indices
   ma = matrix(clusterlabels[temp], ncol = ncol(temp))
   refined_pred = apply(ma, 1, function(x) {
     y = table(x)
@@ -566,7 +566,7 @@ if(any(is.na.constrain)){
 
     if (spatial_flag) {
       clu=sample(nsample,nspatialclusters)
-      spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
+      spatialclusters=Rnanoflann::nn(spatial[clu,],spatial,1)$indeces
       tab = apply(table(spatialclusters, constrain), 2,which.max)
       Xconstrain = as.numeric(as.factor(tab[as.character(constrain)]))
    #####   spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
@@ -676,23 +676,23 @@ if(any(is.na.constrain)){
     dissimilarity = mam
   }
 
-  knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-  knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-  knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
+  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1)
+  knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
+  knn_Rnanoflann$nn_index = knn_Rnanoflann$indices[, -1]
   for (i_tsne in 1:nrow(data)) {
     for (j_tsne in 1:neighbors) {
-      kod_tsne = mean(res[, i_tsne] == res[, knn_Armadillo$nn_index[i_tsne, j_tsne]], na.rm = TRUE)
-      knn_Armadillo$distances[i_tsne, j_tsne] = knn_Armadillo$distances[i_tsne,  j_tsne]/kod_tsne
+      kod_tsne = mean(res[, i_tsne] == res[, knn_Rnanoflann$indices[i_tsne, j_tsne]], na.rm = TRUE)
+      knn_Rnanoflann$distances[i_tsne, j_tsne] = knn_Rnanoflann$distances[i_tsne,  j_tsne]/kod_tsne
     }
-    oo_tsne = order(knn_Armadillo$distance[i_tsne, ])
-    knn_Armadillo$distances[i_tsne, ] = knn_Armadillo$distances[i_tsne, oo_tsne]
-    knn_Armadillo$nn_index[i_tsne, ] = knn_Armadillo$nn_index[i_tsne, oo_tsne]
+    oo_tsne = order(knn_Rnanoflann$distance[i_tsne, ])
+    knn_Rnanoflann$distances[i_tsne, ] = knn_Rnanoflann$distances[i_tsne, oo_tsne]
+    knn_Rnanoflann$indices[i_tsne, ] = knn_Rnanoflann$indices[i_tsne, oo_tsne]
   }
 
-  knn_Armadillo$neighbors = neighbors
+  knn_Rnanoflann$neighbors = neighbors
   return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
               v = vect_acc, res = res, 
-              landpoints = landpoints, knn_Armadillo = knn_Armadillo, 
+              landpoints = landpoints, knn_Rnanoflann = knn_Rnanoflann, 
               data = data))
 }
 
@@ -709,7 +709,7 @@ KODAMA.visualization=function(kk,method=c("t-SNE","MDS","UMAP"),config=NULL){
       stop("Perplexity is too large for the number of samples")
     }
 
-    ntsne=min(c(round(config$perplexity)*3,nrow(kk$data)-1,ncol(kk$knn_Armadillo$nn_index)))
+    ntsne=min(c(round(config$perplexity)*3,nrow(kk$data)-1,ncol(kk$knn_Rnanoflann$indices)))
 
     if(is.null(config$stop_lying_iter)){
       config$stop_lying_iter = ifelse(is.null(config$Y_init), 250L, 0L)
@@ -718,7 +718,7 @@ KODAMA.visualization=function(kk,method=c("t-SNE","MDS","UMAP"),config=NULL){
     if(is.null(config$mom_switch_iter)){
       config$mom_switch_iter = ifelse(is.null(config$Y_init), 250L, 0L)
     }
-    res_tsne=Rtsne_neighbors(kk$knn_Armadillo$nn_index[,1:ntsne],kk$knn_Armadillo$distances[,1:ntsne],
+    res_tsne=Rtsne_neighbors(kk$knn_Rnanoflann$indices[,1:ntsne],kk$knn_Rnanoflann$distances[,1:ntsne],
                              dims = config$dims,
                              perplexity = config$perplexity,
                              theta = config$theta,
@@ -751,10 +751,10 @@ KODAMA.visualization=function(kk,method=c("t-SNE","MDS","UMAP"),config=NULL){
     if(is.null(config)){
       config = umap.defaults
     }
-    numap=min(c(round(config$n_neighbors)*3,nrow(kk$data)-1,ncol(kk$knn_Armadillo$nn_index)))
+    numap=min(c(round(config$n_neighbors)*3,nrow(kk$data)-1,ncol(kk$knn_Rnanoflann$indices)))
 
     
-    u=umap.knn(kk$knn_Armadillo$nn_index[,1:numap],kk$knn_Armadillo$distances[,1:numap])
+    u=umap.knn(kk$knn_Rnanoflann$indices[,1:numap],kk$knn_Rnanoflann$distances[,1:numap])
     u$distances[u$distances==Inf]=max(u$distances[u$distances!=Inf])
     config$knn=u
    
