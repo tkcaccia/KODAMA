@@ -39,50 +39,7 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// knn_kodama_c
-arma::imat knn_kodama_c(arma::mat Xtrain, arma::ivec Ytrain, arma::mat Xtest, int k, int scaling);
-RcppExport SEXP KODAMA_knn_kodama_c(SEXP XtrainSEXP, SEXP YtrainSEXP, SEXP XtestSEXP, SEXP kSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type Xtrain(XtrainSEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type Ytrain(YtrainSEXP);
-  Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
-  Rcpp::traits::input_parameter< int >::type k(kSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(knn_kodama_c(Xtrain, Ytrain, Xtest, k,scaling));
-  return __result;
-  END_RCPP
-}
-// knn_kodama_r
-arma::mat knn_kodama_r(arma::mat Xtrain, arma::vec Ytrain, arma::mat Xtest, int k,int scaling);
-RcppExport SEXP KODAMA_knn_kodama_r(SEXP XtrainSEXP, SEXP YtrainSEXP, SEXP XtestSEXP, SEXP kSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type Xtrain(XtrainSEXP);
-  Rcpp::traits::input_parameter< arma::vec >::type Ytrain(YtrainSEXP);
-  Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
-  Rcpp::traits::input_parameter< int >::type k(kSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(knn_kodama_r(Xtrain, Ytrain, Xtest, k,scaling));
-  return __result;
-  END_RCPP
-}
-// KNNCV
-arma::ivec KNNCV(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
-RcppExport SEXP KODAMA_KNNCV(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::ivec >::type cl(clSEXP);
-    Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
-    __result = Rcpp::wrap(KNNCV(x, cl, constrain, k));
-    return __result;
-END_RCPP
-}
+
 // transformy
 arma::mat transformy(arma::ivec y);
 RcppExport SEXP KODAMA_transformy(SEXP ySEXP) {
@@ -94,9 +51,10 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// KNNPLSDACV
-arma::ivec KNNPLSDACV(arma::mat x, arma::ivec cl, arma::ivec constrain, int k,arma::mat pos,int knn);
-RcppExport SEXP KODAMA_KNNPLSDACV(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP, SEXP posSEXP, SEXP knnSEXP) {
+
+// PLSDACV
+arma::ivec PLSDACV_fastpls(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
+RcppExport SEXP KODAMA_PLSDACV_fastpls(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -104,15 +62,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::ivec >::type cl(clSEXP);
     Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pos(posSEXP);
-    Rcpp::traits::input_parameter< int >::type knn(knnSEXP);
-    __result = Rcpp::wrap(KNNPLSDACV(x, cl, constrain, k, pos, knn));
+    __result = Rcpp::wrap(PLSDACV_fastpls(x, cl, constrain, k));
     return __result;
 END_RCPP
 }
 // PLSDACV
-arma::ivec PLSDACV(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
-RcppExport SEXP KODAMA_PLSDACV(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
+arma::ivec PLSDACV_simpls(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
+RcppExport SEXP KODAMA_PLSDACV_simpls(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -120,39 +76,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::ivec >::type cl(clSEXP);
     Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
-    __result = Rcpp::wrap(PLSDACV(x, cl, constrain, k));
+    __result = Rcpp::wrap(PLSDACV_simpls(x, cl, constrain, k));
     return __result;
 END_RCPP
 }
-// PLSDACV
-arma::ivec PLSDACV2(arma::mat x, arma::ivec cl, arma::ivec constrain, int k);
-RcppExport SEXP KODAMA_PLSDACV2(SEXP xSEXP, SEXP clSEXP, SEXP constrainSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::ivec >::type cl(clSEXP);
-    Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
-    __result = Rcpp::wrap(PLSDACV2(x, cl, constrain, k));
-    return __result;
-END_RCPP
-}
-// pls_kodama
-List pls_kodama(arma::mat Xtrain, arma::mat Ytrain, arma::mat Xtest, int ncomp,int scaling);
-RcppExport SEXP KODAMA_pls_kodama(SEXP XtrainSEXP, SEXP YtrainSEXP, SEXP XtestSEXP, SEXP ncompSEXP, SEXP scalingSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::mat >::type Xtrain(XtrainSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Ytrain(YtrainSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
-    Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-    __result = Rcpp::wrap(pls_kodama(Xtrain, Ytrain, Xtest, ncomp, scaling));
-    return __result;
-END_RCPP
-}
+
 // unic
 int unic(arma::mat x);
 RcppExport SEXP KODAMA_unic(SEXP xSEXP) {
@@ -164,102 +92,10 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// RQ
-double RQ(arma::vec yData,arma::vec yPred);
-RcppExport SEXP KODAMA_RQ(SEXP yDataSEXP,SEXP yPredSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::vec >::type yData(yDataSEXP);
-  Rcpp::traits::input_parameter< arma::vec >::type yPred(yPredSEXP);
-  __result = Rcpp::wrap(RQ(yData,yPred));
-  return __result;
-  END_RCPP
-}
-// optim_pls_cv
-List optim_pls_cv(arma::mat x, arma::mat clmatrix, arma::ivec constrain, int ncomp,int scaling);
-RcppExport SEXP KODAMA_optim_pls_cv(SEXP xSEXP, SEXP clmatrixSEXP, SEXP constrainSEXP, SEXP ncompSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-  Rcpp::traits::input_parameter< arma::mat >::type clmatrix(clmatrixSEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-  Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(optim_pls_cv(x, clmatrix, constrain, ncomp,scaling));
-  return __result;
-  END_RCPP
-}
-// optim_knn_r_cv
-List optim_knn_r_cv(arma::mat x, arma::vec clmatrix, arma::ivec constrain, int ncomp,int scaling);
-RcppExport SEXP KODAMA_optim_knn_r_cv(SEXP xSEXP, SEXP clmatrixSEXP, SEXP constrainSEXP, SEXP ncompSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-  Rcpp::traits::input_parameter< arma::vec >::type clmatrix(clmatrixSEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-  Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(optim_knn_r_cv(x, clmatrix, constrain, ncomp,scaling));
-  return __result;
-  END_RCPP
-}
-// optim_knn_c_cv
-List optim_knn_c_cv(arma::mat x, arma::ivec clmatrix, arma::ivec constrain, int ncomp,int scaling);
-RcppExport SEXP KODAMA_optim_knn_c_cv(SEXP xSEXP, SEXP clmatrixSEXP, SEXP constrainSEXP, SEXP ncompSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type clmatrix(clmatrixSEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-  Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(optim_knn_c_cv(x, clmatrix, constrain, ncomp,scaling));
-  return __result;
-  END_RCPP
-}
-// double_pls_cv
-List double_pls_cv(arma::mat x, arma::mat y, arma::ivec constrain, int type, int verbose, int compmax, int opt,int scaling);
-RcppExport SEXP KODAMA_double_pls_cv(SEXP xSEXP, SEXP ySEXP, SEXP constrainSEXP, SEXP typeSEXP, SEXP verboseSEXP, SEXP compmaxSEXP, SEXP optSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-  Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-  Rcpp::traits::input_parameter< int >::type type(typeSEXP);
-  Rcpp::traits::input_parameter< int >::type verbose(verboseSEXP);
-  Rcpp::traits::input_parameter< int >::type compmax(compmaxSEXP);
-  Rcpp::traits::input_parameter< int >::type opt(optSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(double_pls_cv(x, y, constrain, type, verbose, compmax,opt,scaling));
-  return __result;
-  END_RCPP
-}
-// double_knn_cv
-List double_knn_cv(arma::mat x, arma::vec yy, arma::ivec constrain, int type, int verbose, int compmax,int opt, int scaling);
-RcppExport SEXP KODAMA_double_knn_cv(SEXP xSEXP, SEXP yySEXP, SEXP constrainSEXP, SEXP typeSEXP, SEXP verboseSEXP, SEXP compmaxSEXP, SEXP optSEXP, SEXP scalingSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-  Rcpp::traits::input_parameter< arma::vec >::type yy(yySEXP);
-  Rcpp::traits::input_parameter< arma::ivec >::type constrain(constrainSEXP);
-  Rcpp::traits::input_parameter< int >::type type(typeSEXP);
-  Rcpp::traits::input_parameter< int >::type verbose(verboseSEXP);
-  Rcpp::traits::input_parameter< int >::type compmax(compmaxSEXP);
-  Rcpp::traits::input_parameter< int >::type opt(optSEXP);
-  Rcpp::traits::input_parameter< int >::type scaling(scalingSEXP);
-  __result = Rcpp::wrap(double_knn_cv(x, yy, constrain, type, verbose, compmax,opt,scaling));
-  return __result;
-  END_RCPP
-}
+
 // corecpp
-List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparknn, int fparpls, arma::ivec Xconstrain, NumericVector fix, bool shake, int proj);
-RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparknnSEXP, SEXP fparplsSEXP, SEXP XconstrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP) {
+List corecpp(arma::mat x, arma::mat xTdata, arma::ivec clbest, const int Tcycle, int FUN, int fparpls, arma::ivec Xconstrain, NumericVector fix, bool shake, int proj);
+RcppExport SEXP KODAMA_corecpp(SEXP xSEXP, SEXP xTdataSEXP, SEXP clbestSEXP, SEXP TcycleSEXP, SEXP FUNSEXP, SEXP fparplsSEXP, SEXP XconstrainSEXP, SEXP fixSEXP, SEXP shakeSEXP, SEXP projSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -268,13 +104,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::ivec >::type clbest(clbestSEXP);
     Rcpp::traits::input_parameter< const int >::type Tcycle(TcycleSEXP);
     Rcpp::traits::input_parameter< int >::type FUN(FUNSEXP);
-    Rcpp::traits::input_parameter< int >::type fparknn(fparknnSEXP);
     Rcpp::traits::input_parameter< int >::type fparpls(fparplsSEXP);
     Rcpp::traits::input_parameter< arma::ivec >::type Xconstrain(XconstrainSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type fix(fixSEXP);
     Rcpp::traits::input_parameter< bool >::type shake(shakeSEXP);
     Rcpp::traits::input_parameter< int >::type proj(projSEXP);
-    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparknn, fparpls, Xconstrain, fix, shake, proj));
+    __result = Rcpp::wrap(corecpp(x, xTdata, clbest, Tcycle, FUN, fparpls, Xconstrain, fix, shake, proj));
     return __result;
 END_RCPP
 }
