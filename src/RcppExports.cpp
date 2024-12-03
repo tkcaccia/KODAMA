@@ -103,21 +103,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-// knn_Armadillo
-List knn_Armadillo(arma::mat Xtrain,arma::mat Xtest,int k);
-RcppExport SEXP KODAMA_knn_Armadillo(SEXP XtrainSEXP, SEXP XtestSEXP, SEXP kSEXP) {
-  BEGIN_RCPP
-  Rcpp::RObject __result;
-  Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter< arma::mat >::type Xtrain(XtrainSEXP);
-  Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
-  Rcpp::traits::input_parameter< int >::type k(kSEXP);
-  __result = Rcpp::wrap(knn_Armadillo(Xtrain, Xtest, k));
-  return __result;
-  END_RCPP
-}
-
-
 
 
 
