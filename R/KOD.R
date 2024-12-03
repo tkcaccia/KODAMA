@@ -476,7 +476,7 @@ function (data,                       # Dataset
           M = 100, Tcycle = 20, 
           FUN = c("fastpls","simpls"), 
           f.par.pls = 5,
-          W = NULL, 
+          W = NULL, metrics="euclidean",
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
           splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
 {
@@ -566,7 +566,7 @@ if(any(is.na.constrain)){
 
     if (spatial_flag) {
       clu=sample(nsample,nspatialclusters)
-      spatialclusters=Rnanoflann::nn(spatial[clu,],spatial,1)$indeces
+      spatialclusters=Rnanoflann::nn(spatial[clu,],spatial,1,method="euclidean" )$indeces
       tab = apply(table(spatialclusters, constrain), 2,which.max)
       Xconstrain = as.numeric(as.factor(tab[as.character(constrain)]))
    #####   spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
@@ -676,7 +676,7 @@ if(any(is.na.constrain)){
     dissimilarity = mam
   }
 
-  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1)
+  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics)
   knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
   knn_Rnanoflann$nn_index = knn_Rnanoflann$indices[, -1]
   for (i_tsne in 1:nrow(data)) {
