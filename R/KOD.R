@@ -505,7 +505,6 @@ if(any(is.na.constrain)){
 }
 
      
-  shake = FALSE
   
   if(nsample<=landmarks){
     landmarks=ceiling(nsample*0.75)
@@ -604,7 +603,7 @@ if(any(is.na.constrain)){
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                            f.par.pls,
-                           Xconstrain, Xfix, shake), silent = FALSE)
+                           Xconstrain, Xfix, FALSE), silent = FALSE)
 
     }
     options(warn = 0)
@@ -856,8 +855,7 @@ core_cpp <- function(x,
                      FUN=c("fastpls","simpls"), 
                      f.par.pls = 5,
                      constrain=NULL, 
-                     fix=NULL, 
-                     shake=FALSE) {
+                     fix=NULL) {
 
 
     QC=quality_control(data_row = nrow(x),
@@ -879,8 +877,8 @@ core_cpp <- function(x,
   }else{
     proj=2
   }
-
-  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.pls, constrain, fix, shake,proj)
+# shake=FALSE
+  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.pls, constrain, fix, FALSE,proj)
   return(out)
 }
 
