@@ -12,7 +12,7 @@ Description: An unsupervised and semi-supervised learning algorithm that perform
   Proc Natl Acad Sci USA <doi:10.1073/pnas.1220873111>.
 Depends: R (>= 2.10.0), stats, minerva, Rtsne, umap, irlba
 Imports: Rcpp (>= 0.12.4), irlba
-LinkingTo: Rcpp, RcppArmadillo, irlba
+LinkingTo: Rcpp, RcppArmadillo, irlba, Rnanoflann
 Suggests: rgl, knitr, rmarkdown
 VignetteBuilder: knitr
 SuggestsNote: No suggestions
