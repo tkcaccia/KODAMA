@@ -26,13 +26,10 @@ S3method(print,MDS.config)
 
 exportPattern(floyd,another,vertex,
               KODAMA,k.test,loads,PLSDACV,KNNPLSDACV,PLSDACV2,
-              mcplot,core_cpp,floyd,
-              pls.double.cv,knn.double.cv,knn.kodama,
-              pls.kodama,dinisurface,helicoid,spirals,
+              mcplot,core_cpp,floyd,dinisurface,helicoid,spirals,
               swissroll,normalization,scaling,
               transformy,frequency_matching,
-              RQ,quality_control,
-              knn_Armadillo,
+              quality_control,
               refine_cluster,
               txtsummary,continuous.test,categorical.test,correlation.test,multi_analysis,pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch)
 
