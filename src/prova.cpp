@@ -13,8 +13,6 @@
 #include <errno.h>
 
 
-#include "ANN/ANN.h"        // ANN library header
-#include "NN.h"             // ANN library header
 #include <R.h>              // R header
 
 
