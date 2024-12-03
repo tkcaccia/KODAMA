@@ -475,7 +475,7 @@ function (data,                       # Dataset
           spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
           M = 100, Tcycle = 20, 
           FUN = c("fastpls","simpls"), 
-          f.par.pls = 5,
+          f.par.pls = min(c(50,ncol(data)),
           W = NULL, metrics="euclidean",
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
           splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
