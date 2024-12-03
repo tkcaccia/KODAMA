@@ -22,7 +22,4 @@ corecpp <- function(x, xTdata, clbest, Tcycle, FUN, f.par.pls, Xconstrain, fix, 
     .Call('KODAMA_corecpp', PACKAGE = 'KODAMA', x, xTdata, clbest, Tcycle, FUN, f.par.pls, Xconstrain, fix, shake, proj)
 }
 
-knn_Armadillo <- function(Xtrain, Xtest, k) {
-  .Call('KODAMA_knn_Armadillo', PACKAGE = 'KODAMA', Xtrain, Xtest, k)
-}
 
