@@ -276,45 +276,6 @@ double accuracy(arma::ivec cl,arma::ivec cvpred){
 
 
 // [[Rcpp::export]]
-List knn_Armadillo(arma::mat Xtrain,arma::mat Xtest,int k) {
-  double* data = Xtrain.memptr();
-  double* query = Xtest.memptr();
-  int D=Xtrain.n_cols;
-  int ND=Xtrain.n_rows;
-  int NQ=Xtest.n_rows;
-  double EPS=0;
-  int SEARCHTYPE=1;
-  int USEBDTREE=0;
-  double SQRAD=0;
-  int nn=NQ*k;
-  int *nn_index= new int[nn];
-  double *distances= new double[nn];
-  arma::imat Ytest(NQ,k);
-  get_NN_2Set(data,query,&D,&ND,&NQ,&k,&EPS,&SEARCHTYPE,&USEBDTREE,&SQRAD,nn_index,distances);
-  
-  arma::mat distancesArmadillo(NQ,k);
-  arma::mat nn_indexArmadillo(NQ,k);
-  for(int j=0;j<NQ;j++){
-    for(int i=0;i<k;i++){
-      nn_indexArmadillo(j,i)=nn_index[j*k+i];
-      distancesArmadillo(j,i)=distances[j*k+i];
-    }
-  }
-  
-  delete [] nn_index;
-  delete [] distances;
-  return List::create(
-    Named("nn_index")   = nn_indexArmadillo,
-    Named("distances")   = distancesArmadillo
-  );
-}
-
-
-
-
-
-
-// [[Rcpp::export]]
 arma::mat floyd(arma::mat data){
   int n=data.n_cols;
   int i,j,k;
