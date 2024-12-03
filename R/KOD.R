@@ -449,24 +449,21 @@ pca = function(x,...){
 }
 
 
-quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,
-                           f.par.knn, f.par.pls){
-  matchFUN = pmatch(FUN[1], c("PLS","PK", "KNN","PLS2"))
+quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.par.pls){
+  matchFUN = pmatch(FUN[1], c("fastpls","simpls"))
   if (is.na(matchFUN)) 
-    stop("The method to be considered must be  \"PLS\", \"PK\", or \"KNN\".")
+    stop("The method to be considered must be  \"fastpls\", \"simpls\".")
   if (!is.null(spatial_row)){
     if (spatial_row!=data_row) 
       stop("The number of spatial coordinates and number of entries do not match.")    
 
   } 
 
-  if (f.par.pls > data_col & (matchFUN == 1)) {
+  if (f.par.pls > data_col) {
     message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_col)
     f.par.pls = data_col
   }
-  if (f.par.knn > (data_row/4) & matchFUN == 3)  {         
-    stop("The number of k neighbors selected for KNN is too high.")
-  }
+
   
   return(list(matchFUN=matchFUN,f.par.pls=f.par.pls))
 }
@@ -477,8 +474,8 @@ KODAMA.matrix =
 function (data,                       # Dataset
           spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
           M = 100, Tcycle = 20, 
-          FUN = c("PLS","PK","KNN"), 
-          f.par.knn = 5, f.par.pls = 5,
+          FUN = c("fastpls","simpls"), 
+          f.par.pls = 5,
           W = NULL, 
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
           splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
@@ -521,7 +518,6 @@ if(any(is.na.constrain)){
                      spatial_row = nsample_spatial,
                      FUN = FUN,
                      data = data,
-                     f.par.knn = f.par.knn,
                      f.par.pls = f.par.pls)
   matchFUN=QC$matchFUN
 
@@ -607,7 +603,7 @@ if(any(is.na.constrain)){
     attr(yatta, "class") = "try-error"
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
-                           f.par.knn,f.par.pls,
+                           f.par.pls,
                            Xconstrain, Xfix, shake), silent = FALSE)
 
     }
@@ -857,8 +853,8 @@ core_cpp <- function(x,
                      xTdata=NULL,
                      clbest, 
                      Tcycle=20, 
-                     FUN=c("PLS","PK","KNN"), 
-                     f.par.knn = 5, f.par.pls = 5,
+                     FUN=c("fastpls","simpls"), , 
+                     f.par.pls = 5,
                      constrain=NULL, 
                      fix=NULL, 
                      shake=FALSE) {
@@ -867,7 +863,6 @@ core_cpp <- function(x,
     QC=quality_control(data_row = nrow(x),
                      data_col = ncol(x),
                      FUN = FUN,
-                     f.par.knn = f.par.knn,
                      f.par.pls = f.par.pls)
   
   matchFUN=QC$matchFUN
@@ -885,7 +880,7 @@ core_cpp <- function(x,
     proj=2
   }
 
-  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.knn , f.par.pls, constrain, fix, shake,proj)
+  out=corecpp(x, xTdata,clbest, Tcycle, matchFUN, f.par.pls, constrain, fix, shake,proj)
   return(out)
 }
 
