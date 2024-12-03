@@ -697,9 +697,9 @@ if(any(is.na.constrain)){
 }
 
                               
-KODAMA.visualization=function(kk,method=c("t-SNE","MDS","UMAP"),config=NULL){
+KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
   
-  mat=c("t-SNE","MDS","UMAP")[pmatch(method,c("t-SNE","MDS","UMAP"))[1]]
+  mat=c("UMAP","t-SNE","MDS")[pmatch(method,c(c("UMAP","t-SNE","MDS")))[1]]
 
   if(mat=="t-SNE"){ 
     if(is.null(config)){
