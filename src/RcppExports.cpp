@@ -7,7 +7,6 @@
 #include <Rcpp.h>
 
 
-#include "../inst/include/irlb/irlb.h"
 
 using namespace Rcpp;
 
