@@ -17,8 +17,8 @@
 
 
 #include <RcppArmadillo.h>
-#include <fastPLS.h>
-#include <irlba.h>
+#include "fastPLS.h"
+#include "irlba.h"
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
