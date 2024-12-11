@@ -417,7 +417,7 @@ arma::ivec PLSDACV_fastpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k)
       Xtest=x.rows(w1);
       Ytrain=clmatrix.rows(w9);
 
-      Ytest.rows(w1)=fastPLS::fastpls_light(Xtrain,Ytrain,Xtest,k);
+      Ytest.rows(w1)=fastPLS::pls_light(Xtrain,Ytrain,Xtest,k);
 
     }else{
       Ytest.rows(w1)=clmatrix.rows(w1);
@@ -574,7 +574,7 @@ List corecpp(arma::mat x,
 
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
-      projmat=fastPLS::fastpls_light(x,lcm,xTdata,fparpls);
+      projmat=fastPLS::pls_light(x,lcm,xTdata,fparpls);
       
       //min_val is modified to avoid a warning
       double min_val=0;
