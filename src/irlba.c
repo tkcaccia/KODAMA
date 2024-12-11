@@ -27,7 +27,7 @@
 
 
 
-#include "../inst/include/irlba.h"
+#include "irlba.h"
 
 
 
