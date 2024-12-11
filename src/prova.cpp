@@ -17,6 +17,7 @@
 
 
 #include <RcppArmadillo.h>
+#include <fastPLS.h>
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
@@ -32,138 +33,6 @@
 
 using namespace std;
 using namespace Rcpp;
-
-
-
-
-
-
-#define irlb_sig double*, void*, int, int, int, int, int, int, int, double, double*, double*, double*, double*, double*, double*, int*, int*, double, int, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double, double*
-
-/* irlb C++ implementation wrapper for Armadillo
-* X double precision input matrix
-* NU integer number of singular values/vectors to compute must be > 3
-* INIT double precision starting vector length(INIT) must equal ncol(X)
-* WORK integer working subspace dimension must be > NU
-* MAXIT integer maximum number of iterations
-* TOL double tolerance
-* EPS double invariant subspace detection tolerance
-* MULT integer 0 X is a dense matrix (dgemm), 1 sparse (cholmod)
-* RESTART integer 0 no or > 0 indicates restart of dimension n
-* RV, RW, RS optional restart V W and S values of dimension RESTART
-*    (only used when RESTART > 0)
-* SCALE either NULL (no scaling) or a vector of length ncol(X)
-* SHIFT either NULL (no shift) or a single double-precision number
-* CENTER either NULL (no centering) or a vector of length ncol(X)
-* SVTOL double tolerance max allowed per cent change in each estimated singular value */
-// [[Rcpp::export]]
-List IRLB(arma::mat& X,
-                 int nu,
-                 int work,
-                 int maxit,
-                 double tol,
-                 double eps,
-                 double svtol)
-{
-
-  int m = X.n_rows;
-  int n = X.n_cols;
-  int iter, mprod;
-  int lwork = 7 * work * (1 + work);
-
-  arma::vec s = arma::randn<arma::vec>(nu);
-  arma::mat U = arma::randn<arma::mat>(m, work);
-  arma::mat V = arma::randn<arma::mat>(n, work);
-
-  arma::mat V1 = arma::zeros<arma::mat>(n, work); // n x work
-  arma::mat U1 = arma::zeros<arma::mat>(m, work); // m x work
-  arma::mat  W = arma::zeros<arma::mat>(m, work);  // m x work  input when restart > 0
-  arma::vec F  = arma::zeros<arma::vec>(n);     // n
-  arma::mat B  = arma::zeros<arma::mat>(work, work);  // work x work  input when restart > 0
-  arma::mat BU = arma::zeros<arma::mat>(work, work);  // work x work
-  arma::mat BV = arma::mat(work, work);  // work x work
-  arma::vec BS = arma::zeros<arma::vec>(work);  // work
-  arma::vec BW = arma::zeros<arma::vec>(lwork); // lwork
-  arma::vec res = arma::zeros<arma::vec>(work); // work
-  arma::vec T = arma::zeros<arma::vec>(lwork);  // lwork
-  arma::vec svratio = arma::zeros<arma::vec>(work); // work
-
- static SEXP(*c_irlb)(irlb_sig) = (SEXP(*)(irlb_sig)) R_GetCCallable("irlba", "irlb");
-
-  c_irlb (X.memptr(), NULL, 0, m, n, nu, work, maxit, 0,
-          tol, NULL, NULL, NULL,
-          s.memptr(), U.memptr(), V.memptr(), &iter, &mprod,
-          eps, lwork, V1.memptr(), U1.memptr(), W.memptr(),
-          F.memptr(), B.memptr(), BU.memptr(), BV.memptr(),
-          BS.memptr(), BW.memptr(), res.memptr(), T.memptr(),
-          svtol, svratio.memptr());
-  return List::create(Rcpp::Named("d")=s,
-                            Rcpp::Named("u")=U.cols(0, nu-1),
-                            Rcpp::Named("v")=V.cols(0,nu-1),
-                            Rcpp::Named("iter")=iter,
-                            Rcpp::Named("mprod")=mprod);
-                            // Rcpp::Named("converged")=conv);
-}
-
-
-
-
-
-
-
-
-arma::mat fastpls_light(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) {
-  
-  // Xtrain <- scale(Xtrain,center=TRUE,scale=FALSE)
-  // Xtest <-scale(Xtest,center=mX)
-  arma::mat mX=mean(Xtrain,0);
-  Xtrain.each_row()-=mX;
-  
-  // Y <- scale(Ytrain,center=TRUE,scale=FALSE)
-  arma::mat mY=mean(Ytrain,0);
-  Ytrain.each_row()-=mY;
-  
-  // S <- crossprod(X,Y)
-  arma::mat S=trans(Xtrain)*Ytrain;
-  
-  arma::mat svd_u;
-  arma::vec svd_s;
-  arma::mat svd_v;
-  
-  if(S.n_rows>5  && S.n_cols>5){
-    List temp0=IRLB(S, ncomp, ncomp+10, 2000, 1e-6, 1e-9, 1e-6); //nu=1, work=10, maxit=1000, tol=1e-6, eps=1e-9, svtol=1e-6
-    svd_u=as<arma::mat>(temp0("u"));   //u
-    svd_v=as<arma::mat>(temp0("v"));   //v
-  }else{ 
-    svd_econ(svd_u,svd_s,svd_v,S,"both");
-  }
-  arma::mat svd_u_mc = svd_u.cols(0,ncomp-1);
-  arma::mat svd_v_mc = svd_v.cols(0,ncomp-1);
-  
-  // TT <- Xtrain %*% R
-  // U <- Ytrain %*% Q
-  arma::mat T=Xtrain*svd_u_mc;
-  arma::mat U=Ytrain*svd_v_mc;
-  
-  //B <- R %*% ( tcrossprod(solve(crossprod(TT)), TT)%*%U ) %*% t(Q)
-  arma::mat Tt=T.t();
-  arma::mat B = svd_u_mc * (arma::inv(Tt * T) * Tt * U) * svd_v_mc.t();
-  
-  Xtest.each_row()-=mX;
-  
-  // Ypred <- scale(Xtest %*% B, -meanY, FALSE)
-  arma::mat Ypred=Xtest * B;
-  Ypred.each_row()+=mY;
-  
-  return Ypred;
-}
-
-
-
-
-
-
-
 
 
 
@@ -548,7 +417,7 @@ arma::ivec PLSDACV_fastpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k)
       Xtest=x.rows(w1);
       Ytrain=clmatrix.rows(w9);
 
-      Ytest.rows(w1)=fastpls_light(Xtrain,Ytrain,Xtest,k);
+      Ytest.rows(w1)=fastPLS::fastpls_light(Xtrain,Ytrain,Xtest,k);
 
     }else{
       Ytest.rows(w1)=clmatrix.rows(w1);
@@ -705,7 +574,7 @@ List corecpp(arma::mat x,
 
     if(FUN==1){
       arma::mat lcm=transformy(clbest);
-      projmat=fastpls_light(x,lcm,xTdata,fparpls);
+      projmat=fastPLS::fastpls_light(x,lcm,xTdata,fparpls);
       
       //min_val is modified to avoid a warning
       double min_val=0;
