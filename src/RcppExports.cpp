@@ -91,7 +91,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
   {"KODAMA_PLSDACV_fastpls", (DL_FUNC) &KODAMA_PLSDACV_fastpls, 4},
-  {"KODAMA_PLSDACV_corecpp", (DL_FUNC) &KODAMA_corecpp, 10},
+  {"KODAMA_corecpp", (DL_FUNC) &KODAMA_corecpp, 10},
   {NULL, NULL, 0}
 };
 
