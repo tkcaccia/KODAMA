@@ -95,10 +95,10 @@ END_RCPP
 //  {NULL, NULL, 0}
 //};
 
-RcppExport void R_initKODAMA(DllInfo *dll) {
-  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-  R_useDynamicSymbols(dll, FALSE);
-}
+//RcppExport void R_initKODAMA(DllInfo *dll) {
+//  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+//  R_useDynamicSymbols(dll, FALSE);
+//}
 
 
 
