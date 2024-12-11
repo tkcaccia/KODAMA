@@ -89,16 +89,16 @@ END_RCPP
 
 
 
+static const R_CallMethodDef CallEntries[] = {
+  {"KODAMA_PLSDACV_fastpls", (DL_FUNC) &KODAMA_PLSDACV_fastpls, 4},
+  {"KODAMA_PLSDACV_corecpp", (DL_FUNC) &KODAMA_corecpp, 10},
+  {NULL, NULL, 0}
+};
 
-//static const R_CallMethodDef CallEntries[] = {
-//  {"KODAMA_IRLB", (DL_FUNC) &KODAMA_IRLB, 7},
-//  {NULL, NULL, 0}
-//};
-
-//RcppExport void R_initKODAMA(DllInfo *dll) {
-//  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-//  R_useDynamicSymbols(dll, FALSE);
-//}
+RcppExport void R_initKODAMA(DllInfo *dll) {
+  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+  R_useDynamicSymbols(dll, FALSE);
+}
 
 
 
