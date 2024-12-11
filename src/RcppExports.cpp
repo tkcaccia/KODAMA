@@ -11,24 +11,6 @@
 using namespace Rcpp;
 
 
-// IRLB
-List IRLB(arma::mat& X, int nu, int work, int maxit, double tol, double eps, double svtol);
-RcppExport SEXP KODAMA_IRLB(SEXP XSEXP, SEXP nuSEXP, SEXP workSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP epsSEXP, SEXP svtolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< int >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< int >::type work(workSEXP);
-    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    Rcpp::traits::input_parameter< double >::type svtol(svtolSEXP);
-    rcpp_result_gen = Rcpp::wrap(IRLB(X, nu, work, maxit, tol, eps, svtol));
-    return rcpp_result_gen;
-END_RCPP
-}
-
 
 // floyd
 arma::mat floyd(arma::mat data);
@@ -108,10 +90,10 @@ END_RCPP
 
 
 
-static const R_CallMethodDef CallEntries[] = {
-  {"KODAMA_IRLB", (DL_FUNC) &KODAMA_IRLB, 7},
-  {NULL, NULL, 0}
-};
+//static const R_CallMethodDef CallEntries[] = {
+//  {"KODAMA_IRLB", (DL_FUNC) &KODAMA_IRLB, 7},
+//  {NULL, NULL, 0}
+//};
 
 RcppExport void R_initKODAMA(DllInfo *dll) {
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
