@@ -481,7 +481,7 @@ function (data,                       # Dataset
           splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
 {
   f.par.pls = ncomp
-  neighbors = min(c(landmarks, nrow(data)/3),500) + 1
+  neighbors = round(min(c(landmarks, nrow(data)/3),500)) + 1
   if (sum(is.na(data)) > 0) {
     stop("Missing values are present")
   } 
