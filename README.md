@@ -1,14 +1,7 @@
 # KODAMA
-An unsupervised and semi-supervised learning algorithm to performs feature extraction from noisy and high-dimensional data
+A learning algorithm to perform feature extraction from noisy and high-dimensional data
 
-## News 
-
-KODAMA facilitates identification of patterns representing underlying groups on all samples in a data set. 
-This is an improved version of KODAMA algorithm for spatially-aware dimensionality reduction. A landmarks procudere has been implemented to adapt the algorithm to the analysis of data set with more than 10,000 entries. 
-
-The KODAMA package has been integrated with t-SNE and UMAP to convert the KODAMA's dissimilarity matrix in a low dimensional space. 
-
-
+## Citation 
 
 [Zinga, M. M., Abdel-Shafy, E., Melak, T., Vignoli, A., Piazza, S., Zerbini, L. F., ... & Cacciatore, S. (2022). KODAMA exploratory analysis in metabolic phenotyping. Frontiers in Molecular Biosciences, 9.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9887019/)
 
@@ -28,12 +21,3 @@ install_github("tkcaccia/KODAMA")
 
 ```
 
-
-## Applications 
-Here below, we introduced three different applications of the KODAMA algorithm.
-
-1.  [Metabolomic data](https://github.com/tkcaccia/KODAMA/blob/main/docs/Metabolomics_data.md).
-
-2.  [Single cell RNA seq data](https://github.com/tkcaccia/KODAMA/blob/main/docs/Single_cell_RNA_seq.md).
-
-3.  [Spatial Transcriptomic data](https://github.com/tkcaccia/KODAMA/blob/main/docs/Spatial%20_transcriptomic.md).
