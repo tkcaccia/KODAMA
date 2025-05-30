@@ -24,7 +24,7 @@ importFrom("umap", "umap.knn", "umap","umap.defaults")
 S3method(print,tsne.config)
 S3method(print,MDS.config)
 
-exportPattern(floyd,another,vertex,as.data.matrix,
+exportPattern(floyd,another,vertex,as.data.matrix,intersect,
               KODAMA,k.test,loads,
               mcplot,core_cpp,dinisurface,helicoid,spirals,
               swissroll,normalization,scaling,
