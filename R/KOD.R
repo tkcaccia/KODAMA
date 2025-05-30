@@ -42,6 +42,14 @@ umap.defaults <- list(
 )
 class(umap.defaults) <- "umap.config"
 
+intersect = function (x, y, ...) 
+{
+  args <- list(x,y,...)
+  n=length(args)
+  inte=names(which(table(unlist(args))==n))
+  if(length(inte)==0) inte=NULL
+  inte
+}
 
 as.data.matrix = function(x){
   cn=colnames(x)
