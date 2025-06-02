@@ -49,11 +49,11 @@ KODAMA enables self-guided weakly supervised learning in spatial transcriptomics
 
 Cacciatore S, Luchinat C, Tenori L \cr
 Knowledge discovery by accuracy maximization. \cr
-\emph{Proc Natl Acad Sci U S A} 2014;111(14):5117–5122. doi: 10.1073/pnas.1220873111. \doi{10.1073/pnas.1220873111}{Link} \cr\cr
+\emph{Proc Natl Acad Sci U S A} 2014;111(14):5117-5122. doi: 10.1073/pnas.1220873111. \doi{10.1073/pnas.1220873111}{Link} \cr\cr
 
 Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA \cr
 KODAMA: an updated R package for knowledge discovery and data mining.\cr
-\emph{Bioinformatics} 2017;33(4):621–623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
+\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
 }
 
   \seealso{\code{\link{KODAMA.matrix}},\code{\link{KODAMA.visualization}}}
