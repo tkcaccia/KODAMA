@@ -81,17 +81,17 @@ KODAMA consists of five steps. These can be in turn divided into two parts: (i) 
 
 \references{
 Abdel-Shafy EA, Kassim M, Vignol A, \emph{et al.} \cr
-\emph{KODAMA enables self-guided weakly supervised learning in spatial transcriptomics.} \cr
+KODAMA enables self-guided weakly supervised learning in spatial transcriptomics. \cr
 \emph{bioRxiv} 2025. doi: 10.1101/2025.05.28.656544. \doi{10.1101/2025.05.28.656544}{Link} \cr\cr
 
 Cacciatore S, Luchinat C, Tenori L \cr
-\emph{Knowledge discovery by accuracy maximization.} \cr
+Knowledge discovery by accuracy maximization. \cr
 \emph{Proc Natl Acad Sci U S A} 2014;111(14):5117–5122. doi: 10.1073/pnas.1220873111. \doi{10.1073/pnas.1220873111}{Link} \cr\cr
 
 Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA \cr
-\emph{KODAMA: an updated R package for knowledge discovery and data mining.} \cr
-\emph{Bioinformatics} 2017;33(4):621–623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
-\cr	\cr
+KODAMA: an updated R package for knowledge discovery and data mining.\cr
+\emph{Bioinformatics} 2017;33(4):621–623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}\cr\cr
+
 L.J.P. van der Maaten and G.E. Hinton.\cr
 Visualizing High-Dimensional Data Using t-SNE. \cr
 \emph{Journal of Machine Learning Research} 9 (Nov): 2579-2605, 2008.
