@@ -3,7 +3,7 @@
 \alias{tsne.defaults}
 \title{Default configuration for Rtsne}
 \format{
-  An object of class \code{Rtsne.defaults} of length 11.
+  An object of class \code{tsne.defaults} of length 11.
 }
 \usage{
   tsne.defaults
