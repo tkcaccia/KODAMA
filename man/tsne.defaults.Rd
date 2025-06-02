@@ -1,12 +1,12 @@
 \docType{data}
-\name{Rtsne.defaults}
-\alias{Rtsne.defaults}
+\name{tsne.defaults}
+\alias{tsne.defaults}
 \title{Default configuration for Rtsne}
 \format{
   An object of class \code{Rtsne.defaults} of length 11.
 }
 \usage{
-  Rtsne.defaults
+  tsne.defaults
 }
 \description{
   A list with parameters customizing a Rtsne embedding. Each component of the
@@ -37,10 +37,10 @@
 }
 \examples{
   # display all default settings
-  Rtsne.defaults
+  tsne.defaults
   
   # create a new settings object with perplexity set to 100
-  custom.settings = Rtsne.defaults
+  custom.settings = tsne.defaults
   custom.settings$perplexity = 100
   custom.settings
   
