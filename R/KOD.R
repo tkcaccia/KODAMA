@@ -578,27 +578,27 @@ KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
 
 # This function can be used to extract the variable ranking.
 
-loads = function (model,method=c("loadings","kruskal.test")) 
-{
-  mat=pmatch(method,c("loadings","kruskal.test"))[1]
-  nn = nrow(model$res)
-  for (i in 1:nn) {
-    clu = model$res[i, ]
-    na.clu = !is.na(clu)
-    clu = clu[na.clu]
-    clu=as.numeric(as.factor(clu))
-    red.out = matrix(ncol = ncol(model$data), nrow = nn)
-    if (length(unique(clu)) > 1) {
-      if(mat==1)
-         red.out[i, ] = as.numeric(pls.kodama(Xtrain = model$data[na.clu,], 
-                                              Xtest  = model$data[na.clu,], 
-                                              as.factor(clu), ncomp = 1)$P[, 1])
-      if(mat==2)
-         red.out[i, ] = apply(model$data,2,function(x) -log(kruskal.test(x[na.clu],as.factor(clu))$p.value))
-    }
-  }
-  colMeans(abs(red.out), na.rm = TRUE)
-}
+#loads = function (model,method=c("loadings","kruskal.test")) 
+#{
+#  mat=pmatch(method,c("loadings","kruskal.test"))[1]
+#  nn = nrow(model$res)
+#  for (i in 1:nn) {
+#    clu = model$res[i, ]
+#    na.clu = !is.na(clu)
+#    clu = clu[na.clu]
+#    clu=as.numeric(as.factor(clu))
+#    red.out = matrix(ncol = ncol(model$data), nrow = nn)
+#    if (length(unique(clu)) > 1) {
+#      if(mat==1)
+#         red.out[i, ] = as.numeric(pls.kodama(Xtrain = model$data[na.clu,], 
+#                                              Xtest  = model$data[na.clu,], 
+#                                              as.factor(clu), ncomp = 1)$P[, 1])
+#      if(mat==2)
+#         red.out[i, ] = apply(model$data,2,function(x) -log(kruskal.test(x[na.clu],as.factor(clu))$p.value))
+#    }
+#  }
+#  colMeans(abs(red.out), na.rm = TRUE)
+#}
 
 
 
