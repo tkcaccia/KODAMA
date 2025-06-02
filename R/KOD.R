@@ -167,9 +167,15 @@ function (data,                       # Dataset
           FUN = c("fastpls","simpls"), 
           ncomp = min(c(50,ncol(data))),
           W = NULL, metrics="euclidean",
-          constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-          splitting = 50, spatial.resolution = 0.3 , simm_dissimilarity_matrix=TRUE) 
+          constrain = NULL, fix = NULL,  landmarks = 10000,  
+          splitting = IFELSE(NROW(DATA) < 40000, 100, 300), 
+          spatial.resolution = 0.3 , 
+          simm_dissimilarity_matrix=FALSE,
+         seed=1234) 
 {
+  epsilon = 0.05
+  set.seed(seed)
+  
   f.par.pls = ncomp
   neighbors = round(min(c(landmarks, nrow(data)/3),500)) + 1
   if (sum(is.na(data)) > 0) {
@@ -179,21 +185,44 @@ function (data,                       # Dataset
   nsample = nrow(data)
   nvariable = ncol(data)
   nsample_spatial= nrow(spatial)
+
+  writeLines("Calculating Network")
+  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors +1, method=metrics)
+  knn_Rnanoflann$distances = knn_Rnanoflann$distance[,-1]
+  knn_Rnanoflann$indices = knn_Rnanoflann$indices[,-1]
+  
   
   if (is.null(spatial)) {
     spatial_flag = FALSE
   }  else {
     spatial_flag = TRUE
+    writeLines("\nCalculating Spatial Network")
+    knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors, method=metrics)
+
+    aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
+     
+    if(!is.null(samples)){
+      samples_names=names(table(samples))          
+      if(length(samples_names)>1){
+        ma=0
+        for (j in 1:length(samples_names)) {
+          sel <- samples_names[j] == samples
+          spatial[sel, 1]=spatial[sel, 1]+ma
+          ran=range(spatial[sel, 1])
+          ma=ran[2]+ dist(ran)[1]*0.5
+        }
+      }
+    }
   }
-if (is.null(fix)) 
-  fix = rep(FALSE, nsample)
-if (is.null(constrain)) 
-  constrain = 1:nsample
-is.na.constrain=is.na(constrain)
-if(any(is.na.constrain)){
-  constrain=as.numeric(as.factor(constrain))
-  constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
-}
+  if (is.null(fix)) 
+    fix = rep(FALSE, nsample)
+  if (is.null(constrain)) 
+    constrain = 1:nsample
+  is.na.constrain=is.na(constrain)
+  if(any(is.na.constrain)){
+    constrain=as.numeric(as.factor(constrain))
+    constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
+  }
 
      
   
@@ -216,7 +245,7 @@ if(any(is.na.constrain)){
 
 
   res = matrix(nrow = M, ncol = nsample)
-
+  res_constrain = matrix(nrow = M, ncol =nsample)
 
   vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
   accu = NULL
@@ -226,7 +255,8 @@ if(any(is.na.constrain)){
 
   for (k in 1:M) {
     setTxtProgressBar(pb, k)
-
+    set.seed(seed+k)
+    
     # The landmarks samples are chosen in a way to cover all different profile
     # The data are divided in a number of clusters equal to the number of landmarks
     # A landpoint is chosen randomly from each cluster
@@ -250,85 +280,163 @@ if(any(is.na.constrain)){
     whF = which(!Xfix)
     whT = which(Xfix)
     Xspatial = spatial[landpoints, , drop = FALSE]
-    Tspatial = spatial[-landpoints, , drop = FALSE]
 
  
 
     if (spatial_flag) {
-      clu=sample(nsample,nspatialclusters)
-      spatialclusters=Rnanoflann::nn(spatial[clu,],spatial,1,method="euclidean" )$indeces
-      tab = apply(table(spatialclusters, constrain), 2,which.max)
-      Xconstrain = as.numeric(as.factor(tab[as.character(constrain)]))
-   #####   spatialclusters=as.numeric(kmeans(Xspatial, nspatialclusters)$cluster)
-  #####   tab = apply(table(spatialclusters, Xconstrain), 2,which.max)
-  #####    Xconstrain = as.numeric(as.factor(tab[as.character(Xconstrain)]))  
+      delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
+      spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+      ta_const=table(spatialclusters)
+      ta_const=ta_const[ta_const>1]
+      sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
+      if(sum(!sel_cluster_1)>0){
+        spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann::nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
+      }        
+      constrain_clean=NULL
+      for(ic in 1:max(constrain)){
+        sel_ic=ic==constrain
+        constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
+      }                                 
     }else{
-    
-       Xconstrain = as.numeric(as.factor(constrain[landpoints]))
-  
+      constrain_clean=constrain
     }
 
-    if(!is.null(W)){
-      SV_startingvector = W[landpoints]
-      unw = unique(SV_startingvector)
-      unw = unw[-which(is.na(unw))]
-      ghg = is.na(SV_startingvector)
-      SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
-      tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
-      XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-    }else{
-      if (landmarks<200) {
-        XW = Xconstrain
-      } else {
-        clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-        tab = apply(table(clust, Xconstrain), 2, which.max)
-        XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-      }
-    }
-   
-    
-    clbest = XW
-    options(warn = -1)
-    yatta = 0
-    attr(yatta, "class") = "try-error"
-    while (!is.null(attr(yatta, "class"))) {
-      yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
-                           f.par.pls,
-                           Xconstrain, Xfix), silent = FALSE)
-
-    }
-    options(warn = 0)
-    if (is.list(yatta)) {
-      clbest = as.vector(yatta$clbest)
-      accu = yatta$accbest
-      yatta$vect_acc = as.vector(yatta$vect_acc)
-      yatta$vect_acc[yatta$vect_acc == -1] = NA
-      vect_acc[k, ] = yatta$vect_acc
-      
-      yatta$vect_proj = as.vector(yatta$vect_proj)
-      if(!is.null(W))
-         yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
-
-      temp=rep(NA,nsample)
-      temp[landpoints] = clbest
-      temp[-landpoints] = yatta$vect_proj
 
 
-      tab = apply(table(temp, constrain), 2, which.max)
-      temp = as.numeric(as.factor(tab[as.character(constrain)]))
-
-      
-      res[k,]=temp
-   #   res[k, landpoints] = clbest
-   #   res[k, -landpoints] = yatta$vect_proj
-
-
-
-      
-    }
+        Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
+        if(!is.null(W)){
+          SV_startingvector = W[landpoints]
+          unw = unique(SV_startingvector)
+          unw = unw[-which(is.na(unw))]
+          ghg = is.na(SV_startingvector)
+          SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
+          
+          #################  tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
+          ################   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+          XW=NULL
+          for(ic in 1:max(Xconstrain)){
+            XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
+          }
+          
+          
+        }else{
+          if (landmarks<200) {
+            XW = Xconstrain
+          } else {
+            clust = as.numeric(kmeans(Xdata, splitting)$cluster)
+            #############   tab = apply(table(clust, Xconstrain), 2, which.max)
+            #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+            
+            XW=NULL
+            for(ic in 1:max(Xconstrain)){
+              XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
+            }
+            
+            
+          }
+        }
+        
+        
+        clbest = XW
+        options(warn = -1)
+        yatta = 0
+        attr(yatta, "class") = "try-error"
+        while (!is.null(attr(yatta, "class"))) {
+          yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
+                               f.par.pls,
+                               Xconstrain, Xfix), silent = FALSE)
+          
+        }
+        options(warn = 0)
+        res_k=rep(NA,nsample)
+        if (is.list(yatta)) {
+          clbest = as.vector(yatta$clbest)
+          accu = yatta$accbest
+          yatta$vect_acc = as.vector(yatta$vect_acc)
+          yatta$vect_acc[yatta$vect_acc == -1] = NA
+          vect_acc[k, ] = yatta$vect_acc
+          
+          yatta$vect_proj = as.vector(yatta$vect_proj)
+          
+          if(!is.null(W))
+            yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
+          
+          temp=rep(NA,nsample)
+          res_k[landpoints] = clbest
+          res_k[-landpoints] = yatta$vect_proj
+          
+          
+          ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
+          ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
+          
+          res_k_temp=NULL
+          for(ic in 1:max(constrain_clean)){
+            res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
+          }
+          res_k=res_k_temp 
+          
+          
+        }
+        
+        res[k,]=res_k
+        res_constrain[k,]=constrain_clean                             
+                                     
+                                     
+        
   }
   
   close(pb)
+
+    print("Calculation of dissimilarity matrix...")
+    
+
+    pb <- txtProgressBar(min = 1, max = nrow(data), style = 1)
+    for (k in 1:nrow(data)) {
+    setTxtProgressBar(pb, k)
+    
+        
+        
+        
+        knn_indices=knn_Rnanoflann$indices[k,]
+        knn_distances=knn_Rnanoflann$distances[k,]
+        
+        
+        
+        mean_knn_distances=mean(knn_distances)                             
+        for (j_tsne in 1:neighbors) {
+          
+          kod_tsne = mean(res[, k] == res[, knn_indices[j_tsne]], na.rm = TRUE)
+          knn_distances[j_tsne] = (1+knn_distances[j_tsne])/(kod_tsne^2)
+          
+        }
+        
+        
+        oo_tsne = order(knn_distances)
+        knn_distances = knn_distances[oo_tsne]
+        knn_indices = knn_indices[oo_tsne]
+        
+      
+      knn_Rnanoflann$indices[k,]=knn_indices
+      knn_Rnanoflann$distances[k,] =knn_distances
+      
+    }
+    
+    close(pb)
+    
+    
+    knn_Rnanoflann$neighbors = neighbors
+    return(list(acc = accu, 
+                v = vect_acc, res = res, 
+                knn_Rnanoflann = knn_Rnanoflann, 
+                data = data,
+                res_constrain=res_constrain))
+    
+  }
+
+                            
+
+
+                                     
   dissimilarity=NULL
   ma=NULL
   if(simm_dissimilarity_matrix){
