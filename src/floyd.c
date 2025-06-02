@@ -2,6 +2,7 @@ int e1071_floyd(int *n, double *A, double *C, int *P)
 /* this function takes an nxn matrix C of edge costs and produces */
 /* an nxn matrix A of lengths of shortest paths, and an nxn       */
 /* matrix P giving a point in the middle of each shortest path    */
+/* library e1071                                                  */
 {
     int i,j,k;
 
