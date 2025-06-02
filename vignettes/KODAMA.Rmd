@@ -230,8 +230,8 @@ After the KODAMA analyses, the different solutions can be visualized for compara
 ### 5.3 Unsupervised and semi-supervised
 
 
-In the next example, MetRef dataset is used to show all possibilities offered by KODAMA performing the analysis in unsupervised or semi-supervised fashion.
-Firstly the MetRef dataset is pre-processed. This involves removing zero values from the MetRef dataset matrix and correcting for variations in urine concentration using Probabilistic Quotient Normalization (Dieterle \emph{et al.} 2006).
+In the next example, the MetRef dataset is used to demonstrate all the possibilities offered by KODAMA, performing the analysis in either unsupervised or semi-supervised fashion.
+Firstly, the MetRef dataset is pre-processed. This involves removing zero values from the MetRef dataset matrix and correcting for variations in urine concentration using Probabilistic Quotient Normalization (Dieterle \emph{et al.} 2006).
 
 
 
@@ -241,7 +241,7 @@ Firstly the MetRef dataset is pre-processed. This involves removing zero values 
     # Zero values are removed. 
     MetRef$data=MetRef$data[,-which(colSums(MetRef$data)==0)] 
     
-    # Normalization of the data set with the Probabilistic Quotient    Normalization method.
+    # Normalization of the dataset with the Probabilistic Quotient    Normalization method.
     MetRef$data=normalization(MetRef$data)$newXtrain 
     # Centers the mean to zero and scales data by dividing each variable by the variance.
     MetRef$data=scaling(MetRef$data)$newXtrain 
@@ -259,20 +259,6 @@ KODAMA is performed using different input settings.
     kk5=KODAMA.matrix(MetRef$data,ncomp = 50)
     kk6=KODAMA.matrix(MetRef$data,ncomp = 100)
 
-
-
-The most informative solution is represented by KODAMA using the PLS-DA with 100 components as the internal classifier as can be seen in the table below, which presents all Entropy values of each solution.
-
-
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(matrix(ncol=3,c("kNN","kNN","kNN","kNN","kNN","kNN",
-                             "PLS-DA","PLS-DA","PLS-DA","PLS-DA","PLS-DA","PLS-DA",
-                             2,3,5,10,15,20,2,5,10,20,50,100,
-                             12.847,12.228,12.129,12.432,12.783,13.137,13.370,13.416,13.322,12.637,11.327,11.307),
-                    
-                    dimnames = list(NULL,c("Classifier","parameter","Entropy"))))
-```
 
 
 
@@ -330,7 +316,7 @@ KODAMA can also use external information to work in a semi-supervised way. Super
 In the next example, urine samples from the same donor are linked by providing class (donor) information to the algorithm before performing the iterative procedure thereby undertaking a “semi-supervised approach” to highlight otherwise hidden features. 
 
 
-    kkA=KODAMA.matrix(MetRef$data,FUN="PLS-DA",f.par = 100,constrain=donor )
+    kkA=KODAMA.matrix(MetRef$data,ncomp = 100,constrain=donor )
     ccA=KODAMA.visualization(kkA,"t-SNE")
     par(mfrow=c(1,2))
     plot(ccA,bg=rainbow(22)[donor],pch=21,cex=1.5)
@@ -358,7 +344,7 @@ Here, gender information for the first ten donors is provided. Color coding indi
     FIX=sample(c(TRUE,FALSE),873,T)
     inform=gender
     inform[!FIX]=NA
-    kkB=KODAMA.matrix(MetRef$data,FUN="PLS-DA",f.par = 100,W=inform,fix=FIX)
+    kkB=KODAMA.matrix(MetRef$data,ncomp = 100,W=inform,fix=FIX)
     ccB=KODAMA.visualization(kkB,"t-SNE")
     par(mfrow=c(1,2))
     plot(ccB,bg=rainbow(22)[donor],pch=21,cex=1.5)
@@ -381,7 +367,7 @@ Here, information of the last two examples are provided together.
     FIX=donor>10
     inform=gender
     inform[!FIX]=NA
-    kkC=KODAMA.matrix(MetRef$data,FUN="PLS-DA",f.par = 100,W= inform,constrain=donor,fix=FIX)
+    kkC=KODAMA.matrix(MetRef$data,ncomp = 100,W= inform,constrain=donor,fix=FIX)
     ccC=KODAMA.visualization(kkC,"t-SNE")
     par(mfrow=c(1,2))
     plot(ccC,bg=rainbow(22)[donor],pch=21,cex=1.5)
