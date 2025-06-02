@@ -29,9 +29,8 @@ Knowledge discovery by accuracy maximization.\cr
 \cr	\cr
 Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA	\cr
 KODAMA: an updated R package for knowledge discovery and data mining.	\cr
-\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \href{https://doi.org/10.1093/bioinformatics/btw003}{Link}
-\cr
-\cr
+\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \href{https://doi.org/10.1093/bioinformatics/btw705}{Link}
+\cr	\cr
 Alizadeh AA, Eisen MB, Davis RE, \emph{et al.}\cr
 Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling. \cr
 \emph{Nature} 2000;403(6769):503-511.
