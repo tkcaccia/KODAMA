@@ -9,7 +9,7 @@
 }
 \usage{
 KODAMA.visualization(kk,
-                     method=c("t-SNE","MDS","UMAP"),
+                     method=c("UMAP", "t-SNE", "MDS"),
                      config=NULL)
   
 }
