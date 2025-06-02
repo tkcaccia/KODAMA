@@ -44,12 +44,11 @@ u=normalization(u)$newXtrain
 u=scaling(u)$newXtrain
 class=as.numeric(as.factor(MetRef$donor))
 
-u_reduced=u[1:100,]
-class_reduced=class[1:100]
+u_pca=pca(u)$x[,1:20]
 
-kk=KODAMA.matrix(u_reduced,ncomp=2)
+kk=KODAMA.matrix(u_pca,ncomp=2)
 cc=KODAMA.visualization(kk,"t-SNE")
-plot(cc,pch=21,bg=rainbow(22)[class_reduced])
+plot(cc,pch=21,bg=rainbow(22)[class])
 
 
 }
