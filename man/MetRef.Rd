@@ -41,16 +41,14 @@ u=MetRef$data;
 u=u[,-which(colSums(u)==0)]
 u=normalization(u)$newXtrain
 u=scaling(u)$newXtrain
-class=as.numeric(as.factor(MetRef$gender))
-cc= pca(u)$x
-plot(cc,pch=21,bg=class)
-
 class=as.numeric(as.factor(MetRef$donor))
-plot(cc,pch=21,bg=rainbow(22)[class])
 
-kk=KODAMA.matrix(u,ncomp=2)
+u_reduced=u[1:100,]
+class_reduced=class[1:100]
+
+kk=KODAMA.matrix(u_reduced,ncomp=2)
 cc=KODAMA.visualization(kk,"t-SNE")
-plot(cc,pch=21,bg=rainbow(22)[class])
+plot(cc,pch=21,bg=rainbow(22)[class_reduced])
 
 
 }
