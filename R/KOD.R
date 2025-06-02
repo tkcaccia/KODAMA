@@ -449,10 +449,10 @@ dissimilarity=NULL
 #    H = -sum(ifelse(yy > 0, yy * log(yy), 0))
     
     mam = (1/ma) * Edist
-    mam[is.na(mam)] <- .Machine$double.xmax
-    mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
+  #  mam[is.na(mam)] <- .Machine$double.xmax
+  #  mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
     mam = floyd(mam)
-    mam[mam == .Machine$double.xmax] <- NA
+  #  mam[mam == .Machine$double.xmax] <- NA
     prox = Edist/mam
     diag(prox) = 1
     prox[is.na(prox)] = 0
