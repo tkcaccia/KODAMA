@@ -1,40 +1,4 @@
 
-#create simulated 200 numbers
-vertex = function(vertex=c(0,10),sd=0.2,dims=2, noisy_dimension = 8 ,size_cluster = 50,center=TRUE,scale=TRUE){
-  out=as.matrix(vertex)
-  cluster_number=2^dims
-  if(dims>1){
-    for(i in 2:dims){
-      nr=nrow(out)
-      out=cbind(out,NA)
-      out=rbind(out,out)
-      
-      out[1:nr,i]=vertex[1]
-      out[1:nr+nr,i]=vertex[2]
-    }
-  }
-  else{
-    out=cbind(out,0)
-    dims=2
-  }
-  out=as.numeric(out)
-  if(length(size_cluster)==1) {
-    v=matrix(rep(out,each=size_cluster),ncol=dims)
-  }
-  if(length(size_cluster)==cluster_number) {
-    v=matrix(rep(out,rep(size_cluster,dims)),ncol=dims)
-  }
-  if(length(size_cluster)!=1 & length(size_cluster)==1) {
-    stop("The length of size_cluster should be equal to 1 or to the total numer of clusters.")
-  }
-    
-  ma=v+rnorm(length(v),sd = sd)
-  if(noisy_dimension>0){
-    ma=cbind(ma,matrix(rnorm(nrow(ma)*noisy_dimension),ncol=noisy_dimension))
-  }
-  ma=scale(ma,center = center,scale = scale)
-  ma
-}
 
 
 # This function creates a data set based upon data points distribuited on a Ulisse Dini's surface.
