@@ -27,9 +27,9 @@ transformy(y)
 \author{Stefano Cacciatore and Leonardo Tenori}
 
 \references{
-Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA	\cr
-KODAMA: an updated R package for knowledge discovery and data mining.	\cr
-\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
+Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA \cr
+KODAMA: an updated R package for knowledge discovery and data mining.\cr
+\emph{Bioinformatics} 2017;33(4):621–623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
 }
   \examples{
 y=rep(1:10,3)
