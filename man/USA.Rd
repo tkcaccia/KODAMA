@@ -37,7 +37,7 @@ KODAMA: an updated R package for knowledge discovery and data mining.	\cr
 
 data(USA)
 kk=KODAMA.matrix(USA$data,ncomp=2)
-custom.settings=Rtsne.defaults
+custom.settings=tsne.defaults
 custom.settings$perplexity = 10
 cc=KODAMA.visualization(kk,"t-SNE",config=custom.settings)
 oldpar <- par(cex=0.5,mar=c(15,6,2,2));
