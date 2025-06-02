@@ -43,7 +43,7 @@ u=normalization(u)$newXtrain
 u=scaling(u)$newXtrain
 class=as.numeric(as.factor(MetRef$donor))
 
-u_pca=pca(u)$x[,1:20]
+u_pca=pca(u)$x[,1:5]
 
 kk=KODAMA.matrix(u_pca,ncomp=2)
 cc=KODAMA.visualization(kk,"t-SNE")
