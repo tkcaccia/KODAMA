@@ -2,7 +2,11 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 floyd <- function(data) {
-    .Call('KODAMA_floyd', PACKAGE = 'KODAMA', data)
+    data[is.na(data)] <- .Machine$double.xmax    
+    data[is.infinite(data) & data > 0] <- .Machine$double.xmax
+    data = .Call('KODAMA_floyd', PACKAGE = 'KODAMA', data)
+    data[data == .Machine$double.xmax] <- NA
+    data
 }
 
 
