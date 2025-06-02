@@ -174,7 +174,7 @@ We suggest KODAMA is first tested with the Iris dataset using the default parame
 The `mcplot` function can be used to extract the values of cross-validated accuracy obtained from each iterative step of the Monte Carlo procedures of maximization of the cross-validated accuracy.
 
 
-    mcplot(kodama_knn_5)
+    mcplot(kk)
 
 
 
@@ -193,18 +193,17 @@ KODAMA can be run with different input settings. The two different classifiers, 
 
 
 
-    kodama_knn_2 =KODAMA.matrix(data,FUN="KNN",f.par=2)
-    cc_knn_2=KODAMA.visualization(kodama_knn_2,"t-SNE")
-    kodama_knn_5 =KODAMA.matrix(data,FUN="KNN",f.par=5)
-    cc_knn_5=KODAMA.visualization(kodama_knn_5,"t-SNE")
-    kodama_knn_10=KODAMA.matrix(data,FUN="KNN",f.par=10)
-    cc_knn_10=KODAMA.visualization(kodama_knn_10,"t-SNE")
-    kodama_pls_2 =KODAMA.matrix(data,FUN="PLS-DA",f.par=2)
-    cc_pls_2=KODAMA.visualization(kodama_pls_2,"t-SNE")
-    kodama_pls_3 =KODAMA.matrix(data,FUN="PLS-DA",f.par=3)
-    cc_pls_3=KODAMA.visualization(kodama_pls_3,"t-SNE")
-    kodama_pls_4 =KODAMA.matrix(data,FUN="PLS-DA",f.par=4)
-    cc_pls_4=KODAMA.visualization(kodama_pls_4,"t-SNE")
+    kodama_ncomp_2 =KODAMA.matrix(data,ncomp =2)
+    kodama_ncomp_5 =KODAMA.matrix(data,ncomp =3)
+    kodama_ncomp_10=KODAMA.matrix(data,ncomp =4)
+
+    cc_2_tSNE=KODAMA.visualization(kodama_ncomp_2,"t-SNE")
+    cc_3_tSNE=KODAMA.visualization(kodama_ncomp_3,"t-SNE")
+    cc_4_tSNE=KODAMA.visualization(kodama_ncomp_4,"t-SNE")
+
+    cc_2_UMAP=KODAMA.visualization(kodama_ncomp_2,"UMAP")
+    cc_3_UMAP=KODAMA.visualization(kodama_ncomp_3,"UMAP")
+    cc_4_UMAP=KODAMA.visualization(kodama_ncomp_4,"UMAP")
 
 
   
@@ -212,12 +211,12 @@ After the KODAMA analyses, the different solutions can be visualized for compara
 
     
     par(mfrow=c(2,3))
-    plot(cc_knn_2 ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=2)")
-    plot(cc_knn_5 ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=5)")
-    plot(cc_knn_10,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=10)")
-    plot(cc_pls_2 ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=2)")
-    plot(cc_pls_3 ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=3)")
-    plot(cc_pls_4 ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=4)")
+    plot(cc_2_tSNE ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=2) - tSNE")
+    plot(cc_3_tSNE ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=5) - tSNE")
+    plot(cc_4_tSNE,pch=21,bg=as.numeric(labels)+1,main="KODAMA with kNN (k=10) - tSNE")
+    plot(cc_2_UMAP ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=2) - UMAP")
+    plot(cc_3_UMAP ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=3) - UMAP")
+    plot(cc_4_UMAP ,pch=21,bg=as.numeric(labels)+1,main="KODAMA with PLS (ncomp=4) - UMAP")
 
 
 \begin{figure}[h]
@@ -225,33 +224,6 @@ After the KODAMA analyses, the different solutions can be visualized for compara
   \caption{KODAMA results obtained with different input settings.}
   \label{fig:iris}
 \end{figure}
-
-The Shannon Entropy ($H$) (Shannon, 1948), a measure of unpredictability of information content, can be used to choose the best classifier and optimize its relative parameters. $H$ is given by:
-
-$H= \sum_{i} \sum_{j} v_{ij} \times log\: v_{ij}$
-
-where $v_{ij}$ is the proximity value between the sample $i$ and the sample $j$ divided by the sum of overall proximities.
-
-Different classifiers can lead to solutions that represent different interpretation of the data. A lower $H$ value can be indicative of the solution that best characterizes the data. 
-
-
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(matrix(ncol=3,c("kNN","kNN","kNN","PLS-DA","PLS-DA","PLS-DA",2,5,10,2,3,4,9.371,9.362,9.381,9.976,9.933,9.977),dimnames = list(NULL,c("Classifier","parameter","Entropy"))))
-```
-
-
-
-### 5.3 k-test
-
-The `k.test` function performs a statistical test to assess association between the KODAMA output and any additional related parameters such as clinical metadata. The coefficient of determination ($R^{2}$) is used to assess the proportion of the variance in the dependent variable (KODAMA output) that is predictable from the independent variable and can be thus used as a measure of the goodness of fit (Cameron \emph{et al.}, 1997). A permutation test is performed by randomly sampling the value of the labels to estimate the significance of the observed association.
-
-
-
-
-### 5.2 Loadings
-
-The `loads` function can be used to extract the variable ranking. After each maximization of the cross-validated accuracy the final label set is used to calculate the loadings of PLS-DA or the p-value from the Kruskal-Wallis Rank Sum test. The output of the `loads` function is the average of these values for each variable.
 
 
 
@@ -280,19 +252,12 @@ Firstly the MetRef dataset is pre-processed. This involves removing zero values 
 KODAMA is performed using different input settings.    
     
     
-    kk1=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 2)
-    kk2=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 5)
-    kk3=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 10)
-    kk4=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 20)
-    kk5=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 50)
-    kk6=KODAMA.matrix(MetRef$data,FUN = "PLS-DA",f.par = 100)
-    kk7=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 2)
-    kk8=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 3)
-    kk9=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 5)
-    kk10=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 10)
-    kk11=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 15)
-    kk12=KODAMA.matrix(MetRef$data,FUN = "KNN",f.par = 20)
-
+    kk1=KODAMA.matrix(MetRef$data,ncomp = 2)
+    kk2=KODAMA.matrix(MetRef$data,ncomp = 5)
+    kk3=KODAMA.matrix(MetRef$data,ncomp = 10)
+    kk4=KODAMA.matrix(MetRef$data,ncomp = 20)
+    kk5=KODAMA.matrix(MetRef$data,ncomp = 50)
+    kk6=KODAMA.matrix(MetRef$data,ncomp = 100)
 
 
 
