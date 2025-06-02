@@ -8,67 +8,51 @@
 	KODAMA (KnOwledge Discovery by Accuracy MAximization) is an unsupervised and semi-supervised learning algorithm that performs feature extraction from noisy and high-dimensional data. 
 }
 \usage{
-KODAMA.matrix (data, 
-               M = 100, 
-               Tcycle = 20, 
-               FUN_VAR = function(x) {  ceiling(ncol(x)) }, 
-               FUN_SAM = function(x) {  ceiling(nrow(x) * 0.75)},
-               bagging = FALSE, 
-               FUN = c("PLS-DA","KNN"), 
-               f.par = 5,
-               W = NULL, 
-               constrain = NULL, 
-               fix=NULL, 
-               epsilon = 0.05,
-               dims=2,
-               landmarks=1000,
-               neighbors=min(c(landmarks,nrow(data)))-1) 
+KODAMA.matrix (data,                 
+               spatial = NULL,           
+               M = 100, Tcycle = 20, 
+               FUN = c("fastpls","simpls"), 
+               ncomp = min(c(50,ncol(data))),
+               W = NULL, metrics="euclidean",
+               constrain = NULL, fix = NULL,  landmarks = 10000,  
+               splitting = ifelse(nrow(data) < 40000, 100, 300), 
+               spatial.resolution = 0.3 , 
+               simm_dissimilarity_matrix=FALSE,
+               seed=1234) 
+
+
 }
 
 \arguments{
-  \item{data}{a matrix.}
-  \item{M}{
-  	number of iterative processes (step I-III).
-}
-  \item{Tcycle}{
-  	number of iterative cycles that leads to the maximization of cross-validated accuracy.
-}
-  \item{FUN_VAR}{
-  	function to select the number of variables to select randomly. By default all variable are taken.
-}
-  \item{FUN_SAM}{
-  	function to select the number of samples to select randomly. By default the 75 per cent of all samples are taken.
-}
-  \item{bagging}{
-  	Should sampling be with replacement, \code{bagging = TRUE}. By default \code{bagging = FALSE}.
-}
-  \item{FUN}{classifier to be considered. Choices are "\code{PLS-DA}" and "\code{KNN}".
-}
+  \item{data}{A numeric matrix where rows are samples and columns are variables.}
 
-  \item{f.par}{
-  	parameters of the classifier.
-}
-  \item{W}{
-  	a vector of \code{nrow(data)} elements. The KODAMA procedure can be started by different initializations of the vector \code{W}. Without any \emph{a priori} information the vector \code{W} can be initialized with each element being different from the others (\emph{i.e.}, each sample categorized in a one-element class). Alternatively, the vector \code{W} can be initialized by a clustering procedure, such as \code{\link{kmeans}}.
-}
-  \item{constrain}{
-  	a vector of \code{nrow(data)} elements. Supervised constraints can be imposed by linking some samples in such a way that if one of them is changed the remaining linked samples must change in the same way (\emph{i.e.}, they are forced to belong to the same class) during the maximization of the cross-validation accuracy procedure. Samples with the same identifying constrain will be forced to stay together.
-}
-  \item{fix}{
-  	a vector of \code{nrow(data)} elements. The values of this vector must to be \code{TRUE} or \code{FALSE}. By default all elements are \code{FALSE}. Samples with the \code{TRUE} fix value will not change the class label defined in \code{W} during the maximization of the cross-validation accuracy procedure.
-}
-  \item{epsilon}{
-  	cut-off value for low proximity. High proximity are typical of intracluster relationships, whereas low proximities are expected for intercluster relationships. Very low proximities between samples are ignored by (default) setting \code{epsilon = 0.05}.
-}
-    \item{dims}{
-  dimensions of the configurations of t-SNE based on the KODAMA dissimilarity matrix.
-  }
-      \item{landmarks}{
-  number of landmarks to use.
-  }
-      \item{neighbors}{
-  number of neighbors to include in the dissimilarity matrix yo pass to the \code{\link{KODAMA.visualization}} function.
-  }
+  \item{spatial}{Optional matrix of spatial coordinates or NULL. Used to apply spatial constraints.}
+
+  \item{M}{Number of iterative processes.}
+
+  \item{Tcycle}{Number of cycles to optimize cross-validated accuracy.}
+
+  \item{FUN}{Classifier to be used. Options are \code{"fastpls"} or \code{"simpls"}.}
+
+  \item{ncomp}{Number of components for the PLS classifier. Default is \code{min(50, ncol(data))}.}
+
+  \item{W}{A vector of initial class labels for each sample (\code{length = nrow(data)}). Defaults to unique labels for each sample if NULL.}
+
+  \item{metrics}{Distance metric to be used (default is \code{"euclidean"}).}
+
+  \item{constrain}{An optional vector indicating group constraints. Samples sharing the same value in this vector will be forced to stay in the same cluster.}
+
+  \item{fix}{A logical vector indicating whether each sample’s label in \code{W} should be fixed during optimization. Defaults to all \code{FALSE}.}
+
+  \item{landmarks}{Number of landmark points used to approximate the similarity structure. Default is 10000.}
+
+  \item{splitting}{Number of random sample splits used during optimization. Default is 100 for small datasets (<40000 samples) and 300 otherwise.}
+
+  \item{spatial.resolution}{A numeric value (default 0.3) controlling the resolution of spatial constraints.}
+
+  \item{simm_dissimilarity_matrix}{Logical. If \code{TRUE}, the function returns a similarity/dissimilarity matrix. Default is \code{FALSE}.}
+
+  \item{seed}{Random seed for reproducibility. Default is 1234.}
 
 }
 
