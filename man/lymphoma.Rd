@@ -45,10 +45,10 @@ Comparison of discrimination methods for the classification of tumors using gene
 \donttest{
 data(lymphoma)
 class=1+as.numeric(lymphoma$class)
-cc=pca(lymphoma$data)$x
+cc=pca(lymphoma$data)$x[,1:50]
 plot(cc,pch=21,bg=class)
 
-kk=KODAMA.matrix(lymphoma$data)
+kk=KODAMA.matrix(cc,ncomp=2)
 
 custom.settings=Rtsne.defaults
 custom.settings$perplexity = 10
