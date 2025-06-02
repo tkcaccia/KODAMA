@@ -15,8 +15,7 @@ useDynLib(KODAMA)
 importFrom(Rcpp, evalCpp)
 importFrom("graphics", "plot", "points")
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
-importFrom("stats", "shapiro.test", "aov", "summary.aov", "t.test", "p.adjust", "fisher.test", "prcomp","aggregate","quantile", "wilcox.test","cmdscale", "as.dist", "dist", "kmeans", "kruskal.test","median", "pnorm", "rnorm", "runif", "sd", "var","cor.test")
-importFrom("minerva", "mine")
+importFrom("stats",  "prcomp","cmdscale", "as.dist", "dist", "kmeans", "median", "pnorm", "rnorm", "runif", "sd", "var","cor.test")
 importFrom("Rtsne", "Rtsne_neighbors")
 importFrom("umap", "umap.knn", "umap","umap.defaults")
 
@@ -24,12 +23,11 @@ importFrom("umap", "umap.knn", "umap","umap.defaults")
 S3method(print,tsne.config)
 S3method(print,MDS.config)
 
-exportPattern(floyd,another,vertex,as.data.matrix,intersect,
+exportPattern(floyd,another,vertex,as.data.matrix,
               KODAMA,k.test,loads,
               mcplot,core_cpp,dinisurface,helicoid,spirals,
               swissroll,normalization,scaling,
-              transformy,frequency_matching,
+              transformy,
               quality_control,
-              refine_cluster,
-              txtsummary,continuous.test,categorical.test,correlation.test,multi_analysis,pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch)
+              pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch)
 
