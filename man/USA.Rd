@@ -46,7 +46,7 @@ custom.settings$perplexity = 10
 cc=KODAMA.visualization(kk,"t-SNE",config=custom.settings)
 oldpar <- par(cex=0.5,mar=c(15,6,2,2));
 plot(USA$year,cc[,1],axes=FALSE,pch=20,xlab="",ylab="First Component");
-axis(1,at=year_reduced,labels=rownames(USA$data),las=2);
+axis(1,at=USA$year,labels=rownames(USA$data),las=2);
 axis(2,las=2);
 box()
 
