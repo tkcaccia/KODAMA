@@ -64,7 +64,7 @@ Umap: Uniform manifold approximation and projection for dimension reduction. \cr
  data(iris)
  data=iris[,-5]
  labels=iris[,5]
- kk=KODAMA.matrix(data,FUN="KNN",f.par=2)
+ kk=KODAMA.matrix(data,ncomp=2)
  cc=KODAMA.visualization(kk,"t-SNE")
  plot(cc,col=as.numeric(labels),cex=2)
 
