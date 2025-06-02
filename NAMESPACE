@@ -29,6 +29,5 @@ exportPattern(floyd,as.data.matrix,
               mcplot,core_cpp,dinisurface,helicoid,spirals,
               swissroll,normalization,scaling,
               transformy,
-              quality_control,
               pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch)
 
