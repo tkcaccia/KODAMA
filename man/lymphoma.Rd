@@ -49,7 +49,7 @@ plot(cc,pch=21,bg=class)
 
 kk=KODAMA.matrix(cc,ncomp=2)
 
-custom.settings=Rtsne.defaults
+custom.settings=tsne.defaults
 custom.settings$perplexity = 10
 cc=KODAMA.visualization(kk,"t-SNE",config=custom.settings)
 
