@@ -42,7 +42,7 @@ KODAMA.matrix (data,
 
   \item{constrain}{An optional vector indicating group constraints. Samples sharing the same value in this vector will be forced to stay in the same cluster.}
 
-  \item{fix}{A logical vector indicating whether each sample’s label in \code{W} should be fixed during optimization. Defaults to all \code{FALSE}.}
+  \item{fix}{A logical vector indicating whether each sample's label in \code{W} should be fixed during optimization. Defaults to all \code{FALSE}.}
 
   \item{landmarks}{Number of landmark points used to approximate the similarity structure. Default is 10000.}
 
