@@ -156,7 +156,7 @@ We suggest KODAMA is first tested with the Iris dataset using the default parame
     data(iris)
     data=iris[,-5]
     labels=iris[,5]
-    kodama_knn_5=KODAMA.matrix(data,FUN="KNN",f.par = 2)
+    kk=KODAMA.matrix(data,ncomp = 2)
     cc=KODAMA.visualization(kk,"t-SNE")
     plot(cc,pch=21,bg=as.numeric(labels)+1)
 
