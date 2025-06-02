@@ -555,23 +555,23 @@ KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
 # KODAMA output and any additional related parameters such as clinical metadata.
 
 
-k.test = 
-  function (data, labels, n = 100) 
-  {
-    data = as.matrix(data)
-    compmax = min(dim(data))
-    option = 2 - as.numeric(is.factor(labels))
-    
-    w_R2Y = pls.double.cv(data, labels, 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
-    
-    v_R2Y = NULL
-    for (i in 1:n) {
-      ss = sample(1:nrow(data))
-      v_R2Y[i] = pls.double.cv(data, labels[ss], 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
-    }
-    pval = sum(v_R2Y>w_R2Y)/n
-    pval
-  }
+#k.test = 
+#  function (data, labels, n = 100) 
+#  {
+#    data = as.matrix(data)
+#    compmax = min(dim(data))
+#    option = 2 - as.numeric(is.factor(labels))
+#    
+#    w_R2Y = pls.double.cv(data, labels, 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
+#    
+#    v_R2Y = NULL
+#    for (i in 1:n) {
+#      ss = sample(1:nrow(data))
+#      v_R2Y[i] = pls.double.cv(data, labels[ss], 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
+#    }
+#    pval = sum(v_R2Y>w_R2Y)/n
+#    pval
+#  }
 
 
 
