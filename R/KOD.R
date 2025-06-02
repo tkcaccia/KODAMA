@@ -422,22 +422,10 @@ function (data,                       # Dataset
     }
     
     close(pb)
-    
-    
-    knn_Rnanoflann$neighbors = neighbors
-    return(list(acc = accu, 
-                v = vect_acc, res = res, 
-                knn_Rnanoflann = knn_Rnanoflann, 
-                data = data,
-                res_constrain=res_constrain))
-    
-  }
-
-                            
 
 
-                                     
-  dissimilarity=NULL
+
+dissimilarity=NULL
   ma=NULL
   if(simm_dissimilarity_matrix){
     ma = matrix(0, ncol = nsample, nrow = nsample)
@@ -474,25 +462,20 @@ function (data,                       # Dataset
     dissimilarity = mam
   }
 
-  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics)
-  knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
-  knn_Rnanoflann$nn_index = knn_Rnanoflann$indices[, -1]
-  for (i_tsne in 1:nrow(data)) {
-    for (j_tsne in 1:neighbors) {
-      kod_tsne = mean(res[, i_tsne] == res[, knn_Rnanoflann$indices[i_tsne, j_tsne]], na.rm = TRUE)
-      knn_Rnanoflann$distances[i_tsne, j_tsne] = knn_Rnanoflann$distances[i_tsne,  j_tsne]/kod_tsne
-    }
-    oo_tsne = order(knn_Rnanoflann$distance[i_tsne, ])
-    knn_Rnanoflann$distances[i_tsne, ] = knn_Rnanoflann$distances[i_tsne, oo_tsne]
-    knn_Rnanoflann$indices[i_tsne, ] = knn_Rnanoflann$indices[i_tsne, oo_tsne]
+                                     
+    
+    knn_Rnanoflann$neighbors = neighbors
+    return(list(dissimilarity = dissimilarity,acc = accu, proximity = ma, 
+                v = vect_acc, res = res, 
+                knn_Rnanoflann = knn_Rnanoflann, 
+                data = data,
+                res_constrain=res_constrain))
+    
   }
 
-  knn_Rnanoflann$neighbors = neighbors
-  return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
-              v = vect_acc, res = res, 
-              landpoints = landpoints, knn_Rnanoflann = knn_Rnanoflann, 
-              data = data))
-}
+                            
+
+
 
                               
 KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
