@@ -130,13 +130,13 @@ kabsch <- function(pm, qm) {
 
 
 
-#pca = function(x,...){
-#  res=prcomp(x,...)
-#  ss=sprintf("%.1f",summary(res)$importance[2,]*100)
-#  res$txt = paste(names(summary(res)$importance[2,])," (",ss,"%)",sep="")
-#  colnames(res$x)=res$txt
-#  res
-#}
+pca = function(x,...){
+  res=prcomp(x,...)
+  ss=sprintf("%.1f",summary(res)$importance[2,]*100)
+  res$txt = paste(names(summary(res)$importance[2,])," (",ss,"%)",sep="")
+  colnames(res$x)=res$txt
+  res
+}
 
 
 quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.par.pls){
