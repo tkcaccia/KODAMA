@@ -83,19 +83,19 @@ KODAMA consists of five steps. These can be in turn divided into two parts: (i) 
 
 Abdel-Shafy EA, Kassim M, Vignol A, et al.\cr
 KODAMA enables self-guided weakly supervised learning in spatial transcriptomics. \cr
-\emph{BioRxiv} 2025. doi: 10.1101/2025.05.28.656544. \href{https://doi.org/10.1101/2025.05.28.656544}{Link}
+\emph{BioRxiv} 2025. doi: 10.1101/2025.05.28.656544. \doi{10.1101/2025.05.28.656544}{Link}
 \cr	\cr
 Cacciatore S, Luchinat C, Tenori L	\cr
 Knowledge discovery by accuracy maximization.\cr
-\emph{Proc Natl Acad Sci U S A} 2014;111(14):5117-22. doi: 10.1073/pnas.1220873111. \href{https://www.pnas.org/doi/10.1073/pnas.1220873111}{Link}
+\emph{Proc Natl Acad Sci U S A} 2014;111(14):5117-22. doi: 10.1073/pnas.1220873111. \doi{doi/10.1073/pnas.1220873111}{Link}
 \cr	\cr
 Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA	\cr
 KODAMA: an updated R package for knowledge discovery and data mining.	\cr
-\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \href{https://doi.org/10.1093/bioinformatics/btw705}{Link}
+\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}{Link}
 \cr	\cr
 L.J.P. van der Maaten and G.E. Hinton.\cr
 Visualizing High-Dimensional Data Using t-SNE. \cr
-\emph{Journal of Machine Learning Research} 9 (Nov) : 2579-2605, 2008.
+\emph{Journal of Machine Learning Research} 9 (Nov): 2579-2605, 2008.
 \cr	\cr
 L.J.P. van der Maaten. \cr
 Learning a Parametric Embedding by Preserving Local Structure. \cr
