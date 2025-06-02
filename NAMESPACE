@@ -18,7 +18,7 @@ importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 importFrom("stats",  "prcomp","cmdscale", "as.dist", "dist", "kmeans", "median", "pnorm", "rnorm", "runif", "sd", "var","cor.test")
 importFrom("Rtsne", "Rtsne_neighbors")
 importFrom("umap", "umap.knn", "umap","umap.defaults")
-
+importFrom("methods", "is")
   
 S3method(print,tsne.config)
 S3method(print,MDS.config)
