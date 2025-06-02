@@ -51,7 +51,7 @@ class(MDS.defaults) <- "MDS.config"
 
 print.tsne.config <- function(x, ...) {
   if (!is(x, "tsne.config")) {
-    umap.error("x is not a tsne configuration object")
+    error("x is not a tsne configuration object")
   }
   
   # produce a string of form "  z:  " of total length width
@@ -78,7 +78,7 @@ print.tsne.config <- function(x, ...) {
 
 print.MDS.config <- function(x, ...) {
   if (!is(x, "MDS.config")) {
-    umap.error("x is not a MDS configuration object")
+    error("x is not a MDS configuration object")
   }
   
   # produce a string of form "  z:  " of total length width
