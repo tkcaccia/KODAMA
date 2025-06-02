@@ -41,7 +41,7 @@ normalization(Xtrain,Xtest=NULL, method = "pqn",ref=NULL)
 \author{Stefano Cacciatore and Leonardo Tenori}
 
   \references{
-  	Dieterle F,Ross A, Schlotterbeck G, Senn H.\cr
+Dieterle F,Ross A, Schlotterbeck G, Senn H.\cr
 Probabilistic Quotient Normalization as Robust Method to Account for Diluition of Complex Biological Mixtures. Application in 1H NMR Metabolomics.\cr
 \emph{Anal Chem} 2006;78:4281-90.
 \cr
@@ -52,7 +52,8 @@ Knowledge discovery by accuracy maximization.\cr
 \cr	\cr
 Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA	\cr
 KODAMA: an updated R package for knowledge discovery and data mining.	\cr
-\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \href{https://doi.org/10.1093/bioinformatics/btw003}{Link}
+\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \href{https://doi.org/10.1093/bioinformatics/btw705}{Link}
+\cr	\cr
 }
 
   \seealso{\code{\link{scaling}}}
