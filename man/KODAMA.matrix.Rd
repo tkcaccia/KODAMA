@@ -29,7 +29,7 @@ KODAMA.matrix (data,
 
   \item{spatial}{Optional matrix of spatial coordinates or NULL. Used to apply spatial constraints.}
 
-  \item{samples}{Optional vector i{An optional vector indicating the identity for each sample. Can be used to guide the integration of prior sample-level information.}
+  \item{samples}{An optional vector indicating the identity for each sample. Can be used to guide the integration of prior sample-level information.}
 
   \item{M}{Number of iterative processes.}
 
