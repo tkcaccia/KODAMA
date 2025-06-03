@@ -5,13 +5,8 @@ Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email
              person("Leonardo", "Tenori", role = "aut",email = "tenori@cerm.unifi.it", comment = c(ORCID = "0000-0001-6438-059X")))
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
 Title: Knowledge Discovery by Accuracy Maximization
-Description: A self-guided, weakly supervised learning algorithm for feature extraction from noisy and 
-  high-dimensional data. The method facilitates the identification of patterns that reflect underlying 
-  group structures across all samples in a dataset. It incorporates a novel strategy to integrate spatial 
-  information, enhancing the interpretability of results in spatially resolved data.
-  Based on Cacciatore S, Tenori L, Luchinat C, et al. (2017) Bioinformatics <doi:10.1093/bioinformatics/btw705>, 
-  Cacciatore S, Luchinat C, Tenori L. (2014) Proc Natl Acad Sci USA <doi:10.1073/pnas.1220873111>, and  
-  Abdel-Shafy EA, Kassim M, Vignoli A, et al. (2025) BioRxiv <doi:10.1101/2025.05.28.656544>
+Description: A self-guided, weakly supervised learning algorithm for feature extraction from noisy and high-dimensional data. The method facilitates the identification of patterns that reflect underlying group structures across all samples in a dataset. It incorporates a novel strategy to integrate spatial information, enhancing the interpretability of results in spatially resolved data.
+  Based on Cacciatore S, Tenori L, Luchinat C, et al. (2017) Bioinformatics <doi:10.1093/bioinformatics/btw705>, Cacciatore S, Luchinat C, Tenori L. (2014) Proc Natl Acad Sci USA <doi:10.1073/pnas.1220873111>, and Abdel-Shafy EA, Kassim M, Vignoli A, et al. (2025) BioRxiv <doi:10.1101/2025.05.28.656544>
 Depends: R (>= 2.10.0), stats, Rtsne, umap
 Imports: Rcpp (>= 0.12.4), Rnanoflann, methods, Matrix
 LinkingTo: Rcpp, RcppArmadillo, Rnanoflann, Matrix
