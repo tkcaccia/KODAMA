@@ -1,5 +1,8 @@
 # KODAMA
-A learning algorithm to perform feature extraction from noisy and high-dimensional data
+A self-guided, weakly supervised learning algorithm for feature extraction from noisy and 
+  high-dimensional data. The method facilitates the identification of patterns that reflect underlying 
+  group structures across all samples in a dataset. It incorporates a novel strategy to integrate spatial 
+  information, enhancing the interpretability of results in spatially resolved data.
 
 ## Citation 
 
