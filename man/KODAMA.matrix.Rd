@@ -9,7 +9,8 @@
 }
 \usage{
 KODAMA.matrix (data,                 
-               spatial = NULL,           
+               spatial = NULL,     
+               samples = NULL,
                M = 100, Tcycle = 20, 
                FUN = c("fastpls","simpls"), 
                ncomp = min(c(50,ncol(data))),
@@ -27,6 +28,8 @@ KODAMA.matrix (data,
   \item{data}{A numeric matrix where rows are samples and columns are variables.}
 
   \item{spatial}{Optional matrix of spatial coordinates or NULL. Used to apply spatial constraints.}
+
+  \item{samples}{Optional vector of samples.}
 
   \item{M}{Number of iterative processes.}
 
