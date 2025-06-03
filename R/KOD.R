@@ -163,6 +163,7 @@ quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.pa
 KODAMA.matrix =
 function (data,                       # Dataset
           spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
+          samples = NULL,
           M = 100, Tcycle = 20, 
           FUN = c("fastpls","simpls"), 
           ncomp = min(c(50,ncol(data))),
