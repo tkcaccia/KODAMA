@@ -1,8 +1,5 @@
 
 \name{grid-internal}
-\alias{RQ}
-\alias{another}
-\alias{knn_Armadillo}
 \title{Internal Grid Functions}
 \description{
  Internal Grid functions
