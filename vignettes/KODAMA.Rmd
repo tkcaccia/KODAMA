@@ -309,7 +309,7 @@ The result of KODAMA with PLS-DA using 100 components as the classifier is subse
 
 
   
-KODAMA can also use external information to work in a semi-supervised way. Supervised constraints can be imposed by linking some samples in such a way that if one of them is changed the linked ones must change in the same way (\emph{i.e.}, they are forced to belong to the same class). This will produce solutions where linked samples are forced to have the lowest values in the KODAMA dissimilarity matrix.
+KODAMA can also use external information to work in a semi-supervised way. Supervised constraints can be imposed by linking some samples in such a way that if one of them is changed, the linked ones must change in the same way (\emph{i.e.}, they are forced to belong to the same class). This will produce solutions where linked samples are forced to have the lowest values in the KODAMA dissimilarity matrix.
 
  \newpage
  
@@ -397,11 +397,13 @@ Here, information of the last two examples are provided together.
 
 ## 6  Special Notes for Users Upgrading from Previous Version
 
-Version 2.3 separate the previous function KODAMA in two distint function: KODAMA.matrix and KODAMA.visualization. The first one is to perform the KODAMA analysis. The second is to transform the KODAMA dissimilarity matrix in a low-dimensional space using t-SNE, MDS or UMAP.
+Version 3.0 introduces support for spatially constrained analysis using a spatial coordinate matrix. Users can now include spatial information through the `spatial` argument in `KODAMA.matrix`, allowing spatial constraints to guide feature extraction. This release also includes improvements in speed, memory handling, and error propagation for large-scale datasets. Output structures remain consistent with version 2.3, ensuring backward compatibility.
 
-Version 2.0 has introduced a few novelty to the KODAMA algorithm and some small changes in the output structure of the functions. We tried to ensure backward compatibility with the previous version where possible. Sammon's Non-Linear Mapping (Sammon 1969) used in the previous version to transform the KODAMA dissimilarity matrix in a space dimensionality has been replaced by t-SNE (van der Maaten 2008) with Tree-Based implementation (van der Maaten 2014) using the Rtsne package.
+Version 2.3 separates the previous function KODAMA into two distint functions: KODAMA.matrix and KODAMA.visualization. The first one is to perform the KODAMA analysis. The second is to transform the KODAMA dissimilarity matrix in a low-dimensional space using t-SNE, MDS or UMAP.
 
-Version 1.1 has brought several fundamental changes to the architecture of the package. We tried to ensure backward compatibility with the previous version where possible. However, there are still some caveats the users should take into account. 
+Version 2.0 has introduced a few novelties to the KODAMA algorithm and some small changes in the output structure of the functions. We tried to ensure backward compatibility with the previous version where possible. Sammon's Non-Linear Mapping (Sammon 1969) used in the previous version to transform the KODAMA dissimilarity matrix in a space dimensionality, has been replaced by t-SNE (van der Maaten 2008) with Tree-Based implementation (van der Maaten 2014) using the Rtsne package.
+
+Version 1.1 has brought several fundamental changes to the architecture of the package. We tried to ensure backward compatibility with the previous version where possible. However, there are still some caveats that users should take into account. 
 
 Users who upgrade to version 1.1 from the older version (0.0.1) should be aware that the package requires the new version of `Rcpp` and `RcppArmadillo ` packages. This issue can simply be solved by installing `Rcpp` and `RcppArmadillo` from CRAN using `install.packages("Rcpp")` and `install.packages("RcppArmadillo")`.
 
