@@ -17,17 +17,17 @@ KODAMA.visualization(kk,
 \arguments{
   \item{kk}{output of \code{\link{KODAMA.matrix}} function.}
   \item{method}{
-  	method to be considered for transforming the dissimilarity matrix in a low-dimensional space. Choices are "\code{t-SNE}", "\code{MDS}", and "\code{UMAP}".
+  	method to be considered for transforming the dissimilarity matrix into a low-dimensional space. Choices are "\code{t-SNE}", "\code{MDS}", and "\code{UMAP}".
 }
   \item{config}{
-  	object of class umap.config or Rtsne.config.
+  	object of class umap.config or tsne.config.
 }
 
 }
 
 
 \value{
-    The function returns a matrix contains the coordinates of the datapoints in a low-dimensional space.
+    The function returns a matrix that contains the coordinates of the datapoints in a low-dimensional space.
     
 }
 
