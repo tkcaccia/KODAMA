@@ -1,5 +1,6 @@
 
 \name{grid-internal}
+\alias{grid-internal}
 \title{Internal Grid Functions}
 \description{
  Internal Grid functions
