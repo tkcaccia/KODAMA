@@ -23,7 +23,7 @@ A list with the following elements:
 \references{
 Assfalg M, Bertini I, Colangiuli D, \emph{et al.}	\cr
 Evidence of different metabolic phenotypes in humans.\cr
-\emph{Proc Natl Acad Sci U S A} 2008;105(5):1420-4. doi: 10.1073/pnas.0705685105.  \href{https://www.pnas.org/doi/full/10.1073/pnas.0705685105}
+\emph{Proc Natl Acad Sci U S A} 2008;105(5):1420-4. doi: 10.1073/pnas.0705685105.  \doi{10.1073/pnas.0705685105}
 \cr	\cr
 Cacciatore S, Luchinat C, Tenori L \cr
 Knowledge discovery by accuracy maximization. \cr
