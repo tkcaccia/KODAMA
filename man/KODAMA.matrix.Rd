@@ -29,7 +29,7 @@ KODAMA.matrix (data,
 
   \item{spatial}{Optional matrix of spatial coordinates or NULL. Used to apply spatial constraints.}
 
-  \item{samples}{Optional vector of samples.}
+  \item{samples}{Optional vector i{An optional vector indicating the identity for each sample. Can be used to guide the integration of prior sample-level information.}
 
   \item{M}{Number of iterative processes.}
 
@@ -47,15 +47,15 @@ KODAMA.matrix (data,
 
   \item{fix}{A logical vector indicating whether each sample's label in \code{W} should be fixed during optimization. Defaults to all \code{FALSE}.}
 
-  \item{landmarks}{Number of landmark points used to approximate the similarity structure. Default is 10000.}
+  \item{landmarks}{Number of landmark points used to approximate the similarity structure. The default is 10000.}
 
-  \item{splitting}{Number of random sample splits used during optimization. Default is 100 for small datasets (<40000 samples) and 300 otherwise.}
+  \item{splitting}{Number of random sample splits used during optimization. The default is 100 for small datasets (<40000 samples) and 300 otherwise.}
 
   \item{spatial.resolution}{A numeric value (default 0.3) controlling the resolution of spatial constraints.}
 
   \item{simm_dissimilarity_matrix}{Logical. If \code{TRUE}, the function returns a similarity/dissimilarity matrix. Default is \code{FALSE}.}
 
-  \item{seed}{Random seed for reproducibility. Default is 1234.}
+  \item{seed}{Random seed for reproducibility. The default is 1234.}
 
 }
 
@@ -69,14 +69,11 @@ KODAMA consists of five steps. These can be in turn divided into two parts: (i) 
     \item{dissimilarity}{a dissimilarity matrix.}
     \item{acc}{a vector with the \code{M} cross-validated accuracies.}
     \item{proximity}{a proximity matrix.}
-    \item{v}{a matrix containing the all classification obtained maximizing the cross-validation accuracy.}
+    \item{v}{a matrix containing all classifications obtained maximizing the cross-validation accuracy.}
     \item{res}{a matrix containing all classification vectors obtained through maximizing the cross-validation accuracy.}
-    \item{f.par}{parameters of the classifier..}
-    \item{entropy}{Shannon's entropy of the KODAMA proximity matrix.}
-    \item{landpoints}{indexes of the landmarks used.}
+    \item{knn_Rnanoflann}{dissimilarity matrix used as input for the \code{\link{KODAMA.visualization}} function.}
     \item{data}{original data.}
-    \item{knn_Armadillo}{dissimilarity matrix used as input for the \code{\link{KODAMA.visualization}} function.}
-
+    \item{res_constrain}{the constrins used.}
     
 }
 
