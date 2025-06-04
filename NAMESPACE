@@ -28,6 +28,6 @@ exportPattern(floyd,as.data.matrix,
               KODAMA.matrix,KODAMA.visualization,
               mcplot,core_cpp,dinisurface,helicoid,spirals,
               swissroll,normalization,scaling,
-              transformy,
+              transformy,quality_control,
               pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch)
 
