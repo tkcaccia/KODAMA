@@ -179,7 +179,7 @@ function (data,                       # Dataset
   
   f.par.pls = ncomp
  # neighbors = round(min(c(landmarks, nrow(data)/3),500)) + 1
-  neighbors = round(min(c(landmarks*0.75, nrow(data)-1),500) )
+  neighbors = floor(min(c(landmarks, nrow(data)*0.75-1),500) )
 
   
   if (sum(is.na(data)) > 0) {
