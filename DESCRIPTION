@@ -1,6 +1,6 @@
 Package: KODAMA
-Version: 3.0
-Date: 2025-06-03
+Version: 3.1
+Date: 2025-09-19
 Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email = "tkcaccia@gmail.com", comment = c(ORCID = "0000-0001-7052-7156")),
              person("Leonardo", "Tenori", role = "aut",email = "tenori@cerm.unifi.it", comment = c(ORCID = "0000-0001-6438-059X")))
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
@@ -22,3 +22,4 @@ Repository: CRAN
 Author: Stefano Cacciatore [aut, trl, cre]
     (<https://orcid.org/0000-0001-7052-7156>),
   Leonardo Tenori [aut] (<https://orcid.org/0000-0001-6438-059X>)
+
