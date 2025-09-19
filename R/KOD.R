@@ -299,14 +299,14 @@ function (data,                       # Dataset
 
 
 
-        res <- move_clusters_harmonic_repulsive(
+        res_move <- move_clusters_harmonic_repulsive(
           spatial, label,
           k = 3, weight = "inv_dist2",
           lambda = 2.0, p_repulse = 1, r0 = 10.0, repel_set = "all",
           eta = 0.01, tol = 1e-4, verbose = FALSE
         )
 
-        eq <- equalize_within_between(res$xy, cluster,
+        eq <- equalize_within_between(res_move$xy, cluster,
                                       within_target = "median",
                                       between_target_ratio = 3)
 
