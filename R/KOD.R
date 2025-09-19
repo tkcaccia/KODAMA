@@ -176,7 +176,8 @@ function (data,                       # Dataset
           splitting = ifelse(nrow(data) < 40000, 100, 300), 
           spatial.resolution = 0.3 , 
           simm_dissimilarity_matrix=FALSE,
-         seed=1234) 
+          ancestry=FALSE,
+          seed=1234) 
 {
   epsilon = 0.05
   set.seed(seed)
@@ -292,8 +293,33 @@ function (data,                       # Dataset
  
 
     if (spatial_flag) {
-      delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-      spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+      if(ancestry){
+
+        ethnicity=as.integer(factor(apply(spatial,1,function(x) paste(x,collapse = "@"))))
+
+
+
+        res <- move_clusters_harmonic_repulsive(
+          spatial, label,
+          k = 3, weight = "inv_dist2",
+          lambda = 2.0, p_repulse = 1, r0 = 10.0, repel_set = "all",
+          eta = 0.01, tol = 1e-4, verbose = FALSE
+        )
+
+        eq <- equalize_within_between(res$xy, cluster,
+                                      within_target = "median",
+                                      between_target_ratio = 3)
+
+
+
+        delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
+        spatialclusters=as.numeric(kmeans(eq$xy+delta, nspatialclusters)$cluster)
+      }else{
+        delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
+        spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+      }
+      
+
       ta_const=table(spatialclusters)
       ta_const=ta_const[ta_const>1]
       sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
@@ -658,5 +684,213 @@ core_cpp <- function(x,
 
 
 
+
+
+
+
+
+
+
+ 
+move_clusters_harmonic_repulsive <- function(
+    xy, label,
+    k = 5,                               # number of attractive neighbors (k-NN)
+    weight = c("uniform","inv_dist","inv_dist2","gaussian"),
+    p_attract = 2,                       # power for inv_dist (if chosen)
+    sigma = NULL,                        # bandwidth for gaussian
+    # Repulsion settings:
+    lambda = 1.0,                        # strength of repulsion
+    p_repulse = 2,                       # r^{-p} barrier (>=2 recommended)
+    r0 = 1.0,                            # distance scale for barrier
+    repel_set = c("all","outside_knn","outside_kplus1"), # which neighbors repel
+    # Optim & convergence:
+    eta = 0.7,                           # gradient step size for centroids
+    max_iter = 200, tol = 1e-3, verbose = FALSE,
+    grad_clip = 5                        # clip very large gradients (stability)
+){
+  if (!is.matrix(xy)) xy <- as.matrix(xy)
+  stopifnot(ncol(xy) >= 2, length(label) == nrow(xy))
+  if (!is.factor(label)) label <- factor(label)
+  labs <- levels(label); G <- length(labs); if (G < 2) stop("Need at least 2 clusters.")
+  
+  weight <- match.arg(weight)
+  repel_set <- match.arg(repel_set)
+  
+  # helpers
+  get_centroids <- function(xy, label, labs) {
+    do.call(cbind, lapply(labs, function(l)
+      colMeans(xy[label == l, , drop = FALSE])))
+  }
+  build_w <- function(d, scheme, p, sigma){
+    if (scheme == "uniform") {
+      w <- rep(1, length(d))
+    } else if (scheme == "inv_dist") {
+      eps <- .Machine$double.eps
+      w <- 1 / pmax(d, eps)^p
+    } else if (scheme == "inv_dist2") {
+      eps <- .Machine$double.eps
+      w <- 1 / pmax(d, eps)^2
+    } else { # gaussian
+      if (is.null(sigma) || !is.finite(sigma) || sigma <= 0) {
+        sigma <- stats::median(d[is.finite(d) & d > 0]); 
+        if (!is.finite(sigma) || sigma <= 0) sigma <- mean(d[d > 0])
+        if (!is.finite(sigma) || sigma <= 0) sigma <- 1
+      }
+      w <- exp(-(d^2) / (2*sigma^2))
+    }
+    sw <- sum(w); if (sw <= 0) { w[] <- 1; sw <- length(w) }
+    w / sw
+  }
+  
+  xy_cur <- xy
+  it_done <- 0
+  for (it in seq_len(max_iter)) {
+    C <- get_centroids(xy_cur, label, labs)     # 2 x G
+    D <- as.matrix(dist(t(C))); diag(D) <- Inf  # G x G
+    
+    shifts <- matrix(0, nrow = 2, ncol = G)
+    
+    for (g in seq_len(G)) {
+      c0 <- C[, g]
+      
+      # --- Attractive gradient to k-NN (harmonic) ---
+      ord <- order(D[g, ])
+      m <- min(k, G - 1)
+      nbr_idx <- if (m > 0) ord[seq_len(m)] else integer(0)
+      if (length(nbr_idx)) {
+        d_attr <- D[g, nbr_idx]
+        w <- build_w(d_attr, weight, p_attract, sigma)
+        muN <- C[, nbr_idx, drop = FALSE] %*% w
+        # grad of 1/2 * sum_j wj ||c-muj||^2 = (sum wj) * (c - weighted_mean)
+        grad_attr <- as.vector(c0 - muN) * sum(w)
+      } else {
+        grad_attr <- c(0, 0)
+      }
+      
+      # --- Repulsive gradient from other centroids ---
+      # E_rep = lambda * sum_l (r0 / r_l)^p  with r_l = ||c - mu_l||
+      # grad = -lambda * p * r0^p * sum_l (c - mu_l) / r_l^{p+2}
+      repel_idx <- setdiff(seq_len(G), g)
+      if (repel_set == "outside_knn" && length(nbr_idx)) {
+        repel_idx <- setdiff(repel_idx, nbr_idx)
+      } else if (repel_set == "outside_kplus1" && length(ord) >= (k+1)) {
+        repel_idx <- ord[(k+1):(G-1)]
+      }
+      grad_rep <- c(0, 0)
+      if (length(repel_idx)) {
+        V <- sweep(C[, repel_idx, drop = FALSE], 1, c0, "-")   # mu_l - c0
+        V <- -V                                                # (c0 - mu_l)
+        r2 <- colSums(V^2)
+        eps <- 1e-12
+        r2 <- pmax(r2, eps)
+        scale <- (lambda * p_repulse * (r0^p_repulse)) / (r2^((p_repulse + 2)/2))
+        grad_rep <- as.vector(V %*% scale)  # sum_l (c0 - mu_l)/r^{p+2} * const
+        grad_rep <- -grad_rep               # negative gradient (since we built V as c0-mu_l)
+      }
+      
+      # total gradient of E_g
+      grad <- grad_attr + grad_rep
+      
+      # clip for stability
+      gnorm <- sqrt(sum(grad^2))
+      if (gnorm > grad_clip) grad <- grad * (grad_clip / gnorm)
+      
+      # gradient descent step on centroid
+      c_new <- c0 - eta * grad
+      shifts[, g] <- c_new - c0
+    }
+    
+    max_shift <- max(sqrt(colSums(shifts^2)))
+    if (verbose) message(sprintf("iter %d: max centroid shift = %.6f", it, max_shift))
+    
+    # translate each cluster by its centroid shift
+    for (g in seq_len(G)) {
+      idx <- label == labs[g]
+      if (any(idx)) {
+        xy_cur[idx, ] <- sweep(xy_cur[idx, , drop = FALSE], 2, shifts[, g], "+")
+      }
+    }
+    
+    it_done <- it
+    if (max_shift < tol) break
+  }
+  
+  list(
+    xy = xy_cur,
+    centers = get_centroids(xy_cur, label, labs),
+    iterations = it_done
+  )
+}
+
+equalize_within_between <- function(xy, cluster,
+                                    within_target = c("median", "mean", "value"),
+                                    within_value = NULL,
+                                    between_target_ratio = 1,
+                                    eps = 1e-8) {
+  x=xy[,1]+rnorm(nrow(xy),sd = 0.001)
+  y=xy[,2]+rnorm(nrow(xy),sd = 0.001)
+  
+  cluster <- as.factor(cluster)
+  within_target <- match.arg(within_target)
+  
+  ## Per-row cluster centroids
+  mu_x <- ave(x, cluster, FUN = function(z) mean(z, na.rm = TRUE))
+  mu_y <- ave(y, cluster, FUN = function(z) mean(z, na.rm = TRUE))
+  
+  ## Within distances and per-cluster median radius
+  r_i <- sqrt((x - mu_x)^2 + (y - mu_y)^2)
+  r_med_by_cl <- tapply(r_i, cluster, function(z) stats::median(z, na.rm = TRUE))
+  
+  ## Target within radius r_w
+  r_w <- switch(within_target,
+                median = stats::median(r_med_by_cl, na.rm = TRUE),
+                mean   = mean(r_med_by_cl, na.rm = TRUE),
+                value  = { if (is.null(within_value)) stop("Provide `within_value` for within_target='value'.")
+                  as.numeric(within_value) })
+  
+  ## Per-cluster within scaling (guard zeros)
+  beta_by_cl <- r_w / pmax(r_med_by_cl, eps)
+  beta_row   <- beta_by_cl[ match(cluster, names(beta_by_cl)) ]
+  
+  ## Unique centroids (one per cluster)
+  mu_tab_x <- tapply(x, cluster, mean)
+  mu_tab_y <- tapply(y, cluster, mean)
+  K <- length(mu_tab_x)
+  
+  ## Median nearest-centroid distance
+  if (K >= 2) {
+    D <- as.matrix(dist(cbind(mu_tab_x, mu_tab_y)))
+    diag(D) <- Inf
+    d_nn <- apply(D, 1, min)          # nearest centroid for each cluster
+    d_nn_med <- stats::median(d_nn)
+  } else d_nn_med <- NA_real_
+  
+  ## Global centroid of centroids (keep overall center fixed)
+  g_x <- mean(mu_tab_x)
+  g_y <- mean(mu_tab_y)
+  
+  ## Between scaling (alpha): make d_nn_med' ≈ between_target_ratio * r_w
+  alpha <- if (is.finite(d_nn_med) && d_nn_med > eps) {
+    (between_target_ratio * r_w) / d_nn_med
+  } else 1
+  
+  ## Apply transforms:
+  ## 1) move each cluster centroid toward/away from global center by alpha
+  mu_x_scaled <- g_x + alpha * (mu_x - g_x)
+  mu_y_scaled <- g_y + alpha * (mu_y - g_y)
+  ## 2) rescale within-cluster deviations by beta
+  x_new <- mu_x_scaled + beta_row * (x - mu_x)
+  y_new <- mu_y_scaled + beta_row * (y - mu_y)
+  
+  xy_new=cbind(x_new,y_new)
+  colnames(xy_new)=colnames(xy)
+  rownames(xy_new)=rownames(xy)
+  list(xy = xy_new,
+       r_w = r_w, d_nn_med = d_nn_med,
+       alpha = alpha, beta_by_cl = beta_by_cl,
+       centers_before = cbind(mu_tab_x, mu_tab_y))
+}
+
+##########################################################################
 
 
