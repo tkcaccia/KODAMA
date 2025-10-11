@@ -13,6 +13,8 @@ Depends: R (>= 2.10.0), stats, Rtsne, umap
 Imports: Rcpp (>= 0.12.4), Rnanoflann, methods, Matrix
 LinkingTo: Rcpp, RcppArmadillo, Rnanoflann, Matrix
 Suggests: rgl, knitr, rmarkdown
+URL: https://github.com/tkcaccia/KODAMA
+BugReports: https://github.com/tkcaccia/KODAMA/issues
 VignetteBuilder: knitr
 SuggestsNote: No suggestions
 License: GPL (>= 2)

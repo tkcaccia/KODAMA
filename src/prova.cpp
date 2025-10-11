@@ -461,8 +461,8 @@ arma::ivec PLSDACV_simpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) 
   for (int i=0; i<mm2; i++) {
     ww=i;
     arma::mat v22=Ytest.rows(ww);
-    arma::uword index;                                                                                                                                                                                                                                                                                                                
-    min_val = v22.max(index);
+    arma::uword index = v22.index_max();
+    min_val = v22(index);
     pp(i)=index+1;
   }
   return pp;
@@ -524,8 +524,8 @@ arma::ivec PLSDACV_fastpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k)
   for (int i=0; i<mm2; i++) {
     ww=i;
     arma::mat v22=Ytest.rows(ww);
-    arma::uword index;                                                                                                                                                                                                                                                                                                                
-    min_val = v22.max(index);
+    arma::uword index = v22.index_max();                                                                                              
+    min_val = v22(index);
     pp(i)=index+1;
   }
   return pp;
@@ -672,8 +672,7 @@ List corecpp(arma::mat x,
       for (int i=0; i<mm2; i++) {
         ww=i;
         arma::mat v22=projmat.rows(ww);
-        arma::uword index;                                                                                                                                                                                                                                                                                                                
-        min_val = v22.max(index);
+        arma::uword index = v22.index_max();                                                                                                                                                                              min_val = v22(index);
         pp(i)=index+1;
       }
     }
@@ -689,8 +688,8 @@ List corecpp(arma::mat x,
       for (int i=0; i<mm2; i++) {
         ww=i;
         arma::mat v22=projmat.rows(ww);
-        arma::uword index;                                                                                                                                                                                                                                                                                                                
-        min_val = v22.max(index);
+        arma::uword index=v22.index_max();                                                                                              
+        min_val = v22(index);
         pp(i)=index+1;
       }
     }
