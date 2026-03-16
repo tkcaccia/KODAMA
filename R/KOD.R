@@ -166,7 +166,7 @@ quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.pa
                               
 KODAMA.matrix =
 function (data,                       # Dataset
-          spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
+          spatial = NULL,             # In spatial are contained the spatial coordinates of each entry
           samples = NULL,
           M = 100, Tcycle = 20, 
           FUN = c("fastpls","simpls"), 
@@ -175,7 +175,6 @@ function (data,                       # Dataset
           constrain = NULL, fix = NULL,  landmarks = 10000,  
           splitting = ifelse(nrow(data) < 40000, 100, 300), 
           spatial.resolution = 0.3 , 
-          simm_dissimilarity_matrix=FALSE,
           ancestry=FALSE,
           seed=1234) 
 {
@@ -195,7 +194,7 @@ function (data,                       # Dataset
   nvariable = ncol(data)
   nsample_spatial= nrow(spatial)
 
-  writeLines("Calculating Network")
+  writeLines("Calculating Network...")
   knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors +1, method=metrics)
   knn_Rnanoflann$distances = knn_Rnanoflann$distance[,-1]
   knn_Rnanoflann$indices = knn_Rnanoflann$indices[,-1]
@@ -203,13 +202,17 @@ function (data,                       # Dataset
   
   if (is.null(spatial)) {
     spatial_flag = FALSE
-  }  else {
+  } else {
     spatial_flag = TRUE
-    writeLines("\nCalculating Spatial Network")
-    knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors, method=metrics)
+          
+    writeLines("\nCalculating Spatial Network..")
+    knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean",parallel=TRUE,cores=n.cores)
 
     aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
-     
+      
+    # A horizontalization of the spatial information is done
+    # Each different sample will be placed side by side
+      
     if(!is.null(samples)){
       samples_names=names(table(samples))          
       if(length(samples_names)>1){
@@ -221,7 +224,7 @@ function (data,                       # Dataset
           ma=ran[2]+ dist(ran)[1]*0.5
         }
       }
-    }
+    }      
   }
   if (is.null(fix)) 
     fix = rep(FALSE, nsample)
@@ -293,33 +296,22 @@ function (data,                       # Dataset
  
 
     if (spatial_flag) {
-      if(ancestry){
-
-        ethnicity=as.integer(factor(apply(spatial,1,function(x) paste(x,collapse = "@"))))
-
-
-
-        res_move <- move_clusters_harmonic_repulsive(
-          spatial, label,
-          k = 3, weight = "inv_dist2",
-          lambda = 2.0, p_repulse = 1, r0 = 10.0, repel_set = "all",
-          eta = 0.01, tol = 1e-4, verbose = FALSE
-        )
-
-        eq <- equalize_within_between(res_move$xy, cluster,
-                                      within_target = "median",
-                                      between_target_ratio = 3)
-
-
-
-        delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-        spatialclusters=as.numeric(kmeans(eq$xy+delta, nspatialclusters)$cluster)
-      }else{
-        delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-        spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+      if (ancestry) {
+        ethnicity = as.integer(factor(apply(spatial, 1, function(x) paste(x, collapse = "@"))))
+        res_move <- move_clusters_harmonic_repulsive(spatial, 
+                                                    ethnicity, k = 3, weight = "inv_dist2", lambda = 2, 
+                                                    p_repulse = 1, r0 = 10, repel_set = "all", 
+                                                    eta = 0.01, tol = 1e-04, verbose = FALSE)
+        eq <- equalize_within_between(res_move$xy, 
+                                      ethnicity, 
+                                      within_target = "median", between_target_ratio = 2)
+        delta = 0 #as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
+        spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
+      } else {
+        delta = as.numeric(unlist(tapply(aa, 1:length(aa), function(x) runif(nsample, -x, x))))
+        spatialclusters = as.numeric(kmeans(spatial + delta, nspatialclusters)$cluster)
       }
       
-
       ta_const=table(spatialclusters)
       ta_const=ta_const[ta_const>1]
       sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
@@ -330,27 +322,23 @@ function (data,                       # Dataset
       for(ic in 1:max(constrain)){
         sel_ic=ic==constrain
         constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
-      }                                 
+      }
     }else{
       constrain_clean=constrain
     }
-
-
-
-        Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
-        if(!is.null(W)){
-          SV_startingvector = W[landpoints]
-          unw = unique(SV_startingvector)
-          unw = unw[-which(is.na(unw))]
-          ghg = is.na(SV_startingvector)
-          SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
+    Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
+    if(!is.null(W)){
+      SV_startingvector = W[landpoints]
+      unw = unique(SV_startingvector)
+      unw = unw[-which(is.na(unw))]
+      ghg = is.na(SV_startingvector)
+      SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
           
-          #################  tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
-          ################   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-          XW=NULL
-          for(ic in 1:max(Xconstrain)){
-            XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
-          }
+
+      XW=NULL
+      for(ic in 1:max(Xconstrain)){
+        XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
+      }
           
           
         }else{
@@ -358,9 +346,6 @@ function (data,                       # Dataset
             XW = Xconstrain
           } else {
             clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-            #############   tab = apply(table(clust, Xconstrain), 2, which.max)
-            #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-            
             XW=NULL
             for(ic in 1:max(Xconstrain)){
               XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
@@ -400,9 +385,7 @@ function (data,                       # Dataset
           res_k[-landpoints] = yatta$vect_proj
           
           
-          ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
-          ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
-          
+  
           res_k_temp=NULL
           for(ic in 1:max(constrain_clean)){
             res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
@@ -459,47 +442,8 @@ function (data,                       # Dataset
 
 
 
-dissimilarity=NULL
-  ma=NULL
-  if(simm_dissimilarity_matrix){
-    ma = matrix(0, ncol = nsample, nrow = nsample)
-    for(k in 1:M){
-      uni = unique(res[k,])
-      nun = length(uni)
-      res_k=res[k,]
-      for (ii in 1:nun) 
-        ma[res[k,] == uni[ii], res_k ==  uni[ii]] = ma[res_k == uni[ii], res_k == uni[ii]] + 1
-    }
-    ma = ma/M
-    Edist = as.matrix(dist(data))
-    ma[ma < epsilon] = 0
-
-#  Entropy calculation
-#    y = ma
-#    diag(y) = NA
-#    yy = as.numeric(y)
-#    yy = yy[!is.na(yy)]
-#    yy = yy/sum(yy)
-#    H = -sum(ifelse(yy > 0, yy * log(yy), 0))
-    
-    mam = (1/ma) * Edist
-  #  mam[is.na(mam)] <- .Machine$double.xmax
-  #  mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
-    mam = floyd(mam)
-  #  mam[mam == .Machine$double.xmax] <- NA
-    prox = Edist/mam
-    diag(prox) = 1
-    prox[is.na(prox)] = 0
-    maxvalue = max(mam, na.rm = TRUE)
-    mam[is.na(mam)] = maxvalue
-
-    dissimilarity = mam
-  }
-
-                                     
-    
     knn_Rnanoflann$neighbors = neighbors
-    return(list(dissimilarity = dissimilarity,acc = accu, proximity = ma, 
+    return(list(acc = accu,
                 v = vect_acc, res = res, 
                 knn_Rnanoflann = knn_Rnanoflann, 
                 data = data,
@@ -512,9 +456,9 @@ dissimilarity=NULL
 
 
                               
-KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
+KODAMA.visualization=function(kk,method=c("UMAP","t-SNE"),config=NULL){
   
-  mat=c("UMAP","t-SNE","MDS")[pmatch(method,c(c("UMAP","t-SNE","MDS")))[1]]
+  mat=c("UMAP","t-SNE","MDS")[pmatch(method,c(c("UMAP","t-SNE")))[1]]
 
   if(mat=="t-SNE"){ 
     if(is.null(config)){
@@ -554,14 +498,7 @@ KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
     rownames(dimensions)=rownames(kk$data)
     
   }
-  if(mat=="MDS"){ 
-    if(is.null(config)){
-      config = MDS.defaults
-    }
-    dimensions=cmdscale(kk$dissimilarity,k=config$dims)
-    colnames(dimensions)[1:config$dims] = paste ("Dimension", 1:config$dims)
-    rownames(dimensions)=rownames(kk$data)
-  }
+
   if(mat=="UMAP"){ 
     if(is.null(config)){
       config = umap.defaults
@@ -579,60 +516,6 @@ KODAMA.visualization=function(kk,method=c("UMAP","t-SNE","MDS"),config=NULL){
   }
   dimensions 
 }
-
-
-
-
-
-  
-# This function performs a permutation test to assess association between the 
-# KODAMA output and any additional related parameters such as clinical metadata.
-
-
-#k.test = 
-#  function (data, labels, n = 100) 
-#  {
-#    data = as.matrix(data)
-#    compmax = min(dim(data))
-#    option = 2 - as.numeric(is.factor(labels))
-#    
-#    w_R2Y = pls.double.cv(data, labels, 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
-#    
-#    v_R2Y = NULL
-#    for (i in 1:n) {
-#      ss = sample(1:nrow(data))
-#      v_R2Y[i] = pls.double.cv(data, labels[ss], 1:nrow(data),compmax = 2,perm.test = FALSE,times = 1,runn=1)$medianR2Y
-#    }
-#    pval = sum(v_R2Y>w_R2Y)/n
-#    pval
-#  }
-
-
-
-
-# This function can be used to extract the variable ranking.
-
-#loads = function (model,method=c("loadings","kruskal.test")) 
-#{
-#  mat=pmatch(method,c("loadings","kruskal.test"))[1]
-#  nn = nrow(model$res)
-#  for (i in 1:nn) {
-#    clu = model$res[i, ]
-#    na.clu = !is.na(clu)
-#    clu = clu[na.clu]
-#    clu=as.numeric(as.factor(clu))
-#    red.out = matrix(ncol = ncol(model$data), nrow = nn)
-#    if (length(unique(clu)) > 1) {
-#      if(mat==1)
-#         red.out[i, ] = as.numeric(pls.kodama(Xtrain = model$data[na.clu,], 
-#                                              Xtest  = model$data[na.clu,], 
-#                                              as.factor(clu), ncomp = 1)$P[, 1])
-#      if(mat==2)
-#         red.out[i, ] = apply(model$data,2,function(x) -log(kruskal.test(x[na.clu],as.factor(clu))$p.value))
-#    }
-#  }
-#  colMeans(abs(red.out), na.rm = TRUE)
-#}
 
 
 
