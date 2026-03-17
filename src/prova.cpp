@@ -55,11 +55,6 @@ static inline int choose_pls_method(const arma::ivec& cl, const int fparpls) {
 
 
 arma::mat pls_light(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) {
-  if (Xtest.n_rows == 0 || Xtrain.n_rows == 0 || Xtrain.n_cols == 0 || Ytrain.n_cols == 0) {
-    return arma::zeros<arma::mat>(Xtest.n_rows, Ytrain.n_cols);
-  }
-  
-
   // Xtrain <- scale(Xtrain,center=TRUE,scale=FALSE)
   // Xtest <-scale(Xtest,center=mX)
   arma::mat mX=mean(Xtrain,0);
@@ -277,10 +272,6 @@ arma::mat floyd(arma::mat data){
 
 
 arma::mat simpls_light(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) {
-  if (Xtest.n_rows == 0 || Xtrain.n_rows == 0 || Xtrain.n_cols == 0 || Ytrain.n_cols == 0) {
-    return arma::zeros<arma::mat>(Xtest.n_rows, Ytrain.n_cols);
-  }
-  
   // n <-dim(Xtrain)[1]
   int n = Xtrain.n_rows;
   
@@ -733,7 +724,6 @@ List corecpp(arma::mat x,
   }
   
 }
-
 
 
 

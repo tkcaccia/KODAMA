@@ -8,7 +8,7 @@ Title: Knowledge Discovery by Accuracy Maximization
 Description: A self-guided, weakly supervised learning algorithm for feature extraction from noisy and 
   high-dimensional data. It facilitates the identification of patterns that reflect underlying group 
   structures across all samples in a dataset. The method incorporates a novel strategy to integrate 
-  spatial information, improving the interpretability of results in spatially resolved data.
+  spatial information, improving the clarity of results in spatially resolved data.
 Depends: R (>= 2.10.0), stats, Rtsne, umap
 Imports: Rcpp (>= 0.12.4), Rnanoflann, methods, Matrix
 LinkingTo: Rcpp, RcppArmadillo, Rnanoflann, Matrix
