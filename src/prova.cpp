@@ -55,6 +55,9 @@ static inline int choose_pls_method(const arma::ivec& cl, const int fparpls) {
 
 
 arma::mat pls_light(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) {
+  if (Xtest.n_rows == 0 || Xtrain.n_rows == 0 || Xtrain.n_cols == 0 || Ytrain.n_cols == 0) {
+    return arma::zeros<arma::mat>(Xtest.n_rows, Ytrain.n_cols);
+  }
   
 
   // Xtrain <- scale(Xtrain,center=TRUE,scale=FALSE)
@@ -274,6 +277,9 @@ arma::mat floyd(arma::mat data){
 
 
 arma::mat simpls_light(arma::mat Xtrain,arma::mat Ytrain,arma::mat Xtest,int ncomp) {
+  if (Xtest.n_rows == 0 || Xtrain.n_rows == 0 || Xtrain.n_cols == 0 || Ytrain.n_cols == 0) {
+    return arma::zeros<arma::mat>(Xtest.n_rows, Ytrain.n_cols);
+  }
   
   // n <-dim(Xtrain)[1]
   int n = Xtrain.n_rows;
@@ -453,6 +459,13 @@ arma::ivec PLSDACV_simpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) 
     
     w1=find(fold==i);
     w9=find(fold!=i);
+    if (w1.n_elem == 0) {
+      continue;
+    }
+    if (w9.n_elem == 0) {
+      Ytest.rows(w1)=clmatrix.rows(w1);
+      continue;
+    }
     temp=unique(cl(w9));    //  I changed this temp=unique(cl(w1));
     if(temp.size()>1){
       Xtrain=x.rows(w9);
@@ -512,6 +525,13 @@ arma::ivec PLSDACV_fastpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k)
     
     w1=find(fold==i);
     w9=find(fold!=i);
+    if (w1.n_elem == 0) {
+      continue;
+    }
+    if (w9.n_elem == 0) {
+      Ytest.rows(w1)=clmatrix.rows(w1);
+      continue;
+    }
     temp=unique(cl(w9));    //  I changed this temp=unique(cl(w1));
     if(temp.size()>1){
       Xtrain=x.rows(w9);
@@ -713,7 +733,6 @@ List corecpp(arma::mat x,
   }
   
 }
-
 
 
 

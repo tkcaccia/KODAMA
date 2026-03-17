@@ -15,6 +15,8 @@ LinkingTo: Rcpp, RcppArmadillo, Rnanoflann, Matrix
 Suggests: rgl, knitr, rmarkdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 SuggestsNote: No suggestions
+LazyData: true
+LazyDataCompression: xz
 Config/testthat/edition: 3
 License: GPL (>= 2)
 Packaged: 2023-05-29 01:32:47 UTC; User
