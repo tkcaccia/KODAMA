@@ -723,18 +723,14 @@ core_cpp <- function(x,
 
   dots = list(...)
   if ("FUN" %in% names(dots)) {
-    message("`FUN` is deprecated and ignored. PLS backend is selected automatically from `f.par.pls` and class count.")
+    message("`FUN` is deprecated and ignored. PLS backend is selected automatically inside `corecpp` during optimization.")
   }
   QC=quality_control(data_row = nrow(x),
                      data_col = ncol(x),
                      f.par.pls = f.par.pls)
 
   f.par.pls=QC$f.par.pls
-  n_class = length(unique(clbest[!is.na(clbest)]))
-  if (n_class < 1L) {
-    stop("clbest must contain at least one non-missing class label")
-  }
-  matchFUN = if (f.par.pls < n_class) 1L else 2L
+  matchFUN = 0L
   
   if (is.null(constrain)) 
     constrain = 1:length(clbest)

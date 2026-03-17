@@ -22,7 +22,7 @@ core_cpp(x,
   \item{xTdata}{a matrix for projections. This matrix contains samples that are not used for the maximization of the cross-validated accuracy. Their classification is obtained by predicting samples on the basis of the final classification vector.}
   \item{clbest}{a vector to optimize.}
   \item{Tcycle}{number of iterative cycles that leads to the maximization of cross-validated accuracy.}
-  \item{f.par.pls}{Number of PLS components. The backend is selected automatically: \code{plssvd} when \code{f.par.pls} is smaller than the current number of classes, otherwise \code{simpls}.}
+  \item{f.par.pls}{Number of PLS components. The backend is selected automatically inside \code{corecpp} before each cross-validation step: \code{plssvd} when \code{f.par.pls} is smaller than the current number of classes, otherwise \code{simpls}.}
   \item{constrain}{
   	a vector of \code{nrow(data)} elements. Supervised constraints can be imposed by linking some samples in such a way that if one of them is changed, all other linked samples change in the same way (\emph{i.e.}, they are forced to belong to the same class) during the maximization of the cross-validation accuracy procedure. Samples with the same identifying constrain will be forced to stay together.
   	}

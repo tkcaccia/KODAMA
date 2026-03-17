@@ -34,6 +34,22 @@
 using namespace std;
 using namespace Rcpp;
 
+static inline int choose_pls_method(const arma::ivec& cl, const int fparpls) {
+  std::set<int> classes;
+  for (arma::uword i = 0; i < cl.n_elem; ++i) {
+    int val = cl[i];
+    if (val != NA_INTEGER && val > 0) {
+      classes.insert(val);
+    }
+  }
+  int n_class = static_cast<int>(classes.size());
+  if (n_class < 1) {
+    return 2; // fallback to simpls when labels are degenerate
+  }
+  // plssvd/fast mode when ncomp is smaller than current number of classes.
+  return (fparpls < n_class) ? 1 : 2;
+}
+
 
 
 
@@ -541,16 +557,17 @@ List corecpp(arma::mat x,
              NumericVector fix,
              bool shake,
              int proj) {
+  (void) FUN; // deprecated: method selection is now dynamic from cl and fparpls
   
   arma::ivec cvpred=clbest;
   arma::ivec cvpredbest;
   arma::ivec clbest_dirty=clbest;
   
-  if(FUN==1){
+  int method = choose_pls_method(clbest, fparpls);
+  if(method==1){
     cvpredbest=PLSDACV_fastpls(x,clbest,Xconstrain,fparpls);   
 
-  }
-  if(FUN==2){
+  } else {
     cvpredbest=PLSDACV_simpls(x,clbest,Xconstrain,fparpls);   
   }
   double accbest;
@@ -619,10 +636,10 @@ List corecpp(arma::mat x,
       }
     }
 
-    if(FUN==1){
+    method = choose_pls_method(cl, fparpls);
+    if(method==1){
       cvpred=PLSDACV_fastpls(x,cl,Xconstrain,fparpls);  
-    }
-    if(FUN==2){
+    } else {
       cvpred=PLSDACV_simpls(x,cl,Xconstrain,fparpls);  
     }
     double accTOT= accuracy(cl,cvpred);
@@ -653,7 +670,8 @@ List corecpp(arma::mat x,
     int mm2=xTdata.n_rows;
     arma::ivec pp(mm2); 
 
-    if(FUN==1){
+    method = choose_pls_method(clbest, fparpls);
+    if(method==1){
       arma::mat lcm=transformy(clbest);
       projmat=pls_light(x,lcm,xTdata,fparpls);
       
@@ -664,8 +682,7 @@ List corecpp(arma::mat x,
         arma::uword index = v22.index_max();
         pp(i)=index+1;
       }
-    }
-    if(FUN==2){
+    } else {
       arma::mat lcm=transformy(clbest);
       projmat=simpls_light(x,lcm,xTdata,fparpls);
 
@@ -696,7 +713,6 @@ List corecpp(arma::mat x,
   }
   
 }
-
 
 
 

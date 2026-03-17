@@ -50,9 +50,10 @@ The function runs \code{M} independent KODAMA optimizations and builds a
 KODAMA-weighted nearest-neighbor structure. Progress bars are shown for both
 the optimization stage and dissimilarity update stage.
 
-The PLS backend is selected automatically from the current number of classes:
-\code{"plssvd"} (fast mode) when \code{ncomp} is smaller than the number of
-classes, otherwise \code{"simpls"}.
+The PLS backend is selected automatically inside \code{corecpp} before each
+cross-validation step from the current number of classes: \code{"plssvd"}
+(fast mode) when \code{ncomp} is smaller than the number of classes, otherwise
+\code{"simpls"}.
 
 When \code{n.cores > 1}, Unix-like systems use fork-based parallelism, which
 typically reduces memory duplication through copy-on-write when worker code
