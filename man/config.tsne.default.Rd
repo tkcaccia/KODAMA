@@ -1,12 +1,12 @@
 \docType{data}
-\name{tsne.defaults}
-\alias{tsne.defaults}
+\name{config.tsne.default}
+\alias{config.tsne.default}
 \title{Default configuration for Rtsne}
 \format{
-  An object of class \code{tsne.defaults} of length 11.
+  An object of class \code{config.tsne.default} of length 12.
 }
 \usage{
-  tsne.defaults
+  config.tsne.default
 }
 \description{
   A list with parameters customizing a Rtsne embedding. Each component of the
@@ -34,13 +34,15 @@
   exaggeration_factor:
   
   num_threads: integer, Number of threads to use when using OpenMP, default is 1. Setting to 0 corresponds to detecting and using all available cores
+
+  define.n.cores: logical. If FALSE (default), \code{\link{KODAMA.visualization}} overrides \code{num_threads} using \code{kk$n.cores} from \code{\link{KODAMA.matrix}} output.
 }
 \examples{
   # display all default settings
-  tsne.defaults
+  config.tsne.default
   
   # create a new settings object with perplexity set to 100
-  custom.settings = tsne.defaults
+  custom.settings = config.tsne.default
   custom.settings$perplexity = 100
   custom.settings
   

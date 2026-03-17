@@ -1,12 +1,12 @@
 \docType{data}
-\name{umap.defaults}
-\alias{umap.defaults}
+\name{config.umap.default}
+\alias{config.umap.default}
 \title{Default configuration for umap}
 \format{
-  An object of class \code{umap.defaults} of length 24.
+  An object of class \code{config.umap.default} of length 25.
 }
 \usage{
-  umap.defaults
+  config.umap.default
 }
 \description{
   A list with parameters customizing a Rumap embedding. Each component of the
@@ -56,14 +56,16 @@ knn.repeat: number of times to restart knn search
 verbose: logical or integer; determines whether to show progress messages
 
 umap_learn_args: vector of arguments to python package umap-learn
+
+define.n.cores: logical. If FALSE (default), \code{\link{KODAMA.visualization}} overrides \code{n_threads} and \code{n_sgd_threads} using \code{kk$n.cores} from \code{\link{KODAMA.matrix}} output.
 }
 \examples{
 
 # display all default settings
-umap.defaults
+config.umap.default
 
 # create a new settings object with n_neighbors set to 5
-custom.settings = umap.defaults
+custom.settings = config.umap.default
 custom.settings$n_neighbors = 5
 custom.settings
   

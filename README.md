@@ -11,7 +11,7 @@ A self-guided, weakly supervised learning algorithm for feature extraction from 
 
 [Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA. (2017). KODAMA: an R package for knowledge discovery and data mining. Bioinformatics, 33(4), 621-623.](https://doi.org/10.1093/bioinformatics/btw003)
 
-[Cacciatore S, Luchinat C, Tenori L. (2014). Knowledge discovery by accuracy maximization. Proceedings of the National Academy of Sciences, 111(14), 5117-5122.](https://www.pnas.org/doi/abs/10.1073/pnas.1220873111)
+[Cacciatore S, Luchinat C, Tenori L. (2014). Knowledge discovery by accuracy maximization. Proceedings of the National Academy of Sciences, 111(14), 5117-5122.](https://doi.org/10.1073/pnas.1220873111)
 
 
 
@@ -24,4 +24,3 @@ library(devtools)
 install_github("tkcaccia/KODAMA")
 
 ```
-

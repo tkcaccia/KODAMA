@@ -1,6 +1,6 @@
 Package: KODAMA
-Version: 3.1
-Date: 2025-09-19
+Version: 3.3
+Date: 2026-03-17
 Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email = "tkcaccia@gmail.com", comment = c(ORCID = "0000-0001-7052-7156")),
              person("Leonardo", "Tenori", role = "aut",email = "tenori@cerm.unifi.it", comment = c(ORCID = "0000-0001-6438-059X")))
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
@@ -12,9 +12,10 @@ Description: A self-guided, weakly supervised learning algorithm for feature ext
 Depends: R (>= 2.10.0), stats, Rtsne, umap
 Imports: Rcpp (>= 0.12.4), Rnanoflann, methods, Matrix
 LinkingTo: Rcpp, RcppArmadillo, Rnanoflann, Matrix
-Suggests: rgl, knitr, rmarkdown
+Suggests: rgl, knitr, rmarkdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 SuggestsNote: No suggestions
+Config/testthat/edition: 3
 License: GPL (>= 2)
 Packaged: 2023-05-29 01:32:47 UTC; User
 NeedsCompilation: yes

@@ -1,4 +1,4 @@
-tsne.defaults <- list(
+config.tsne.default <- list(
   dims = 2,
   perplexity = 30,
   theta = 0.5,
@@ -9,12 +9,13 @@ tsne.defaults <- list(
   final_momentum = 0.8,
   eta = 200,
   exaggeration_factor = 12,
-  num_threads = 1
+  num_threads = 1,
+  define.n.cores = FALSE
 )
-class(tsne.defaults) <- "tsne.config"
+class(config.tsne.default) <- "tsne.config"
 
 
-umap.defaults <- list(
+config.umap.default <- list(
            n_neighbors= 15,
           n_components= 2,
                 metric= "euclidean",
@@ -38,9 +39,10 @@ umap.defaults <- list(
                verbose= FALSE,
        umap_learn_args= NA,
             n_threads = NULL,
-        n_sgd_threads = 0
+        n_sgd_threads = 0,
+      define.n.cores = FALSE
 )
-class(umap.defaults) <- "umap.config"
+class(config.umap.default) <- "umap.config"
 
 
 
@@ -130,19 +132,67 @@ kabsch <- function(pm, qm) {
 
 
 
-pca = function(x,...){
-  res=prcomp(x,...)
-  ss=sprintf("%.1f",summary(res)$importance[2,]*100)
-  res$txt = paste(names(summary(res)$importance[2,])," (",ss,"%)",sep="")
-  colnames(res$x)=res$txt
+.kodama_irlba_pca <- function(x, nv = 50L, maxit = 1000L, tol = 1e-5) {
+  x = as.matrix(x)
+  if (!is.numeric(x)) {
+    stop("x must be a numeric matrix")
+  }
+  if (sum(!is.finite(x)) > 0) {
+    stop("x contains non-finite values")
+  }
+  nr = nrow(x)
+  nc = ncol(x)
+  k = as.integer(min(max(1L, as.integer(nv)), nr, nc))
+
+  # irlb() in vendored C requires m,n >= 4 and nv < min(m, n).
+  if (nr < 4L || nc < 4L || k >= min(nr, nc)) {
+    sv = svd(x, nu = k, nv = k)
+    return(list(u = sv$u, d = sv$d[seq_len(k)], v = sv$v))
+  }
+
+  out = try(
+    .Call(
+      "KODAMA_irlba_pca_dense",
+      x,
+      as.integer(k),
+      as.integer(maxit),
+      as.numeric(tol),
+      PACKAGE = "KODAMA"
+    ),
+    silent = TRUE
+  )
+  if (inherits(out, "try-error")) {
+    sv = svd(x, nu = k, nv = k)
+    return(list(u = sv$u, d = sv$d[seq_len(k)], v = sv$v))
+  }
+  out
+}
+
+pca = function(x, nv = min(50L, ncol(x)), ...) {
+  pca_results = .kodama_irlba_pca(x, nv = nv)
+  scores = sweep(pca_results$u, 2, pca_results$d, "*")
+  sdev = pca_results$d / sqrt(max(1, nrow(scores) - 1))
+
+  var_expl = pca_results$d^2 / sum(pca_results$d^2)
+  ss = sprintf("%.1f", var_expl * 100)
+  txt = paste("PC", seq_along(ss), " (", ss, "%)", sep = "")
+
+  res = list(
+    sdev = sdev,
+    rotation = pca_results$v,
+    center = FALSE,
+    scale = FALSE,
+    x = scores,
+    txt = txt
+  )
+  class(res) = "prcomp"
+  colnames(res$x) = txt
+  colnames(res$rotation) = txt
   res
 }
 
 
-quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.par.pls){
-  matchFUN = pmatch(FUN[1], c("fastpls","simpls"))
-  if (is.na(matchFUN)) 
-    stop("The method to be considered must be  \"fastpls\", \"simpls\".")
+quality_control = function(data_row,data_col,spatial_row=NULL,data=NULL,f.par.pls){
   if (!is.null(spatial_row)){
     if (spatial_row!=data_row) 
       stop("The number of spatial coordinates and number of entries do not match.")    
@@ -159,297 +209,413 @@ quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.pa
   }
 
   
-  return(list(matchFUN=matchFUN,f.par.pls=f.par.pls))
+  return(list(f.par.pls=f.par.pls))
 }
 
 
                               
+#' Knowledge Discovery by Accuracy Maximization
+#'
+#' Run KODAMA on a data matrix and return the optimized labels together with the
+#' neighborhood structure used for downstream visualization.
+#'
+#' @param data Numeric matrix, rows are samples and columns are variables.
+#' @param spatial Optional numeric matrix with spatial coordinates.
+#' @param samples Optional sample identity vector used to horizontally separate
+#'   multiple spatial samples before clustering.
+#' @param M Number of independent KODAMA runs.
+#' @param Tcycle Number of optimization cycles for each run.
+#' @param ncomp Number of PLS components.
+#' @param W Optional starting labels for semi-supervised initialization.
+#' @param metrics Distance metric used by `Rnanoflann::nn`.
+#' @param constrain Optional constraint vector. Samples with identical values are
+#'   forced to keep a common label in each run.
+#' @param fix Optional logical vector marking entries in `W` that must remain fixed.
+#' @param landmarks Number of landmark clusters used in each run.
+#' @param splitting Number of clusters used for initialization when `W` is `NULL`.
+#' @param spatial.resolution Fraction of landmarks used to define spatial clusters.
+#' @param n.cores Number of worker processes. On Unix, `mclapply` is used so
+#'   read-only matrices are shared via copy-on-write. On Windows, PSOCK workers
+#'   are used and data are copied to workers.
+#' @param ancestry Logical; if `TRUE`, use ancestry-aware spatial processing.
+#' @param seed Random seed.
+#'
+#' @return A list with:
+#' \itemize{
+#'   \item `acc`: final cross-validated accuracy for each run.
+#'   \item `v`: accuracy trace matrix (`M x Tcycle`).
+#'   \item `res`: label matrix (`M x nrow(data)`).
+#'   \item `knn_Rnanoflann`: nearest-neighbor index and distance structure.
+#'   \item `data`: input data matrix.
+#'   \item `res_constrain`: effective constraints used in each run.
+#'   \item `n.cores`: number of cores used in `KODAMA.matrix`.
+#' }
+#' @export
 KODAMA.matrix =
-function (data,                       # Dataset
-          spatial = NULL,             # In spatial are contained the spatial coordinates of each entry
+function (data,
+          spatial = NULL,
           samples = NULL,
-          M = 100, Tcycle = 20, 
-          FUN = c("fastpls","simpls"), 
-          ncomp = min(c(50,ncol(data))),
-          W = NULL, metrics="euclidean",
-          constrain = NULL, fix = NULL,  landmarks = 10000,  
-          splitting = ifelse(nrow(data) < 40000, 100, 300), 
-          spatial.resolution = 0.3 , 
-          ancestry=FALSE,
-          seed=1234) 
+          M = 100, Tcycle = 20,
+          ncomp = min(c(50, ncol(data))),
+          W = NULL, metrics = "euclidean",
+          constrain = NULL, fix = NULL, landmarks = 10000,
+          splitting = ifelse(nrow(data) < 40000, 100, 300),
+          spatial.resolution = 0.3,
+          n.cores = 1,
+          ancestry = FALSE,
+          seed = 1234,
+          ...)
 {
-  epsilon = 0.05
-  set.seed(seed)
-  
-  f.par.pls = ncomp
- # neighbors = round(min(c(landmarks, nrow(data)/3),500)) + 1
-  neighbors = floor(min(c(landmarks, nrow(data)*0.75-1),500) )
-
-  
+  dots = list(...)
+  if ("FUN" %in% names(dots)) {
+    message("`FUN` is deprecated and ignored. PLS backend is selected automatically from `ncomp` and class count.")
+  }
+  data = as.matrix(data)
+  if (!is.numeric(data)) {
+    stop("data must be a numeric matrix")
+  }
   if (sum(is.na(data)) > 0) {
     stop("Missing values are present")
-  } 
-  data = as.matrix(data)
+  }
   nsample = nrow(data)
   nvariable = ncol(data)
-  nsample_spatial= nrow(spatial)
+  if (nsample < 2L || nvariable < 1L) {
+    stop("data must contain at least 2 rows and 1 column")
+  }
 
-  writeLines("Calculating Network...")
-  knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors +1, method=metrics)
-  knn_Rnanoflann$distances = knn_Rnanoflann$distance[,-1]
-  knn_Rnanoflann$indices = knn_Rnanoflann$indices[,-1]
-  
-  
-  if (is.null(spatial)) {
-    spatial_flag = FALSE
-  } else {
-    spatial_flag = TRUE
-          
+  if (!is.null(spatial)) {
+    spatial = as.matrix(spatial)
+    if (!is.numeric(spatial)) {
+      stop("spatial must be a numeric matrix")
+    }
+    if (nrow(spatial) != nsample) {
+      stop("The number of spatial coordinates and number of entries do not match.")
+    }
+  }
+
+  n.cores = max(1L, as.integer(n.cores))
+  set.seed(seed)
+  f.par.pls = ncomp
+  neighbors = max(1L, floor(min(c(landmarks, nsample * 0.75 - 1), 500)))
+  nn_call = function(x, y, k, method) {
+    if (n.cores > 1L) {
+      out = try(
+        Rnanoflann::nn(x, y, k, method = method, parallel = TRUE, cores = n.cores),
+        silent = TRUE
+      )
+      if (!inherits(out, "try-error")) {
+        return(out)
+      }
+    }
+    Rnanoflann::nn(x, y, k, method = method)
+  }
+
+  writeLines("Calculating Feature Network...")
+  knn_Rnanoflann = nn_call(data, data, neighbors + 1, metrics)
+  dist_name = if (!is.null(knn_Rnanoflann$distances)) "distances" else "distance"
+  if (is.null(knn_Rnanoflann[[dist_name]])) {
+    stop("Rnanoflann::nn did not return distances")
+  }
+  knn_Rnanoflann$distances = knn_Rnanoflann[[dist_name]][, -1, drop = FALSE]
+  knn_Rnanoflann$indices = knn_Rnanoflann$indices[, -1, drop = FALSE]
+
+  spatial_flag = !is.null(spatial)
+  spatial_jitter = NULL
+  if (spatial_flag) {
     writeLines("\nCalculating Spatial Network..")
-    knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean",parallel=TRUE,cores=n.cores)
+    knn_spatial = nn_call(spatial, spatial, neighbors, "euclidean")
+    idx_far = min(20L, ncol(knn_spatial$indices))
+    spatial_jitter = colMeans(abs(
+      spatial[knn_spatial$indices[, 1], , drop = FALSE] -
+      spatial[knn_spatial$indices[, idx_far], , drop = FALSE]
+    )) * 3
 
-    aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
-      
-    # A horizontalization of the spatial information is done
-    # Each different sample will be placed side by side
-      
-    if(!is.null(samples)){
-      samples_names=names(table(samples))          
-      if(length(samples_names)>1){
-        ma=0
-        for (j in 1:length(samples_names)) {
-          sel <- samples_names[j] == samples
-          spatial[sel, 1]=spatial[sel, 1]+ma
-          ran=range(spatial[sel, 1])
-          ma=ran[2]+ dist(ran)[1]*0.5
+    if (!is.null(samples)) {
+      samples_names = names(table(samples))
+      if (length(samples_names) > 1L) {
+        ma = 0
+        for (j in seq_along(samples_names)) {
+          sel = samples_names[j] == samples
+          spatial[sel, 1] = spatial[sel, 1] + ma
+          ran = range(spatial[sel, 1])
+          ma = ran[2] + stats::dist(ran)[1] * 0.5
         }
       }
-    }      
+    }
   }
-  if (is.null(fix)) 
+
+  if (is.null(fix)) {
     fix = rep(FALSE, nsample)
-  if (is.null(constrain)) 
-    constrain = 1:nsample
-  is.na.constrain=is.na(constrain)
-  if(any(is.na.constrain)){
-    constrain=as.numeric(as.factor(constrain))
-    constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
+  }
+  if (length(fix) != nsample) {
+    stop("fix must have length nrow(data)")
+  }
+  fix = as.logical(fix)
+
+  if (is.null(constrain)) {
+    constrain = seq_len(nsample)
+  }
+  if (length(constrain) != nsample) {
+    stop("constrain must have length nrow(data)")
+  }
+  is.na.constrain = is.na(constrain)
+  if (any(is.na.constrain)) {
+    constrain = as.numeric(as.factor(constrain))
+    constrain[is.na.constrain] = max(constrain, na.rm = TRUE) +
+      seq_len(sum(is.na.constrain))
+  } else {
+    constrain = as.numeric(as.factor(constrain))
   }
 
-     
-  
-  if(nsample<=landmarks){
-    landmarks=ceiling(nsample*0.75)
-  } 
+  if (!is.null(W) && length(W) != nsample) {
+    stop("W must have length nrow(data)")
+  }
 
-  nspatialclusters=round(landmarks*spatial.resolution)
-  
-  QC=quality_control(data_row = nsample,
-                     data_col = nvariable,
-                     spatial_row = nsample_spatial,
-                     FUN = FUN,
-                     data = data,
-                     f.par.pls = f.par.pls)
-  matchFUN=QC$matchFUN
+  if (nsample <= landmarks) {
+    landmarks = ceiling(nsample * 0.75)
+  }
+  landmarks = max(2L, as.integer(landmarks))
+  splitting = max(2L, as.integer(splitting))
+  nspatialclusters = max(1L, round(landmarks * spatial.resolution))
 
-  f.par.pls=QC$f.par.pls
+  QC = quality_control(
+    data_row = nsample,
+    data_col = nvariable,
+    spatial_row = if (spatial_flag) nrow(spatial) else NULL,
+    data = data,
+    f.par.pls = f.par.pls
+  )
+  f.par.pls = QC$f.par.pls
 
+  one_iteration = function(k) {
+    set.seed(seed + k)
 
-
-  res = matrix(nrow = M, ncol = nsample)
-  res_constrain = matrix(nrow = M, ncol =nsample)
-
-  vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
-  accu = NULL
-
-
-  pb <- txtProgressBar(min = 1, max = M, style = 1)
-
-  for (k in 1:M) {
-    setTxtProgressBar(pb, k)
-    set.seed(seed+k)
-    
-    # The landmarks samples are chosen in a way to cover all different profile
-    # The data are divided in a number of clusters equal to the number of landmarks
-    # A landpoint is chosen randomly from each cluster
-
-    landpoints=NULL
-    clust = as.numeric(kmeans(data, landmarks)$cluster)
-    for (ii in 1:landmarks) {
-      www = which(clust == ii)
-      lwww=length(www)
-      landpoints = c(landpoints,www[sample.int(lwww, 1, FALSE, NULL)])
+    landpoints = integer(landmarks)
+    clust_landmarks = as.numeric(stats::kmeans(data, landmarks)$cluster)
+    for (ii in seq_len(landmarks)) {
+      ww = which(clust_landmarks == ii)
+      landpoints[ii] = ww[sample.int(length(ww), 1L)]
     }
 
-    # Variables are splitted in two where 
-    # X variables are the variables for cross-validation accuracy maximizzation
-    # T variables are the variable for the projections
-    
     Tdata = data[-landpoints, , drop = FALSE]
     Xdata = data[landpoints, , drop = FALSE]
     Tfix = fix[-landpoints]
     Xfix = fix[landpoints]
-    whF = which(!Xfix)
-    whT = which(Xfix)
-    Xspatial = spatial[landpoints, , drop = FALSE]
-
- 
 
     if (spatial_flag) {
       if (ancestry) {
         ethnicity = as.integer(factor(apply(spatial, 1, function(x) paste(x, collapse = "@"))))
-        res_move <- move_clusters_harmonic_repulsive(spatial, 
-                                                    ethnicity, k = 3, weight = "inv_dist2", lambda = 2, 
-                                                    p_repulse = 1, r0 = 10, repel_set = "all", 
-                                                    eta = 0.01, tol = 1e-04, verbose = FALSE)
-        eq <- equalize_within_between(res_move$xy, 
-                                      ethnicity, 
-                                      within_target = "median", between_target_ratio = 2)
-        delta = 0 #as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
-        spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
+        res_move = move_clusters_harmonic_repulsive(
+          spatial,
+          ethnicity, k = 3, weight = "inv_dist2", lambda = 2,
+          p_repulse = 1, r0 = 10, repel_set = "all",
+          eta = 0.01, tol = 1e-04, verbose = FALSE
+        )
+        eq = equalize_within_between(
+          res_move$xy,
+          ethnicity,
+          within_target = "median", between_target_ratio = 2
+        )
+        spatialclusters = as.numeric(stats::kmeans(eq$xy, nspatialclusters)$cluster)
       } else {
-        delta = as.numeric(unlist(tapply(aa, 1:length(aa), function(x) runif(nsample, -x, x))))
-        spatialclusters = as.numeric(kmeans(spatial + delta, nspatialclusters)$cluster)
+        delta = matrix(0, nrow = nsample, ncol = ncol(spatial))
+        for (jj in seq_len(ncol(spatial))) {
+          delta[, jj] = stats::runif(nsample, -spatial_jitter[jj], spatial_jitter[jj])
+        }
+        spatialclusters = as.numeric(stats::kmeans(spatial + delta, nspatialclusters)$cluster)
       }
-      
-      ta_const=table(spatialclusters)
-      ta_const=ta_const[ta_const>1]
-      sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
-      if(sum(!sel_cluster_1)>0){
-        spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann::nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
-      }        
-      constrain_clean=NULL
-      for(ic in 1:max(constrain)){
-        sel_ic=ic==constrain
-        constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
+
+      ta_const = table(spatialclusters)
+      ta_const = ta_const[ta_const > 1]
+      sel_cluster_1 = spatialclusters %in% as.numeric(names(ta_const))
+      if (sum(!sel_cluster_1) > 0) {
+        spatialclusters[!sel_cluster_1] =
+          spatialclusters[sel_cluster_1][
+            Rnanoflann::nn(
+              spatial[sel_cluster_1, , drop = FALSE],
+              spatial[!sel_cluster_1, , drop = FALSE],
+              1
+            )$indices
+          ]
       }
-    }else{
-      constrain_clean=constrain
+      constrain_clean = numeric(nsample)
+      for (ic in seq_len(max(constrain))) {
+        sel_ic = ic == constrain
+        constrain_clean[sel_ic] = as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
+      }
+    } else {
+      constrain_clean = constrain
     }
+
     Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
-    if(!is.null(W)){
+    if (!is.null(W)) {
       SV_startingvector = W[landpoints]
       unw = unique(SV_startingvector)
-      unw = unw[-which(is.na(unw))]
+      unw = unw[!is.na(unw)]
       ghg = is.na(SV_startingvector)
       SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
-          
-
-      XW=NULL
-      for(ic in 1:max(Xconstrain)){
-        XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
+      XW = numeric(length(Xconstrain))
+      for (ic in seq_len(max(Xconstrain))) {
+        XW[ic == Xconstrain] =
+          as.numeric(names(which.max(table(SV_startingvector[ic == Xconstrain]))))
       }
-          
-          
-        }else{
-          if (landmarks<200) {
-            XW = Xconstrain
-          } else {
-            clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-            XW=NULL
-            for(ic in 1:max(Xconstrain)){
-              XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
-            }
-            
-            
-          }
-        }
-        
-        
-        clbest = XW
-        options(warn = -1)
-        yatta = 0
-        attr(yatta, "class") = "try-error"
-        while (!is.null(attr(yatta, "class"))) {
-          yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
-                               f.par.pls,
-                               Xconstrain, Xfix), silent = FALSE)
-          
-        }
-        options(warn = 0)
-        res_k=rep(NA,nsample)
-        if (is.list(yatta)) {
-          clbest = as.vector(yatta$clbest)
-          accu = yatta$accbest
-          yatta$vect_acc = as.vector(yatta$vect_acc)
-          yatta$vect_acc[yatta$vect_acc == -1] = NA
-          vect_acc[k, ] = yatta$vect_acc
-          
-          yatta$vect_proj = as.vector(yatta$vect_proj)
-          
-          if(!is.null(W))
-            yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
-          
-          temp=rep(NA,nsample)
-          res_k[landpoints] = clbest
-          res_k[-landpoints] = yatta$vect_proj
-          
-          
-  
-          res_k_temp=NULL
-          for(ic in 1:max(constrain_clean)){
-            res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
-          }
-          res_k=res_k_temp 
-          
-          
-        }
-        
-        res[k,]=res_k
-        res_constrain[k,]=constrain_clean                             
-                                     
-                                     
-        
-  }
-  
-  close(pb)
-
-    print("Calculation of dissimilarity matrix...")
-    
-
-    pb <- txtProgressBar(min = 1, max = nrow(data), style = 1)
-    for (k in 1:nrow(data)) {
-    setTxtProgressBar(pb, k)
-    
-        
-        
-        
-        knn_indices=knn_Rnanoflann$indices[k,]
-        knn_distances=knn_Rnanoflann$distances[k,]
-        
-        
-        
-        mean_knn_distances=mean(knn_distances)                             
-        for (j_tsne in 1:neighbors) {
-          
-          kod_tsne = mean(res[, k] == res[, knn_indices[j_tsne]], na.rm = TRUE)
-          knn_distances[j_tsne] = (1+knn_distances[j_tsne])/(kod_tsne^2)
-          
-        }
-        
-        
-        oo_tsne = order(knn_distances)
-        knn_distances = knn_distances[oo_tsne]
-        knn_indices = knn_indices[oo_tsne]
-        
-      
-      knn_Rnanoflann$indices[k,]=knn_indices
-      knn_Rnanoflann$distances[k,] =knn_distances
-      
+    } else if (landmarks < 200) {
+      XW = Xconstrain
+    } else {
+      clust_init = as.numeric(stats::kmeans(Xdata, splitting)$cluster)
+      XW = numeric(length(Xconstrain))
+      for (ic in seq_len(max(Xconstrain))) {
+        XW[ic == Xconstrain] =
+          as.numeric(names(which.max(table(clust_init[ic == Xconstrain]))))
+      }
     }
-    
-    close(pb)
 
+    clbest = XW
+    old_warn = getOption("warn")
+    options(warn = -1)
+    on.exit(options(warn = old_warn), add = TRUE)
+    yatta = structure(0, class = "try-error")
+    while (!is.null(attr(yatta, "class"))) {
+      yatta = try(
+        core_cpp(Xdata, Tdata, clbest, Tcycle, f.par.pls = f.par.pls, Xconstrain, Xfix),
+        silent = FALSE
+      )
+    }
 
+    res_k = rep(NA_real_, nsample)
+    vect_acc_k = rep(NA_real_, Tcycle)
+    acc_k = NA_real_
+    if (is.list(yatta)) {
+      clbest = as.vector(yatta$clbest)
+      acc_k = yatta$accbest
+      vect_acc_k = as.vector(yatta$vect_acc)
+      vect_acc_k[vect_acc_k == -1] = NA
 
-    knn_Rnanoflann$neighbors = neighbors
-    return(list(acc = accu,
-                v = vect_acc, res = res, 
-                knn_Rnanoflann = knn_Rnanoflann, 
-                data = data,
-                res_constrain=res_constrain))
-    
+      vect_proj = as.vector(yatta$vect_proj)
+      if (!is.null(W)) {
+        vect_proj[Tfix] = W[-landpoints][Tfix]
+      }
+
+      res_k[landpoints] = clbest
+      res_k[-landpoints] = vect_proj
+      res_k_temp = numeric(nsample)
+      for (ic in seq_len(max(constrain_clean))) {
+        res_k_temp[ic == constrain_clean] =
+          as.numeric(names(which.max(table(res_k[ic == constrain_clean]))))
+      }
+      res_k = res_k_temp
+    }
+
+    list(
+      res_k = res_k,
+      constrain_k = constrain_clean,
+      vect_acc_k = vect_acc_k,
+      acc_k = acc_k
+    )
   }
+
+  run_parallel_chunks = function(indices, fun, title) {
+    writeLines(title)
+    pb = txtProgressBar(min = 0, max = length(indices), style = 3)
+    on.exit(close(pb), add = TRUE)
+
+    chunk_size = max(1L, min(16L, ceiling(length(indices) / max(1L, n.cores * 4L))))
+    chunks = split(indices, ceiling(seq_along(indices) / chunk_size))
+    out = vector("list", length(indices))
+    done = 0L
+
+    if (n.cores <= 1L) {
+      for (chunk in chunks) {
+        chunk_res = lapply(chunk, fun)
+        out[chunk] = chunk_res
+        done = done + length(chunk)
+        setTxtProgressBar(pb, done)
+      }
+      return(out)
+    }
+
+    if (.Platform$OS.type != "windows") {
+      for (chunk in chunks) {
+        chunk_res = parallel::mclapply(
+          chunk,
+          fun,
+          mc.cores = n.cores,
+          mc.preschedule = FALSE
+        )
+        out[chunk] = chunk_res
+        done = done + length(chunk)
+        setTxtProgressBar(pb, done)
+      }
+      return(out)
+    }
+
+    cl = parallel::makeCluster(n.cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    parallel::clusterSetRNGStream(cl, seed)
+    parallel::clusterExport(cl, varlist = c(
+      "data", "nsample", "fix", "spatial", "spatial_flag", "ancestry",
+      "spatial_jitter", "nspatialclusters", "constrain", "W", "landmarks",
+      "splitting", "seed", "Tcycle", "f.par.pls", "one_iteration",
+      "neighbors"
+    ), envir = environment())
+    for (chunk in chunks) {
+      chunk_res = parallel::parLapplyLB(cl, chunk, fun)
+      out[chunk] = chunk_res
+      done = done + length(chunk)
+      setTxtProgressBar(pb, done)
+    }
+    out
+  }
+
+  idx_M = seq_len(M)
+  iter_res = run_parallel_chunks(idx_M, one_iteration, "Running KODAMA optimization...")
+  res = matrix(NA_real_, nrow = M, ncol = nsample)
+  res_constrain = matrix(NA_real_, nrow = M, ncol = nsample)
+  vect_acc = matrix(NA_real_, nrow = M, ncol = Tcycle)
+  accu = rep(NA_real_, M)
+  for (k in idx_M) {
+    res[k, ] = iter_res[[k]]$res_k
+    res_constrain[k, ] = iter_res[[k]]$constrain_k
+    vect_acc[k, ] = iter_res[[k]]$vect_acc_k
+    accu[k] = iter_res[[k]]$acc_k
+  }
+
+  one_dissimilarity_row = function(k) {
+    knn_indices = knn_Rnanoflann$indices[k, ]
+    knn_distances = knn_Rnanoflann$distances[k, ]
+    for (j_tsne in seq_len(neighbors)) {
+      kod_tsne = mean(res[, k] == res[, knn_indices[j_tsne]], na.rm = TRUE)
+      knn_distances[j_tsne] = (1 + knn_distances[j_tsne]) / (kod_tsne^2)
+    }
+    oo_tsne = order(knn_distances)
+    list(
+      knn_indices = knn_indices[oo_tsne],
+      knn_distances = knn_distances[oo_tsne]
+    )
+  }
+
+  row_idx = seq_len(nsample)
+  dis_res = run_parallel_chunks(
+    row_idx,
+    one_dissimilarity_row,
+    "Calculation of dissimilarity matrix..."
+  )
+  for (k in row_idx) {
+    knn_Rnanoflann$indices[k, ] = dis_res[[k]]$knn_indices
+    knn_Rnanoflann$distances[k, ] = dis_res[[k]]$knn_distances
+  }
+
+  knn_Rnanoflann$neighbors = neighbors
+  return(list(
+    acc = accu,
+    v = vect_acc,
+    res = res,
+    knn_Rnanoflann = knn_Rnanoflann,
+    data = data,
+    res_constrain = res_constrain,
+    n.cores = n.cores
+  ))
+}
 
                             
 
@@ -459,10 +625,18 @@ function (data,                       # Dataset
 KODAMA.visualization=function(kk,method=c("UMAP","t-SNE"),config=NULL){
   
   mat=c("UMAP","t-SNE","MDS")[pmatch(method,c(c("UMAP","t-SNE")))[1]]
+  kk_ncores = if (!is.null(kk$n.cores)) as.integer(kk$n.cores) else 1L
+  kk_ncores = max(1L, kk_ncores)
 
   if(mat=="t-SNE"){ 
     if(is.null(config)){
-      config = tsne.defaults
+      config = config.tsne.default
+    }
+    if (is.null(config$define.n.cores)) {
+      config$define.n.cores = FALSE
+    }
+    if (!isTRUE(config$define.n.cores)) {
+      config$num_threads = kk_ncores
     }
     if(config$perplexity>(floor(nrow(kk$data)/3)-1)){
       stop("Perplexity is too large for the number of samples")
@@ -501,7 +675,14 @@ KODAMA.visualization=function(kk,method=c("UMAP","t-SNE"),config=NULL){
 
   if(mat=="UMAP"){ 
     if(is.null(config)){
-      config = umap.defaults
+      config = config.umap.default
+    }
+    if (is.null(config$define.n.cores)) {
+      config$define.n.cores = FALSE
+    }
+    if (!isTRUE(config$define.n.cores)) {
+      config$n_threads = kk_ncores
+      config$n_sgd_threads = kk_ncores
     }
     numap=min(c(round(config$n_neighbors)*3,nrow(kk$data)-1,ncol(kk$knn_Rnanoflann$indices)))
 
@@ -535,19 +716,25 @@ core_cpp <- function(x,
                      xTdata=NULL,
                      clbest, 
                      Tcycle=20, 
-                     FUN=c("fastpls","simpls"), 
                      f.par.pls = 5,
                      constrain=NULL, 
-                     fix=NULL) {
+                     fix=NULL,
+                     ...) {
 
-
-    QC=quality_control(data_row = nrow(x),
+  dots = list(...)
+  if ("FUN" %in% names(dots)) {
+    message("`FUN` is deprecated and ignored. PLS backend is selected automatically from `f.par.pls` and class count.")
+  }
+  QC=quality_control(data_row = nrow(x),
                      data_col = ncol(x),
-                     FUN = FUN,
                      f.par.pls = f.par.pls)
-  
-  matchFUN=QC$matchFUN
+
   f.par.pls=QC$f.par.pls
+  n_class = length(unique(clbest[!is.na(clbest)]))
+  if (n_class < 1L) {
+    stop("clbest must contain at least one non-missing class label")
+  }
+  matchFUN = if (f.par.pls < n_class) 1L else 2L
   
   if (is.null(constrain)) 
     constrain = 1:length(clbest)
@@ -752,7 +939,7 @@ equalize_within_between <- function(xy, cluster,
   g_x <- mean(mu_tab_x)
   g_y <- mean(mu_tab_y)
   
-  ## Between scaling (alpha): make d_nn_med' ≈ between_target_ratio * r_w
+  ## Between scaling (alpha): target nearest-centroid distance ratio.
   alpha <- if (is.finite(d_nn_med) && d_nn_med > eps) {
     (between_target_ratio * r_w) / d_nn_med
   } else 1
@@ -775,5 +962,3 @@ equalize_within_between <- function(xy, cluster,
 }
 
 ##########################################################################
-
-

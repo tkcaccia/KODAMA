@@ -1,122 +1,82 @@
 \name{KODAMA.matrix}
-
 \alias{KODAMA.matrix}
-
 \title{Knowledge Discovery by Accuracy Maximization}
-
 \description{
-	KODAMA (KnOwledge Discovery by Accuracy MAximization) is an unsupervised and semi-supervised learning algorithm that performs feature extraction from noisy and high-dimensional data. 
+Run KODAMA on a numeric data matrix and return the optimized label runs and
+nearest-neighbor structure used by \code{\link{KODAMA.visualization}}.
 }
 \usage{
-KODAMA.matrix (data,                 
-               spatial = NULL,     
-               samples = NULL,
-               M = 100, Tcycle = 20, 
-               FUN = c("fastpls","simpls"), 
-               ncomp = min(c(50,ncol(data))),
-               W = NULL, metrics="euclidean",
-               constrain = NULL, fix = NULL,  landmarks = 10000,  
-               splitting = ifelse(nrow(data) < 40000, 100, 300), 
-               spatial.resolution = 0.3 , 
-               simm_dissimilarity_matrix=FALSE,
-               seed=1234) 
-
-
+KODAMA.matrix(
+  data,
+  spatial = NULL,
+  samples = NULL,
+  M = 100,
+  Tcycle = 20,
+  ncomp = min(c(50, ncol(data))),
+  W = NULL,
+  metrics = "euclidean",
+  constrain = NULL,
+  fix = NULL,
+  landmarks = 10000,
+  splitting = ifelse(nrow(data) < 40000, 100, 300),
+  spatial.resolution = 0.3,
+  n.cores = 1,
+  ancestry = FALSE,
+  seed = 1234,
+  ...
+)
 }
-
 \arguments{
-  \item{data}{A numeric matrix where rows are samples and columns are variables.}
-
-  \item{spatial}{Optional matrix of spatial coordinates or NULL. Used to apply spatial constraints.}
-
-  \item{samples}{An optional vector indicating the identity for each sample. Can be used to guide the integration of prior sample-level information.}
-
-  \item{M}{Number of iterative processes.}
-
-  \item{Tcycle}{Number of cycles to optimize cross-validated accuracy.}
-
-  \item{FUN}{Classifier to be used. Options are \code{"fastpls"} or \code{"simpls"}.}
-
-  \item{ncomp}{Number of components for the PLS classifier. Default is \code{min(50, ncol(data))}.}
-
-  \item{W}{A vector of initial class labels for each sample (\code{length = nrow(data)}). Defaults to unique labels for each sample if NULL.}
-
-  \item{metrics}{Distance metric to be used (default is \code{"euclidean"}).}
-
-  \item{constrain}{An optional vector indicating group constraints. Samples sharing the same value in this vector will be forced to stay in the same cluster.}
-
-  \item{fix}{A logical vector indicating whether each sample's label in \code{W} should be fixed during optimization. Defaults to all \code{FALSE}.}
-
-  \item{landmarks}{Number of landmark points used to approximate the similarity structure. The default is 10000.}
-
-  \item{splitting}{Number of random sample splits used during optimization. The default is 100 for small datasets (<40000 samples) and 300 otherwise.}
-
-  \item{spatial.resolution}{A numeric value (default 0.3) controlling the resolution of spatial constraints.}
-
-  \item{simm_dissimilarity_matrix}{Logical. If \code{TRUE}, the function returns a similarity/dissimilarity matrix. Default is \code{FALSE}.}
-
-  \item{seed}{Random seed for reproducibility. The default is 1234.}
-
+  \item{data}{Numeric matrix where rows are samples and columns are variables.}
+  \item{spatial}{Optional numeric matrix of spatial coordinates with \code{nrow(spatial) == nrow(data)}.}
+  \item{samples}{Optional sample identifier vector used to separate multiple spatial samples on a shared coordinate axis.}
+  \item{M}{Number of independent KODAMA optimization runs.}
+  \item{Tcycle}{Number of optimization cycles for each run.}
+  \item{ncomp}{Number of PLS components.}
+  \item{W}{Optional starting labels for semi-supervised initialization.}
+  \item{metrics}{Distance metric passed to \code{Rnanoflann::nn}.}
+  \item{constrain}{Optional grouping constraint vector; entries with the same value are forced to share labels within each run.}
+  \item{fix}{Optional logical vector indicating which entries in \code{W} are fixed during optimization.}
+  \item{landmarks}{Number of landmark clusters used in each run.}
+  \item{splitting}{Number of clusters used for initialization when \code{W} is \code{NULL}.}
+  \item{spatial.resolution}{Fraction of landmarks used to define spatial constraint clusters.}
+  \item{n.cores}{Number of worker processes. On Unix-like systems forked workers are used; on Windows PSOCK workers are used.}
+  \item{ancestry}{Logical; if \code{TRUE}, ancestry-aware spatial processing is used.}
+  \item{seed}{Random seed.}
+  \item{...}{Ignored legacy arguments. Passing \code{FUN} is deprecated and has no effect.}
 }
-
 \details{
-KODAMA consists of five steps. These can be in turn divided into two parts: (i) the maximization of cross-validated accuracy by an iterative process (step I and II), resulting in the construction of a proximity matrix (step III), and (ii) the definition of a dissimilarity matrix (step IV and V). The first part entails the core idea of KODAMA, that is, the partitioning of data guided by the maximization of the cross-validated accuracy. At the beginning of this part, a fraction of the total samples (defined by \code{FUN_SAM}) are randomly selected from the original data. The whole iterative process (step I-III) is repeated \code{M} times to average the effects owing to the randomness of the iterative procedure. Each time that this part is repeated, a different fraction of samples is selected. The second part aims at collecting and processing these results by constructing a dissimilarity matrix to provide a holistic view of the data while maintaining their intrinsic structure (steps IV and V). Then, \code{\link{KODAMA.visualization}} function is used to visualise the results of KODAMA dissimilarity matrix. 
+The function runs \code{M} independent KODAMA optimizations and builds a
+KODAMA-weighted nearest-neighbor structure. Progress bars are shown for both
+the optimization stage and dissimilarity update stage.
 
+The PLS backend is selected automatically from the current number of classes:
+\code{"plssvd"} (fast mode) when \code{ncomp} is smaller than the number of
+classes, otherwise \code{"simpls"}.
+
+When \code{n.cores > 1}, Unix-like systems use fork-based parallelism, which
+typically reduces memory duplication through copy-on-write when worker code
+treats \code{data} as read-only. On Windows, socket workers are used and the
+input matrix is copied to workers by design.
 }
-
 \value{
-    The function returns a list with 4 items:
-    \item{dissimilarity}{a dissimilarity matrix.}
-    \item{acc}{a vector with the \code{M} cross-validated accuracies.}
-    \item{proximity}{a proximity matrix.}
-    \item{v}{a matrix containing all classifications obtained maximizing the cross-validation accuracy.}
-    \item{res}{a matrix containing all classification vectors obtained through maximizing the cross-validation accuracy.}
-    \item{knn_Rnanoflann}{dissimilarity matrix used as input for the \code{\link{KODAMA.visualization}} function.}
-    \item{data}{original data.}
-    \item{res_constrain}{the constrins used.}
-    
+A list with:
+\item{acc}{Numeric vector of length \code{M} with final run accuracies.}
+\item{v}{Numeric matrix (\code{M x Tcycle}) of accuracy trajectories.}
+\item{res}{Numeric matrix (\code{M x nrow(data)}) with optimized labels from each run.}
+\item{knn_Rnanoflann}{List containing \code{indices}, \code{distances}, and \code{neighbors}.}
+\item{data}{Input data matrix.}
+\item{res_constrain}{Numeric matrix (\code{M x nrow(data)}) with effective constraints used in each run.}
+\item{n.cores}{Number of cores used by \code{KODAMA.matrix}. This value is reused by \code{\link{KODAMA.visualization}} when visualization config sets \code{define.n.cores = FALSE}.}
 }
-
 \author{Stefano Cacciatore and Leonardo Tenori}
-
-\references{
-Abdel-Shafy EA, Kassim M, Vignol A, \emph{et al.} \cr
-KODAMA enables self-guided weakly supervised learning in spatial transcriptomics. \cr
-\emph{bioRxiv} 2025. doi: 10.1101/2025.05.28.656544. \doi{10.1101/2025.05.28.656544} \cr\cr
-
-Cacciatore S, Luchinat C, Tenori L \cr
-Knowledge discovery by accuracy maximization. \cr
-\emph{Proc Natl Acad Sci U S A} 2014;111(14):5117-5122. doi: 10.1073/pnas.1220873111. \doi{10.1073/pnas.1220873111} \cr\cr
-
-Cacciatore S, Tenori L, Luchinat C, Bennett PR, MacIntyre DA \cr
-KODAMA: an updated R package for knowledge discovery and data mining.\cr
-\emph{Bioinformatics} 2017;33(4):621-623. doi: 10.1093/bioinformatics/btw705. \doi{10.1093/bioinformatics/btw705}\cr\cr
-
-L.J.P. van der Maaten and G.E. Hinton.\cr
-Visualizing High-Dimensional Data Using t-SNE. \cr
-\emph{Journal of Machine Learning Research} 9 (Nov): 2579-2605, 2008.
-\cr	\cr
-L.J.P. van der Maaten. \cr
-Learning a Parametric Embedding by Preserving Local Structure. \cr
-\emph{In Proceedings of the Twelfth International Conference on Artificial Intelligence and Statistics (AISTATS), JMLR W&CP} 5:384-391, 2009.
-\cr	\cr
-McInnes L, Healy J, Melville J. \cr
-Umap: Uniform manifold approximation and projection for dimension reduction. \cr
-\emph{arXiv preprint}:1802.03426. 2018 Feb 9.
-}
-
-
 \seealso{\code{\link{KODAMA.visualization}}}
-
 \examples{
 \donttest{
-
- data(iris)
- data=iris[,-5]
- labels=iris[,5]
- kk=KODAMA.matrix(data,ncomp=2)
- cc=KODAMA.visualization(kk,"t-SNE")
- plot(cc,col=as.numeric(labels),cex=2)
-
+data(iris)
+data_mat <- iris[, -5]
+kk <- KODAMA.matrix(data_mat, ncomp = 2, M = 10, n.cores = 1)
+embedding <- KODAMA.visualization(kk, "t-SNE")
+plot(embedding, col = as.numeric(iris[, 5]), cex = 2)
 }
 }

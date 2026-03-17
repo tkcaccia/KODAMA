@@ -9,18 +9,19 @@
 }
 \usage{
 KODAMA.visualization(kk,
-                     method=c("UMAP", "t-SNE", "MDS"),
+                     method=c("UMAP", "t-SNE"),
                      config=NULL)
   
 }
 
 \arguments{
-  \item{kk}{output of \code{\link{KODAMA.matrix}} function.}
+  \item{kk}{output of \code{\link{KODAMA.matrix}} function, including \code{n.cores}.}
   \item{method}{
-  	method to be considered for transforming the dissimilarity matrix into a low-dimensional space. Choices are "\code{t-SNE}", "\code{MDS}", and "\code{UMAP}".
+  	method to be considered for transforming the dissimilarity matrix into a low-dimensional space. Choices are "\code{t-SNE}" and "\code{UMAP}".
 }
   \item{config}{
   	object of class umap.config or tsne.config.
+  If \code{config$define.n.cores = FALSE} (default), the number of threads is taken from \code{kk$n.cores}. If \code{TRUE}, the thread settings defined in \code{config} are used.
 }
 
 }

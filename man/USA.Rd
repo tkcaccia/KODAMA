@@ -40,7 +40,7 @@ data(USA)
 pp=pca(USA$data)$x[,1:50]
 
 kk=KODAMA.matrix(pp,ncomp=2)
-custom.settings=tsne.defaults
+custom.settings=config.tsne.default
 custom.settings$perplexity = 10
 cc=KODAMA.visualization(kk,"t-SNE",config=custom.settings)
 oldpar <- par(cex=0.5,mar=c(15,6,2,2));

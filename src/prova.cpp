@@ -454,15 +454,11 @@ arma::ivec PLSDACV_simpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k) 
   int mm2=constrain.size();
   arma::ivec pp(mm2);
   
-  //min_val is modified to avoid a warning
-  double min_val=0;
-  min_val++;
   arma::uvec ww;
   for (int i=0; i<mm2; i++) {
     ww=i;
     arma::mat v22=Ytest.rows(ww);
-    arma::uword index;                                                                                                                                                                                                                                                                                                                
-    min_val = v22.max(index);
+    arma::uword index = v22.index_max();
     pp(i)=index+1;
   }
   return pp;
@@ -517,15 +513,11 @@ arma::ivec PLSDACV_fastpls(arma::mat x,arma::ivec cl,arma::ivec constrain,int k)
   int mm2=constrain.size();
   arma::ivec pp(mm2);
   
-  //min_val is modified to avoid a warning
-  double min_val=0;
-  min_val++;
   arma::uvec ww;
   for (int i=0; i<mm2; i++) {
     ww=i;
     arma::mat v22=Ytest.rows(ww);
-    arma::uword index;                                                                                                                                                                                                                                                                                                                
-    min_val = v22.max(index);
+    arma::uword index = v22.index_max();
     pp(i)=index+1;
   }
   return pp;
@@ -665,15 +657,11 @@ List corecpp(arma::mat x,
       arma::mat lcm=transformy(clbest);
       projmat=pls_light(x,lcm,xTdata,fparpls);
       
-      //min_val is modified to avoid a warning
-      double min_val=0;
-      min_val++;
       arma::uvec ww;
       for (int i=0; i<mm2; i++) {
         ww=i;
         arma::mat v22=projmat.rows(ww);
-        arma::uword index;                                                                                                                                                                                                                                                                                                                
-        min_val = v22.max(index);
+        arma::uword index = v22.index_max();
         pp(i)=index+1;
       }
     }
@@ -682,15 +670,11 @@ List corecpp(arma::mat x,
       projmat=simpls_light(x,lcm,xTdata,fparpls);
 
       
-      //min_val is modified to avoid a warning
-      double min_val=0;
-      min_val++;
       arma::uvec ww;
       for (int i=0; i<mm2; i++) {
         ww=i;
         arma::mat v22=projmat.rows(ww);
-        arma::uword index;                                                                                                                                                                                                                                                                                                                
-        min_val = v22.max(index);
+        arma::uword index = v22.index_max();
         pp(i)=index+1;
       }
     }
@@ -712,7 +696,6 @@ List corecpp(arma::mat x,
   }
   
 }
-
 
 
 

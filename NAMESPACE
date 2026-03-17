@@ -15,21 +15,30 @@ useDynLib(KODAMA)
 importFrom(Rcpp, evalCpp)
 importFrom("graphics", "plot", "points")
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
-importFrom("stats",  "prcomp","cmdscale", "as.dist", "dist", "kmeans", "median", "pnorm", "rnorm", "runif", "sd", "var","cor.test")
+importFrom("stats",  "cmdscale", "as.dist", "dist", "kmeans", "median", "pnorm", "rnorm", "runif", "sd", "var","cor.test","ave")
 importFrom("Rtsne", "Rtsne_neighbors")
-importFrom("umap", "umap.knn", "umap","umap.defaults")
+importFrom("umap", "umap.knn", "umap")
 importFrom("methods", "is")
 import("Matrix")
   
 S3method(print,tsne.config)
 S3method(print,MDS.config)
-
-exportPattern(floyd,as.data.matrix,
-              KODAMA.matrix,KODAMA.visualization,
-              mcplot,core_cpp,dinisurface,helicoid,spirals,
-              swissroll,normalization,scaling,
-              transformy,quality_control,
-              pca,tsne.defaults,umap.defaults,MDS.defaults,kabsch,
-              move_clusters_harmonic_repulsive,equalize_within_between )
+export(floyd)
+export(KODAMA.matrix)
+export(KODAMA.visualization)
+export(mcplot)
+export(core_cpp)
+export(dinisurface)
+export(helicoid)
+export(spirals)
+export(swissroll)
+export(normalization)
+export(scaling)
+export(transformy)
+export(pca)
+export(config.tsne.default)
+export(config.umap.default)
+export(MDS.defaults)
+export(kabsch)
 
 

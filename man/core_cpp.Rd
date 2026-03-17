@@ -11,10 +11,10 @@ core_cpp(x,
          xTdata = NULL, 
          clbest, 
          Tcycle = 20, 
-         FUN = c("fastpls","simpls"), 
          f.par.pls = 5, 
          constrain = NULL, 
-         fix = NULL) 
+         fix = NULL,
+         ...) 
 }
 
 \arguments{
@@ -22,14 +22,14 @@ core_cpp(x,
   \item{xTdata}{a matrix for projections. This matrix contains samples that are not used for the maximization of the cross-validated accuracy. Their classification is obtained by predicting samples on the basis of the final classification vector.}
   \item{clbest}{a vector to optimize.}
   \item{Tcycle}{number of iterative cycles that leads to the maximization of cross-validated accuracy.}
-  \item{FUN}{classifier to be consider. Choices are "\code{fastpls}" and "\code{simpls}".}
-  \item{f.par.pls}{parameters of the classifier. If the classifier is \code{KNN}, \code{fpar} represents the number of neighbours. If the classifier is \code{PLS-DA}, \code{fpar} represents the number of components.}
+  \item{f.par.pls}{Number of PLS components. The backend is selected automatically: \code{plssvd} when \code{f.par.pls} is smaller than the current number of classes, otherwise \code{simpls}.}
   \item{constrain}{
   	a vector of \code{nrow(data)} elements. Supervised constraints can be imposed by linking some samples in such a way that if one of them is changed, all other linked samples change in the same way (\emph{i.e.}, they are forced to belong to the same class) during the maximization of the cross-validation accuracy procedure. Samples with the same identifying constrain will be forced to stay together.
   	}
   \item{fix}{
   	a vector of \code{nrow(data)} elements. The values of this vector must  be \code{TRUE} or \code{FALSE}. By default all elements are \code{FALSE}. Samples with the \code{TRUE} fix value will not change the class label defined in \code{W} during the maximization of the cross-validation accuracy procedure. For more information refer to Cacciatore, \emph{et al.} (2014).
   	}
+  \item{...}{Ignored legacy arguments. Passing \code{FUN} is deprecated and has no effect.}
 }
 
 \value{
@@ -71,4 +71,3 @@ results=core_cpp(u, clbest=s,f.par.pls  = 4)
 print(as.numeric(results$clbest))
 
 }
-
