@@ -1,0 +1,133 @@
+#!/bin/sh
+set -eu
+
+PKG_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -z "${KODAMA_CPP_ROOT:-}" ]; then
+  for candidate in "$PKG_DIR/../kodama-cpp" "$PKG_DIR/../.." "$PKG_DIR/../../kodama-cpp"; do
+    candidate=$(CDPATH= cd -- "$candidate" 2>/dev/null && pwd || true)
+    if [ -n "$candidate" ] && [ -f "$candidate/include/kodama/kodama.hpp" ]; then
+      KODAMA_CPP_ROOT="$candidate"
+      break
+    fi
+  done
+fi
+: "${KODAMA_CPP_ROOT:=$(CDPATH= cd -- "$PKG_DIR/../.." && pwd)}"
+: "${KODAMA_CPP_BUILD_DIR:=$KODAMA_CPP_ROOT/build}"
+
+if [ ! -f "$KODAMA_CPP_ROOT/include/kodama/kodama.hpp" ]; then
+  echo "Cannot find kodama-cpp headers. Set KODAMA_CPP_ROOT." >&2
+  exit 1
+fi
+KODAMA_CPP_LIB=
+for candidate in \
+  "$KODAMA_CPP_BUILD_DIR/libkodama_cpp.a" \
+  "$KODAMA_CPP_BUILD_DIR/libkodama_cpp.dylib" \
+  "$KODAMA_CPP_BUILD_DIR/libkodama_cpp.so"; do
+  if [ -f "$candidate" ]; then
+    KODAMA_CPP_LIB="$candidate"
+    break
+  fi
+done
+
+if [ -z "$KODAMA_CPP_LIB" ]; then
+  echo "Cannot find libkodama_cpp in KODAMA_CPP_BUILD_DIR=$KODAMA_CPP_BUILD_DIR." >&2
+  exit 1
+fi
+
+CONDA_PREFIX_VALUE=${CONDA_PREFIX:-}
+SYSTEM_NAME=$(uname -s 2>/dev/null || echo unknown)
+if [ "$SYSTEM_NAME" = "Darwin" ] && [ -f /opt/homebrew/opt/libomp/lib/libomp.dylib ]; then
+  OMP_LIB=/opt/homebrew/opt/libomp/lib/libomp.dylib
+elif [ "$SYSTEM_NAME" != "Darwin" ] && [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libgomp.so" ]; then
+  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libgomp.so"
+elif [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libomp.so" ]; then
+  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libomp.so"
+elif [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libgomp.so" ]; then
+  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libgomp.so"
+else
+  OMP_LIB=-lgomp
+fi
+if [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libstdc++.so.6" ]; then
+  STDCXX_LIB="$CONDA_PREFIX_VALUE/lib/libstdc++.so.6"
+else
+  STDCXX_LIB=
+fi
+
+PKG_LIBS_VALUE="\"$KODAMA_CPP_LIB\""
+
+add_lib_dir() {
+  if [ -n "$1" ] && [ -d "$1" ]; then
+    PKG_LIBS_VALUE="$PKG_LIBS_VALUE -L\"$1\""
+  fi
+}
+
+add_rpath() {
+  if [ -n "$1" ] && [ -d "$1" ]; then
+    PKG_LIBS_VALUE="$PKG_LIBS_VALUE -Wl,-rpath,\"$1\""
+  fi
+}
+
+CUDA_LIBS=
+add_optional_lib() {
+  lib_name=$1
+  for lib_dir in \
+    "$CONDA_PREFIX_VALUE/lib" \
+    "$CONDA_PREFIX_VALUE/targets/x86_64-linux/lib" \
+    /usr/local/cuda/lib64 \
+    /usr/local/cuda-13.0/targets/x86_64-linux/lib \
+    /usr/local/lib; do
+    if [ -n "$lib_dir" ] && [ -d "$lib_dir" ]; then
+      for candidate in \
+        "$lib_dir/lib${lib_name}.so" \
+        "$lib_dir/lib${lib_name}.dylib" \
+        "$lib_dir/lib${lib_name}.a"; do
+        if [ -f "$candidate" ]; then
+          CUDA_LIBS="$CUDA_LIBS -l${lib_name}"
+          return 0
+        fi
+      done
+    fi
+  done
+}
+
+add_lib_dir "$KODAMA_CPP_BUILD_DIR"
+if [ -n "$CONDA_PREFIX_VALUE" ]; then
+  add_lib_dir "$CONDA_PREFIX_VALUE/lib"
+  add_lib_dir "$CONDA_PREFIX_VALUE/targets/x86_64-linux/lib"
+  add_rpath "$CONDA_PREFIX_VALUE/lib"
+fi
+add_lib_dir /opt/homebrew/opt/libomp/lib
+add_lib_dir /opt/homebrew/opt/llvm/lib
+add_lib_dir /usr/local/lib
+add_lib_dir /usr/local/cuda/lib64
+add_lib_dir /usr/local/cuda-13.0/targets/x86_64-linux/lib
+add_rpath /opt/homebrew/opt/libomp/lib
+add_rpath /opt/homebrew/opt/llvm/lib
+
+if [ "$SYSTEM_NAME" != "Darwin" ]; then
+  for lib_name in \
+    cublasLt cublas cusolver cusparse curand cufft cudart; do
+    add_optional_lib "$lib_name"
+  done
+else
+  PKG_LIBS_VALUE="$PKG_LIBS_VALUE -framework Metal -framework MetalPerformanceShaders -framework Foundation"
+fi
+
+PKG_LIBS_VALUE="$PKG_LIBS_VALUE $OMP_LIB"
+if [ -n "$STDCXX_LIB" ]; then
+  PKG_LIBS_VALUE="$PKG_LIBS_VALUE \"$STDCXX_LIB\""
+fi
+PKG_LIBS_VALUE="$PKG_LIBS_VALUE $CUDA_LIBS"
+PKG_LIBS_VALUE="$PKG_LIBS_VALUE \$(KODAMA_R_CUDA_LIBS)"
+
+cat > "$PKG_DIR/src/Makevars" <<EOF
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
+PKG_LIBS = $PKG_LIBS_VALUE
+EOF
+
+cat > "$PKG_DIR/src/Makevars.win" <<EOF
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
+PKG_LIBS = "$KODAMA_CPP_LIB"
+EOF

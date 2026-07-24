@@ -1,0 +1,12 @@
+^\.git$
+^\.gitignore$
+^README\.Rmd$
+^src/Makevars$
+^src/Makevars\.win$
+^src/.*\.o$
+^src/.*\.so$
+^src/.*\.dll$
+^src/.*\.dylib$
+^src/symbols\.rds$
+^.*\.Rproj$
+^\.Rproj\.user$
