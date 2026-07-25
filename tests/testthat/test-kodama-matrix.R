@@ -34,6 +34,8 @@ test_that("kodama_matrix runs KNN and PLS-LDA on a small matrix", {
   expect_equal(knn$analysis_storage, "float32")
   expect_equal(pls$analysis_storage, "float32")
   expect_s3_class(knn, "kodama_matrix")
+  expect_identical(knn$visual_init$backend, "cpu")
+  expect_match(knn$visual_init$method, "kodama_cpp_cpu_")
   expect_length(knn$best_labels, nrow(x))
   expect_length(knn$class_counts, 1L)
   expect_equal(knn$parameters$classifier, "knn")
@@ -51,13 +53,12 @@ test_that("public API wrappers are exposed", {
   core_pls <- CorePLSLDA(x, labels, cycles = 1, folds = 3, ncomp = 2, backend = "cpu")
   pca <- KODAMA.pca(x, ncomp = 3, backend = "cpu", seed = 4)
   graph <- KODAMA.graph(x, k = 5, backend = "cpu")
-  emb <- KODAMA.visualization(
+  emb_default <- KODAMA.visualization(
     graph,
     method = "UMAP",
     k = 5,
     n.epochs = 3,
-    backend = "cpu",
-    graph.mode = "binary"
+    backend = "cpu"
   )
   emb_fuzzy <- KODAMA.visualization(
     graph,
@@ -66,6 +67,14 @@ test_that("public API wrappers are exposed", {
     n.epochs = 3,
     backend = "cpu",
     graph.mode = "fuzzy"
+  )
+  emb_binary <- KODAMA.visualization(
+    graph,
+    method = "UMAP",
+    k = 5,
+    n.epochs = 3,
+    backend = "cpu",
+    graph.mode = "binary"
   )
   clu <- KODAMA.clustering(graph, n.iterations = 2, random.walk.steps = 2)
 
@@ -83,10 +92,13 @@ test_that("public API wrappers are exposed", {
   expect_true(all(diff(pca$singular_values) <= 1e-5))
   expect_equal(dim(graph$indices), c(nrow(x), 5L))
   expect_identical(graph$backend, "cpu")
-  expect_equal(dim(emb), c(nrow(x), 2L))
+  expect_equal(dim(emb_default), c(nrow(x), 2L))
   expect_equal(dim(emb_fuzzy), c(nrow(x), 2L))
-  expect_true(all(is.finite(emb)))
+  expect_equal(dim(emb_binary), c(nrow(x), 2L))
+  expect_equal(as.numeric(emb_default), as.numeric(emb_fuzzy), tolerance = 0)
+  expect_true(all(is.finite(emb_default)))
   expect_true(all(is.finite(emb_fuzzy)))
+  expect_true(all(is.finite(emb_binary)))
   expect_length(clu$membership, nrow(x))
   expect_error(
     kodamaR:::kodama_umap_cpp(

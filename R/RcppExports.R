@@ -36,7 +36,7 @@ kodama_pca_cpp <- function(data, ncomp = 2L, center = TRUE, scale = FALSE, backe
     .Call(`_kodamaR_kodama_pca_cpp`, data, ncomp, center, scale, backend, seed, n_threads, gpu_device, oversample, power)
 }
 
-kodama_umap_cpp <- function(indices, distances, init = NULL, n_neighbors = 30L, n_epochs = 200L, learning_rate = 1.0, min_dist = 0.01, repulsion_strength = 1.0, negative_sample_rate = 5L, spectral_n_iter = 20L, n_threads = 1L, seed = 1234L, backend = "cpu", gpu_device = 0L, graph_mode = "binary") {
+kodama_umap_cpp <- function(indices, distances, init = NULL, n_neighbors = 30L, n_epochs = 200L, learning_rate = 1.0, min_dist = 0.01, repulsion_strength = 1.0, negative_sample_rate = 5L, spectral_n_iter = 20L, n_threads = 1L, seed = 1234L, backend = "cpu", gpu_device = 0L, graph_mode = "fuzzy") {
     .Call(`_kodamaR_kodama_umap_cpp`, indices, distances, init, n_neighbors, n_epochs, learning_rate, min_dist, repulsion_strength, negative_sample_rate, spectral_n_iter, n_threads, seed, backend, gpu_device, graph_mode)
 }
 

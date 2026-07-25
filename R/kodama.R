@@ -54,6 +54,7 @@ kodama_visual_pca_scores <- function(data,
   if (ncol(scores) < 2L) scores <- cbind(scores, 0)
   scores <- scores[, 1:2, drop = FALSE]
   attr(scores, "method") <- paste0("kodama_cpp_", fit$backend, "_rsvd")
+  attr(scores, "backend") <- fit$backend
   scores
 }
 
@@ -74,6 +75,7 @@ kodama_make_visual_init <- function(data,
     opentsne = kodama_scale_init_sd(scores, target = 1e-4),
     umap = kodama_scale_init_max_abs(scores, target = 10, seed = seed),
     method = attr(scores, "method"),
+    backend = attr(scores, "backend"),
     seed = as.integer(seed)
   )
   attr(out$opentsne, "visual_init") <- "opentsne_pca"
@@ -740,8 +742,8 @@ KODAMA.pca <- kodama_pca
 #' @param backend Execution backend, either `"cpu"` or `"cuda"`.
 #' @param n.cores Number of CPU worker threads requested by the wrapper.
 #' @param gpu.device CUDA device id when `backend = "cuda"`.
-#' @param graph.mode UMAP graph weighting mode. `"binary"` matches the current
-#'   fastEmbedR default; `"fuzzy"` retains standard fuzzy UMAP weights.
+#' @param graph.mode UMAP graph weighting mode. `"fuzzy"` is the default;
+#'   `"binary"` remains available as an explicit compatibility mode.
 #' @param n.epochs Number of UMAP optimization epochs.
 #' @param n.iter Number of openTSNE optimization iterations.
 #' @param perplexity openTSNE perplexity.
@@ -759,7 +761,7 @@ KODAMA.visualization <- function(x,
                                  n.epochs = 200L,
                                  n.iter = 500L,
                                  perplexity = 30,
-                                 graph.mode = c("binary", "fuzzy"),
+                                 graph.mode = c("fuzzy", "binary"),
                                  seed = 4L,
                                  ...) {
   method <- match.arg(method)

@@ -725,7 +725,7 @@ Rcpp::NumericMatrix kodama_umap_cpp(
   int seed = 1234,
   std::string backend = "cpu",
   int gpu_device = 0,
-  std::string graph_mode = "binary"
+  std::string graph_mode = "fuzzy"
 ) {
   kodama::UMAPOptions options;
   options.n_neighbors = n_neighbors;
