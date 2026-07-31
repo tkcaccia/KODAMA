@@ -263,8 +263,10 @@ CorePLSLDA <- function(data,
 
 #' Run KODAMA matrix optimization
 #'
-#' @param data A numeric matrix, a `KODAMA.graph` result, or a bare list with
-#'   `indices` and `distances`. The C++ core stores analysis values as float32.
+#' @param data Optional raw numeric matrix. It is required when `graph` is not
+#'   supplied. The C++ core stores analysis values as float32.
+#' @param graph Optional `KODAMA.graph` result or a bare list with `indices`
+#'   and `distances`.
 #' @param spatial Optional numeric matrix of spatial coordinates.
 #' @param W Optional integer vector.
 #' @param constrain Optional integer vector of sample constraints.
@@ -285,8 +287,6 @@ CorePLSLDA <- function(data,
 #' @param classifier Either `"knn"` or `"pls_lda"`.
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
 #' @param seed Integer random seed.
-#' @param raw.data Optional original numeric matrix used with a prepared or bare
-#'   graph. When omitted, graph inputs use self-tuning Laplacian features.
 #' @param visual.init Whether the same native matrix call performs one float32
 #'   PCA and stores both UMAP and openTSNE initializations for reuse by
 #'   `KODAMA.visualization`.
@@ -299,7 +299,8 @@ CorePLSLDA <- function(data,
 #'   `timing` expose its lifecycle.
 #' @aliases KODAMA.matrix
 #' @export
-kodama_matrix <- function(data,
+kodama_matrix <- function(data = NULL,
+                          graph = NULL,
                           spatial = NULL,
                           W = NULL,
                           constrain = NULL,
@@ -319,28 +320,36 @@ kodama_matrix <- function(data,
                           classifier = c("knn", "pls_lda"),
                           backend = c("cpu", "cuda", "metal"),
                           seed = 1234L,
-                          raw.data = NULL,
                           visual.init = TRUE,
                           progress = TRUE,
                           apply.kodama.dissimilarity = TRUE) {
-  graph_input <- extract_kodama_graph(data)
   backend_was_missing <- missing(backend)
   classifier <- match.arg(classifier)
   backend <- match.arg(backend)
   spatial.constraint.mode <- match.arg(spatial.constraint.mode)
-  if (!is.null(graph_input)) {
-    if (backend_was_missing && !is.null(data$backend)) {
-      backend <- match.arg(as.character(data$backend), c("cpu", "cuda", "metal"))
+  if (!is.null(graph)) {
+    graph_input <- extract_kodama_graph(graph)
+    if (is.null(graph_input)) {
+      stop("graph must be a KODAMA.graph result or a list with indices and distances.")
     }
-    raw_data <- raw.data
+    if (!is.null(data) && !is.null(extract_kodama_graph(data))) {
+      stop("data must be the raw numeric matrix; pass graph inputs through graph.")
+    }
+    if (backend_was_missing && !is.null(graph$backend)) {
+      backend <- match.arg(as.character(graph$backend), c("cpu", "cuda", "metal"))
+    }
+    raw_data <- if (is.null(data)) NULL else as_kodama_matrix(data)
     samples <- nrow(graph_input$indices)
+    if (!is.null(raw_data) && nrow(raw_data) != samples) {
+      stop("data and graph must contain the same number of samples.")
+    }
     if (is.null(ncomp)) {
       ncomp <- if (is.null(raw_data)) 50L else min(50L, ncol(raw_data))
     }
     if (is.null(splitting)) splitting <- ifelse(samples < 40000, 100L, 300L)
     if (is.null(graph.neighbors)) graph.neighbors <- ncol(graph_input$indices)
     return(kodama_matrix_graph(
-      indices = data,
+      indices = graph,
       data = raw_data,
       spatial = spatial,
       W = W,
@@ -366,6 +375,12 @@ kodama_matrix <- function(data,
     ))
   }
 
+  if (is.null(data)) {
+    stop("data or graph is required.")
+  }
+  if (!is.null(extract_kodama_graph(data))) {
+    stop("data must be the raw numeric matrix; pass graph inputs through graph.")
+  }
   data_matrix <- as_kodama_matrix(data)
   if (is.null(ncomp)) ncomp <- min(50L, ncol(data_matrix))
   if (is.null(splitting)) {

@@ -6,7 +6,8 @@
 \title{Run KODAMA matrix optimization}
 \usage{
 kodama_matrix(
-  data,
+  data = NULL,
+  graph = NULL,
   spatial = NULL,
   W = NULL,
   constrain = NULL,
@@ -26,15 +27,17 @@ kodama_matrix(
   classifier = c("knn", "pls_lda"),
   backend = c("cpu", "cuda", "metal"),
   seed = 1234L,
-  raw.data = NULL,
   visual.init = TRUE,
   progress = TRUE,
   apply.kodama.dissimilarity = TRUE
 )
 }
 \arguments{
-\item{data}{A numeric matrix, a \code{KODAMA.graph} result, or a bare list with
-\code{indices} and \code{distances}. The C++ core stores analysis values as float32.}
+\item{data}{Optional raw numeric matrix. It is required when \code{graph} is not
+supplied. The C++ core stores analysis values as float32.}
+
+\item{graph}{Optional \code{KODAMA.graph} result or a bare list with \code{indices}
+and \code{distances}.}
 
 \item{spatial}{Optional numeric matrix of spatial coordinates.}
 
@@ -74,9 +77,6 @@ optional coordinate constraints are supplied.}
 \item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"}.}
 
 \item{seed}{Integer random seed.}
-
-\item{raw.data}{Optional original numeric matrix used with a prepared or bare
-graph. When omitted, graph inputs use self-tuning Laplacian features.}
 
 \item{visual.init}{Whether the same native matrix call performs one float32
 PCA and stores both UMAP and openTSNE initializations for reuse by

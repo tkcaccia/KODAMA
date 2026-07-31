@@ -210,12 +210,12 @@ test_that("KODAMA.matrix accepts all raw and graph input forms", {
   )
 
   from_raw <- do.call(KODAMA.matrix, c(list(data = x), common))
-  from_prepared <- do.call(KODAMA.matrix, c(list(data = prepared), common))
+  from_prepared <- do.call(KODAMA.matrix, c(list(graph = prepared), common))
   from_prepared_data <- do.call(
     KODAMA.matrix,
-    c(list(data = prepared, raw.data = x), common)
+    c(list(data = x, graph = prepared), common)
   )
-  from_bare <- do.call(KODAMA.matrix, c(list(data = bare), common))
+  from_bare <- do.call(KODAMA.matrix, c(list(graph = bare), common))
 
   expect_identical(from_raw$graph_builds, 1L)
   expect_identical(from_prepared$graph_builds, 0L)
@@ -230,6 +230,10 @@ test_that("KODAMA.matrix accepts all raw and graph input forms", {
     as.numeric(prepared$visual_init$umap)
   )
   expect_null(from_bare$visual_init)
+  expect_error(
+    do.call(KODAMA.matrix, c(list(data = prepared), common)),
+    "pass graph inputs through graph"
+  )
 })
 
 test_that("diagnostics report wrapper runtime information", {

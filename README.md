@@ -214,10 +214,15 @@ head(kk$best_labels)
 
 prepared <- KODAMA.graph(x, k = 30, backend = "cpu")
 stopifnot(is.null(prepared$data))
-kk_from_graph <- KODAMA.matrix(prepared, M = 2, Tcycle = 2, progress = FALSE)
+kk_from_graph <- KODAMA.matrix(
+  graph = prepared,
+  M = 2,
+  Tcycle = 2,
+  progress = FALSE
+)
 pls_from_graph_and_x <- KODAMA.matrix(
-  prepared,
-  raw.data = x,
+  data = x,
+  graph = prepared,
   classifier = "pls_lda",
   M = 2,
   Tcycle = 2,
@@ -226,9 +231,9 @@ pls_from_graph_and_x <- KODAMA.matrix(
 ```
 
 The prepared object contains graph arrays and backend-matched UMAP/openTSNE PCA
-starts, but never retains the raw matrix. `KODAMA.matrix()` accepts a prepared
-graph alone, a prepared graph plus `raw.data`, a raw matrix alone, or a bare
-list containing `indices` and `distances`.
+starts, but never retains the raw matrix. `KODAMA.matrix()` reserves `data` for
+the raw matrix and `graph` for a prepared graph or bare `indices`/`distances`
+list. Either can be supplied alone, or both can be supplied together.
 
 For CUDA verification, switch `backend = "cuda"` after confirming that the R
 session can load the same CUDA Toolkit libraries used by the C++ build.
