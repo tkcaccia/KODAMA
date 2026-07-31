@@ -240,6 +240,26 @@ session can load the same CUDA Toolkit libraries used by the C++ build.
 For native KNN, PLS-LDA, Core, matrix, graph, and PCA verification on macOS,
 install against the Metal build and use `backend = "metal"`.
 
+## Preprocessing and example manifolds
+
+The wrapper includes the dependency-free preprocessing and synthetic-data
+utilities from KODAMA:
+
+```r
+x_normalized <- normalization(x, method = "pqn")$newXtrain
+x_scaled <- scaling(x_normalized, method = "autoscaling")$newXtrain
+
+dini <- dinisurface(1000)
+helix <- helicoid(1000)
+spiral_clusters <- spirals(c(100, 100, 100), c(0.1, 0.1, 0.1))
+roll <- swissroll(1000)
+```
+
+`normalization()` supports `pqn`, `sum`, `median`, `sqrt`, and `none`.
+`scaling()` supports `none`, `centering`, `autoscaling`, `rangescaling`, and
+`paretoscaling`. Their signatures and returned fields match the KODAMA R
+package.
+
 ## Run `R CMD Check`
 
 Build a source tarball first, then check the tarball. This matches CRAN-style

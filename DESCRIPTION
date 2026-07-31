@@ -10,13 +10,15 @@ Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
 Description: Thin R bindings for the standalone kodama-cpp C++ library.
     The package exposes KODAMA matrix optimization with KNN and PLS-LDA
     classifiers on CPU, NVIDIA CUDA, and Apple Metal while keeping all
-    numerical kernels in kodama-cpp.
+    numerical kernels in kodama-cpp. It also provides the normalization,
+    scaling, and synthetic-manifold utilities from the KODAMA R workflow.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LinkingTo: Rcpp
 Imports:
-    Rcpp
+    Rcpp,
+    stats
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
