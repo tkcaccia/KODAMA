@@ -15,12 +15,12 @@ test_that("normalization preserves the KODAMA API", {
   sum_expected <- Xtrain / apply(Xtrain, 1L, sum)
   median_expected <- Xtrain / apply(Xtrain, 1L, median)
   sqrt_expected <- Xtrain / apply(Xtrain, 1L, function(x) sqrt(sum(x^2)))
-  expect_equal(normalization(Xtrain, method = "sum")$newXtrain, sum_expected)
+  expect_equal(normalization(Xtrain, method = "sum")$newXtrain, sum_expected, tolerance = 1e-6)
   expect_equal(
     normalization(Xtrain, method = "median")$newXtrain,
-    median_expected
+    median_expected, tolerance = 1e-6
   )
-  expect_equal(normalization(Xtrain, method = "sqrt")$newXtrain, sqrt_expected)
+  expect_equal(normalization(Xtrain, method = "sqrt")$newXtrain, sqrt_expected, tolerance = 1e-6)
 
   pqn <- normalization(Xtrain, Xtest, method = "pqn")
   expect_equal(dim(pqn$newXtrain), dim(Xtrain))
@@ -38,13 +38,13 @@ test_that("scaling reuses training statistics", {
   expect_equal(colMeans(centered$newXtrain), c(0, 0), tolerance = 1e-15)
   expect_equal(
     unclass(centered$newXtest),
-    unclass(scale(Xtest, center = colMeans(Xtrain), scale = FALSE))
+    unclass(scale(Xtest, center = colMeans(Xtrain), scale = FALSE)), tolerance = 1e-6
   )
 
   autoscaled <- scaling(Xtrain, Xtest, method = "autoscaling")
   expect_equal(
     unclass(autoscaled$newXtrain),
-    unclass(scale(Xtrain, center = TRUE, scale = TRUE))
+    unclass(scale(Xtrain, center = TRUE, scale = TRUE)), tolerance = 1e-6
   )
   expect_true(all(is.finite(scaling(Xtrain, method = "rangescaling")$newXtrain)))
   expect_true(all(is.finite(scaling(Xtrain, method = "paretoscaling")$newXtrain)))

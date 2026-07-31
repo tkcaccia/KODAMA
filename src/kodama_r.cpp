@@ -22,6 +22,24 @@ kodama::Backend parse_backend(const std::string& backend) {
   Rcpp::stop("Unsupported backend: " + backend);
 }
 
+kodama::NormalizationMethod parse_normalization_method(const std::string& method) {
+  if (method == "pqn") return kodama::NormalizationMethod::PQN;
+  if (method == "sum") return kodama::NormalizationMethod::Sum;
+  if (method == "median") return kodama::NormalizationMethod::Median;
+  if (method == "sqrt") return kodama::NormalizationMethod::Sqrt;
+  if (method == "none") return kodama::NormalizationMethod::None;
+  Rcpp::stop("Unsupported normalization method: " + method);
+}
+
+kodama::ScalingMethod parse_scaling_method(const std::string& method) {
+  if (method == "none") return kodama::ScalingMethod::None;
+  if (method == "centering") return kodama::ScalingMethod::Centering;
+  if (method == "autoscaling") return kodama::ScalingMethod::Autoscaling;
+  if (method == "rangescaling") return kodama::ScalingMethod::RangeScaling;
+  if (method == "paretoscaling") return kodama::ScalingMethod::ParetoScaling;
+  Rcpp::stop("Unsupported scaling method: " + method);
+}
+
 kodama::UMAPGraphMode parse_umap_graph_mode(const std::string& mode) {
   if (mode == "binary") return kodama::UMAPGraphMode::Binary;
   if (mode == "fuzzy") return kodama::UMAPGraphMode::Fuzzy;
@@ -778,6 +796,104 @@ Rcpp::List kodama_pca_cpp(
     kodama::MatrixView{x.data(), static_cast<std::size_t>(n), static_cast<std::size_t>(p)},
     options
   ));
+}
+
+// [[Rcpp::export]]
+Rcpp::List kodama_normalization_cpp(
+  Rcpp::NumericMatrix train,
+  Rcpp::Nullable<Rcpp::NumericMatrix> test = R_NilValue,
+  std::string method = "pqn",
+  Rcpp::Nullable<Rcpp::NumericVector> reference = R_NilValue,
+  std::string backend = "cpu",
+  int n_threads = 1,
+  int gpu_device = 0
+) {
+  const int train_rows = train.nrow();
+  const int variables = train.ncol();
+  std::vector<float> train_data = matrix_to_float(train);
+  std::vector<float> test_data;
+  int test_rows = 0;
+  if (!test.isNull()) {
+    Rcpp::NumericMatrix test_matrix(test);
+    if (test_matrix.ncol() != variables) Rcpp::stop("Xtrain and Xtest must have the same variables.");
+    test_rows = test_matrix.nrow();
+    test_data = matrix_to_float(test_matrix);
+  }
+  kodama::NormalizationOptions options;
+  options.method = parse_normalization_method(method);
+  options.backend = parse_backend(backend);
+  options.n_threads = n_threads;
+  options.gpu_device = gpu_device;
+  if (!reference.isNull()) {
+    Rcpp::NumericVector values(reference);
+    options.reference.assign(values.begin(), values.end());
+  }
+  const kodama::NormalizationResult result = kodama::Normalization(
+    kodama::MatrixView{train_data.data(), static_cast<std::size_t>(train_rows),
+      static_cast<std::size_t>(variables)},
+    test_rows == 0 ? kodama::MatrixView{} : kodama::MatrixView{test_data.data(),
+      static_cast<std::size_t>(test_rows), static_cast<std::size_t>(variables)},
+    options
+  );
+  Rcpp::List out = Rcpp::List::create(
+    Rcpp::Named("newXtrain") = float_matrix_to_r(result.train, train_rows, variables),
+    Rcpp::Named("coeXtrain") = Rcpp::NumericVector(
+      result.train_coefficients.begin(), result.train_coefficients.end()),
+    Rcpp::Named("reference") = Rcpp::NumericVector(result.reference.begin(), result.reference.end()),
+    Rcpp::Named("backend") = kodama::to_string(result.backend),
+    Rcpp::Named("runtime_seconds") = result.runtime_seconds,
+    Rcpp::Named("precision") = "float32"
+  );
+  if (test_rows > 0) {
+    out["newXtest"] = float_matrix_to_r(result.test, test_rows, variables);
+    out["coeXtest"] = Rcpp::NumericVector(
+      result.test_coefficients.begin(), result.test_coefficients.end());
+  }
+  return out;
+}
+
+// [[Rcpp::export]]
+Rcpp::List kodama_scaling_cpp(
+  Rcpp::NumericMatrix train,
+  Rcpp::Nullable<Rcpp::NumericMatrix> test = R_NilValue,
+  std::string method = "autoscaling",
+  std::string backend = "cpu",
+  int n_threads = 1,
+  int gpu_device = 0
+) {
+  const int train_rows = train.nrow();
+  const int variables = train.ncol();
+  std::vector<float> train_data = matrix_to_float(train);
+  std::vector<float> test_data;
+  int test_rows = 0;
+  if (!test.isNull()) {
+    Rcpp::NumericMatrix test_matrix(test);
+    if (test_matrix.ncol() != variables) Rcpp::stop("Xtrain and Xtest must have the same variables.");
+    test_rows = test_matrix.nrow();
+    test_data = matrix_to_float(test_matrix);
+  }
+  kodama::ScalingOptions options;
+  options.method = parse_scaling_method(method);
+  options.backend = parse_backend(backend);
+  options.n_threads = n_threads;
+  options.gpu_device = gpu_device;
+  const kodama::ScalingResult result = kodama::Scaling(
+    kodama::MatrixView{train_data.data(), static_cast<std::size_t>(train_rows),
+      static_cast<std::size_t>(variables)},
+    test_rows == 0 ? kodama::MatrixView{} : kodama::MatrixView{test_data.data(),
+      static_cast<std::size_t>(test_rows), static_cast<std::size_t>(variables)},
+    options
+  );
+  Rcpp::List out = Rcpp::List::create(
+    Rcpp::Named("newXtrain") = float_matrix_to_r(result.train, train_rows, variables),
+    Rcpp::Named("center") = Rcpp::NumericVector(result.center.begin(), result.center.end()),
+    Rcpp::Named("scale") = Rcpp::NumericVector(result.scale.begin(), result.scale.end()),
+    Rcpp::Named("backend") = kodama::to_string(result.backend),
+    Rcpp::Named("runtime_seconds") = result.runtime_seconds,
+    Rcpp::Named("precision") = "float32"
+  );
+  if (test_rows > 0) out["newXtest"] = float_matrix_to_r(result.test, test_rows, variables);
+  return out;
 }
 
 // [[Rcpp::export]]

@@ -207,6 +207,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kodama_normalization_cpp
+Rcpp::List kodama_normalization_cpp(Rcpp::NumericMatrix train, Rcpp::Nullable<Rcpp::NumericMatrix> test, std::string method, Rcpp::Nullable<Rcpp::NumericVector> reference, std::string backend, int n_threads, int gpu_device);
+RcppExport SEXP _kodamaR_kodama_normalization_cpp(SEXP trainSEXP, SEXP testSEXP, SEXP methodSEXP, SEXP referenceSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type train(trainSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type test(testSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_normalization_cpp(train, test, method, reference, backend, n_threads, gpu_device));
+    return rcpp_result_gen;
+END_RCPP
+}
+// kodama_scaling_cpp
+Rcpp::List kodama_scaling_cpp(Rcpp::NumericMatrix train, Rcpp::Nullable<Rcpp::NumericMatrix> test, std::string method, std::string backend, int n_threads, int gpu_device);
+RcppExport SEXP _kodamaR_kodama_scaling_cpp(SEXP trainSEXP, SEXP testSEXP, SEXP methodSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type train(trainSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type test(testSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_scaling_cpp(train, test, method, backend, n_threads, gpu_device));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kodama_visual_init_cpp
 Rcpp::List kodama_visual_init_cpp(Rcpp::NumericMatrix data, std::string backend, int seed, int n_threads, int gpu_device);
 RcppExport SEXP _kodamaR_kodama_visual_init_cpp(SEXP dataSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP) {
@@ -332,6 +365,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_kodamaR_core_plslda_cpp", (DL_FUNC) &_kodamaR_core_plslda_cpp, 12},
     {"_kodamaR_kodama_knn_graph_cpp", (DL_FUNC) &_kodamaR_kodama_knn_graph_cpp, 7},
     {"_kodamaR_kodama_pca_cpp", (DL_FUNC) &_kodamaR_kodama_pca_cpp, 10},
+    {"_kodamaR_kodama_normalization_cpp", (DL_FUNC) &_kodamaR_kodama_normalization_cpp, 7},
+    {"_kodamaR_kodama_scaling_cpp", (DL_FUNC) &_kodamaR_kodama_scaling_cpp, 6},
     {"_kodamaR_kodama_visual_init_cpp", (DL_FUNC) &_kodamaR_kodama_visual_init_cpp, 5},
     {"_kodamaR_kodama_umap_cpp", (DL_FUNC) &_kodamaR_kodama_umap_cpp, 17},
     {"_kodamaR_kodama_opentsne_cpp", (DL_FUNC) &_kodamaR_kodama_opentsne_cpp, 22},

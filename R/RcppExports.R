@@ -36,6 +36,14 @@ kodama_pca_cpp <- function(data, ncomp = 2L, center = TRUE, scale = FALSE, backe
     .Call(`_kodamaR_kodama_pca_cpp`, data, ncomp, center, scale, backend, seed, n_threads, gpu_device, oversample, power)
 }
 
+kodama_normalization_cpp <- function(train, test = NULL, method = "pqn", reference = NULL, backend = "cpu", n_threads = 1L, gpu_device = 0L) {
+    .Call(`_kodamaR_kodama_normalization_cpp`, train, test, method, reference, backend, n_threads, gpu_device)
+}
+
+kodama_scaling_cpp <- function(train, test = NULL, method = "autoscaling", backend = "cpu", n_threads = 1L, gpu_device = 0L) {
+    .Call(`_kodamaR_kodama_scaling_cpp`, train, test, method, backend, n_threads, gpu_device)
+}
+
 kodama_visual_init_cpp <- function(data, backend = "cpu", seed = 4L, n_threads = 1L, gpu_device = 0L) {
     .Call(`_kodamaR_kodama_visual_init_cpp`, data, backend, seed, n_threads, gpu_device)
 }

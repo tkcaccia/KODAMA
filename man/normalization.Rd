@@ -4,7 +4,15 @@
 \alias{normalization}
 \title{Normalize samples}
 \usage{
-normalization(Xtrain, Xtest = NULL, method = "pqn", ref = NULL)
+normalization(
+  Xtrain,
+  Xtest = NULL,
+  method = "pqn",
+  ref = NULL,
+  backend = "cpu",
+  n.cores = 1L,
+  gpu.device = 0L
+)
 }
 \arguments{
 \item{Xtrain}{Numeric training matrix.}
@@ -17,6 +25,12 @@ normalization(Xtrain, Xtest = NULL, method = "pqn", ref = NULL)
 
 \item{ref}{Optional reference spectrum for probabilistic quotient
 normalization. When omitted, the variable-wise training median is used.}
+
+\item{backend}{Native backend: \code{"cpu"}, \code{"cuda"}, \code{"metal"}, or \code{"auto"}.}
+
+\item{n.cores}{Number of CPU worker threads.}
+
+\item{gpu.device}{CUDA device identifier; Metal currently uses device zero.}
 }
 \value{
 A list containing \code{newXtrain} and \code{coeXtrain}, and also \code{newXtest}

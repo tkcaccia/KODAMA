@@ -4,7 +4,14 @@
 \alias{scaling}
 \title{Scale variables}
 \usage{
-scaling(Xtrain, Xtest = NULL, method = "autoscaling")
+scaling(
+  Xtrain,
+  Xtest = NULL,
+  method = "autoscaling",
+  backend = "cpu",
+  n.cores = 1L,
+  gpu.device = 0L
+)
 }
 \arguments{
 \item{Xtrain}{Numeric training matrix.}
@@ -15,6 +22,12 @@ scaling(Xtrain, Xtest = NULL, method = "autoscaling")
 \item{method}{Scaling method. One of \code{"none"}, \code{"centering"},
 \code{"autoscaling"}, \code{"rangescaling"}, or \code{"paretoscaling"}; an
 unambiguous partial match is accepted.}
+
+\item{backend}{Native backend: \code{"cpu"}, \code{"cuda"}, \code{"metal"}, or \code{"auto"}.}
+
+\item{n.cores}{Number of CPU worker threads.}
+
+\item{gpu.device}{CUDA device identifier; Metal currently uses device zero.}
 }
 \value{
 A list containing \code{newXtrain}, and also \code{newXtest} when \code{Xtest} is

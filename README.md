@@ -247,6 +247,8 @@ utilities from KODAMA:
 
 ```r
 x_normalized <- normalization(x, method = "pqn")$newXtrain
+x_scaled <- scaling(x_normalized, method = "autoscaling", backend = "cpu",
+                    n.cores = 4)$newXtrain
 x_scaled <- scaling(x_normalized, method = "autoscaling")$newXtrain
 
 dini <- dinisurface(1000)
@@ -256,6 +258,10 @@ roll <- swissroll(1000)
 ```
 
 `normalization()` supports `pqn`, `sum`, `median`, `sqrt`, and `none`.
+`scaling()` supports `none`, `centering`, `autoscaling`, `rangescaling`, and
+`paretoscaling`. Both are thin calls to the standalone float32 C++ core and
+accept `backend = "cpu"`, `"cuda"`, `"metal"`, or `"auto"`; no R numerical
+implementation is used.
 `scaling()` supports `none`, `centering`, `autoscaling`, `rangescaling`, and
 `paretoscaling`. Their signatures and returned fields match the KODAMA R
 package.
