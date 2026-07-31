@@ -4,15 +4,16 @@
 \alias{KODAMA.graph}
 \alias{KODAMA.makeSNNGraph}
 \alias{makeSNNGraph}
-\title{Build a KODAMA/fastEmbedR-style KNN graph}
+\title{Build the reusable KODAMA graph and visualization initialization}
 \usage{
 KODAMA.graph(
   data,
-  k = 30L,
+  k = 100L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda", "metal"),
   n.cores = 4L,
-  gpu.device = 0L
+  gpu.device = 0L,
+  seed = 1234L
 )
 }
 \arguments{
@@ -24,10 +25,18 @@ KODAMA.graph(
 
 \item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"}.}
 
-\item{n.cores}{Number of CPU worker threads requested by the wrapper.}
+\item{n.cores}{Number of CPU worker threads used for native HNSW
+construction and graph querying.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
+
+\item{seed}{Integer seed used by the backend-specific PCA initialization.}
+}
+\value{
+A memory-light \code{kodama_graph} object containing the KNN indices and
+distances plus PCA starts for UMAP and openTSNE. The raw matrix is not
+retained.
 }
 \description{
-Build a KODAMA/fastEmbedR-style KNN graph
+Build the reusable KODAMA graph and visualization initialization
 }

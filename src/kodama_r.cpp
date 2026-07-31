@@ -15,6 +15,7 @@ kodama::DistanceMetric parse_metric(const std::string& metric) {
 }
 
 kodama::Backend parse_backend(const std::string& backend) {
+  if (backend == "auto") return kodama::Backend::Auto;
   if (backend == "cpu") return kodama::Backend::CPU;
   if (backend == "cuda") return kodama::Backend::CUDA;
   if (backend == "metal") return kodama::Backend::Metal;
@@ -217,7 +218,45 @@ Rcpp::NumericMatrix embedding_to_r(const kodama::EmbeddingResult& result) {
   }
   out.attr("runtime_seconds") = result.runtime_seconds;
   out.attr("backend") = kodama::to_string(result.backend);
+  out.attr("initialization") = result.initialization;
+  out.attr("initialization_backend") = kodama::to_string(result.initialization_backend);
   return out;
+}
+
+Rcpp::NumericMatrix float_matrix_to_r(
+  const std::vector<float>& values,
+  const int rows,
+  const int columns
+) {
+  Rcpp::NumericMatrix out(rows, columns);
+  for (int row = 0; row < rows; ++row) {
+    for (int column = 0; column < columns; ++column) {
+      out(row, column) = values[
+        static_cast<std::size_t>(row) * columns + column
+      ];
+    }
+  }
+  return out;
+}
+
+Rcpp::List visualization_init_to_r(
+  const kodama::VisualizationInitResult& result,
+  const int seed
+) {
+  return Rcpp::List::create(
+    Rcpp::Named("opentsne") = float_matrix_to_r(
+      result.opentsne, result.samples, result.components
+    ),
+    Rcpp::Named("umap") = float_matrix_to_r(
+      result.umap, result.samples, result.components
+    ),
+    Rcpp::Named("method") = std::string("kodama_cpp_") +
+      kodama::to_string(result.backend) + "_rsvd",
+    Rcpp::Named("backend") = kodama::to_string(result.backend),
+    Rcpp::Named("seed") = seed,
+    Rcpp::Named("runtime_seconds") = result.runtime_seconds,
+    Rcpp::Named("precision") = "float32"
+  );
 }
 
 Rcpp::List pca_to_r(const kodama::PCAResult& result) {
@@ -285,13 +324,26 @@ Rcpp::List kodama_matrix_result_to_r(
     }
   }
 
+  Rcpp::RObject visual_init = R_NilValue;
+  if (result.has_visual_init) {
+    visual_init = visualization_init_to_r(
+      result.visual_init,
+      static_cast<int>(options.seed)
+    );
+  }
+  Rcpp::List graph = graph_to_r(result.knn, result.samples);
+
   return Rcpp::List::create(
     Rcpp::Named("acc") = acc,
     Rcpp::Named("v") = v,
     Rcpp::Named("res") = res,
-    Rcpp::Named("knn") = graph_to_r(result.knn, result.samples),
-    Rcpp::Named("base_knn") = graph_to_r(result.base_knn, result.samples),
+    Rcpp::Named("knn") = graph,
+    Rcpp::Named("knn_is_kodama_corrected") = result.knn_is_kodama_corrected,
+    Rcpp::Named("graph_storage_bytes") =
+      static_cast<double>(result.graph_storage_bytes),
+    Rcpp::Named("visual_init") = visual_init,
     Rcpp::Named("res_constrain") = res_constrain,
+    Rcpp::Named("graph_builds") = result.graph_builds,
     Rcpp::Named("n.cores") = result.n_threads,
     Rcpp::Named("runtime_seconds") = result.runtime_seconds,
     Rcpp::Named("analysis_storage") = "float32",
@@ -300,6 +352,7 @@ Rcpp::List kodama_matrix_result_to_r(
     Rcpp::Named("graph_feature_mode") = kodama::to_string(options.graph_feature_mode),
     Rcpp::Named("timing") = Rcpp::List::create(
       Rcpp::Named("input_copy_seconds") = result.input_copy_seconds,
+      Rcpp::Named("visual_init_seconds") = result.visual_init_seconds,
       Rcpp::Named("graph_feature_seconds") = result.graph_feature_seconds,
       Rcpp::Named("spatial_precompute_seconds") = result.spatial_precompute_seconds,
       Rcpp::Named("graph_seconds") = result.graph_seconds,
@@ -338,7 +391,8 @@ Rcpp::List kodama_matrix_cpp(
   std::string backend = "cpu",
   int seed = 1234,
   bool progress = false,
-  bool apply_kodama_dissimilarity = true
+  bool apply_kodama_dissimilarity = true,
+  bool compute_visual_init = false
 ) {
   const int n = data.nrow();
   const int p = data.ncol();
@@ -367,6 +421,7 @@ Rcpp::List kodama_matrix_cpp(
   options.classifier = parse_classifier(classifier);
   options.progress = progress;
   options.apply_kodama_dissimilarity = apply_kodama_dissimilarity;
+  options.compute_visual_init = compute_visual_init;
   options.knn.k = knn_k;
   options.knn.hnsw_tune_k = 50;
   options.knn.hnsw_target_recall = 0.99;
@@ -446,6 +501,7 @@ Rcpp::List kodama_matrix_graph_cpp(
   options.classifier = parse_classifier(classifier);
   options.progress = progress;
   options.apply_kodama_dissimilarity = apply_kodama_dissimilarity;
+  options.compute_visual_init = false;
   options.knn.k = knn_k;
   options.knn.hnsw_tune_k = 50;
   options.knn.hnsw_target_recall = 0.99;
@@ -657,23 +713,38 @@ Rcpp::List kodama_knn_graph_cpp(
   std::string metric = "euclidean",
   std::string backend = "cpu",
   int n_threads = 4,
-  int gpu_device = 0
+  int gpu_device = 0,
+  int seed = 1234
 ) {
   const int n = data.nrow();
   const int p = data.ncol();
   std::vector<float> x = matrix_to_float(data);
-  kodama::GraphClusterOptions options;
-  options.k = k;
+  kodama::KODAMAGraphOptions options;
+  options.neighbors = k;
   options.metric = parse_metric(metric);
   options.backend = parse_backend(backend);
   options.n_threads = n_threads;
   options.gpu_device = gpu_device;
-  const kodama::NeighborGraph graph = kodama::KODAMAKNNGraph(
+  options.seed = static_cast<std::uint64_t>(seed);
+  const kodama::KODAMAGraphResult result = kodama::KODAMAGraph(
     kodama::MatrixView{x.data(), static_cast<std::size_t>(n), static_cast<std::size_t>(p)},
     options
   );
-  Rcpp::List out = graph_to_r(graph, n);
-  out["backend"] = kodama::to_string(options.backend);
+  Rcpp::List out = graph_to_r(result.knn, n);
+  out["visual_init"] = visualization_init_to_r(result.visual_init, seed);
+  out["samples"] = result.samples;
+  out["dimensions"] = result.dimensions;
+  out["backend"] = kodama::to_string(result.backend);
+  out["metric"] = metric;
+  out["graph_builds"] = result.graph_builds;
+  out["graph_storage_bytes"] = static_cast<double>(result.graph_storage_bytes);
+  out["runtime_seconds"] = result.runtime_seconds;
+  out["timing"] = Rcpp::List::create(
+    Rcpp::Named("input_copy_seconds") = result.input_copy_seconds,
+    Rcpp::Named("graph_seconds") = result.graph_seconds,
+    Rcpp::Named("visual_init_seconds") = result.visual_init_seconds,
+    Rcpp::Named("runtime_seconds") = result.runtime_seconds
+  );
   return out;
 }
 
@@ -710,6 +781,36 @@ Rcpp::List kodama_pca_cpp(
 }
 
 // [[Rcpp::export]]
+Rcpp::List kodama_visual_init_cpp(
+  Rcpp::NumericMatrix data,
+  std::string backend = "cpu",
+  int seed = 4,
+  int n_threads = 1,
+  int gpu_device = 0
+) {
+  const int n = data.nrow();
+  const int p = data.ncol();
+  std::vector<float> x = matrix_to_float(data);
+  kodama::VisualizationInitOptions options;
+  options.n_components = 2;
+  options.backend = parse_backend(backend);
+  options.seed = static_cast<std::uint64_t>(seed);
+  options.n_threads = n_threads;
+  options.gpu_device = gpu_device;
+  return visualization_init_to_r(
+    kodama::KODAMAVisualizationPCAInit(
+      kodama::MatrixView{
+        x.data(),
+        static_cast<std::size_t>(n),
+        static_cast<std::size_t>(p)
+      },
+      options
+    ),
+    seed
+  );
+}
+
+// [[Rcpp::export]]
 Rcpp::NumericMatrix kodama_umap_cpp(
   Rcpp::IntegerMatrix indices,
   Rcpp::NumericMatrix distances,
@@ -725,7 +826,9 @@ Rcpp::NumericMatrix kodama_umap_cpp(
   int seed = 1234,
   std::string backend = "cpu",
   int gpu_device = 0,
-  std::string graph_mode = "fuzzy"
+  std::string graph_mode = "fuzzy",
+  std::string init_source = "",
+  std::string init_backend = "auto"
 ) {
   kodama::UMAPOptions options;
   options.n_neighbors = n_neighbors;
@@ -739,6 +842,8 @@ Rcpp::NumericMatrix kodama_umap_cpp(
   options.seed = seed;
   options.gpu_device = gpu_device;
   options.graph_mode = parse_umap_graph_mode(graph_mode);
+  options.init_source = init_source;
+  options.init_backend = parse_backend(init_backend);
   if (!init.isNull()) {
     Rcpp::NumericMatrix init_matrix(init);
     if (init_matrix.nrow() != indices.nrow() || init_matrix.ncol() != 2) Rcpp::stop("init must have nrow(indices) rows and 2 columns.");
@@ -780,7 +885,9 @@ Rcpp::NumericMatrix kodama_opentsne_cpp(
   int n_threads = 1,
   int seed = 4,
   std::string backend = "cpu",
-  int gpu_device = 0
+  int gpu_device = 0,
+  std::string init_source = "",
+  std::string init_backend = "auto"
 ) {
   kodama::OpenTSNEOptions options;
   options.n_neighbors = n_neighbors;
@@ -799,6 +906,8 @@ Rcpp::NumericMatrix kodama_opentsne_cpp(
   options.n_threads = n_threads;
   options.seed = seed;
   options.gpu_device = gpu_device;
+  options.init_source = init_source;
+  options.init_backend = parse_backend(init_backend);
   if (!init.isNull()) {
     Rcpp::NumericMatrix init_matrix(init);
     if (init_matrix.nrow() != indices.nrow() || init_matrix.ncol() != 2) Rcpp::stop("init must have nrow(indices) rows and 2 columns.");

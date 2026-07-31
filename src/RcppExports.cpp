@@ -14,8 +14,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // kodama_matrix_cpp
-Rcpp::List kodama_matrix_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string metric, std::string classifier, std::string backend, int seed, bool progress, bool apply_kodama_dissimilarity);
-RcppExport SEXP _kodamaR_kodama_matrix_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP metricSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP) {
+Rcpp::List kodama_matrix_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string metric, std::string classifier, std::string backend, int seed, bool progress, bool apply_kodama_dissimilarity, bool compute_visual_init);
+RcppExport SEXP _kodamaR_kodama_matrix_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP metricSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP compute_visual_initSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -41,7 +41,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
     Rcpp::traits::input_parameter< bool >::type apply_kodama_dissimilarity(apply_kodama_dissimilaritySEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_matrix_cpp(data, spatial, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, metric, classifier, backend, seed, progress, apply_kodama_dissimilarity));
+    Rcpp::traits::input_parameter< bool >::type compute_visual_init(compute_visual_initSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_matrix_cpp(data, spatial, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, metric, classifier, backend, seed, progress, apply_kodama_dissimilarity, compute_visual_init));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -170,8 +171,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // kodama_knn_graph_cpp
-Rcpp::List kodama_knn_graph_cpp(Rcpp::NumericMatrix data, int k, std::string metric, std::string backend, int n_threads, int gpu_device);
-RcppExport SEXP _kodamaR_kodama_knn_graph_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP) {
+Rcpp::List kodama_knn_graph_cpp(Rcpp::NumericMatrix data, int k, std::string metric, std::string backend, int n_threads, int gpu_device, int seed);
+RcppExport SEXP _kodamaR_kodama_knn_graph_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -181,7 +182,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_knn_graph_cpp(data, k, metric, backend, n_threads, gpu_device));
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_knn_graph_cpp(data, k, metric, backend, n_threads, gpu_device, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -205,9 +207,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kodama_visual_init_cpp
+Rcpp::List kodama_visual_init_cpp(Rcpp::NumericMatrix data, std::string backend, int seed, int n_threads, int gpu_device);
+RcppExport SEXP _kodamaR_kodama_visual_init_cpp(SEXP dataSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_visual_init_cpp(data, backend, seed, n_threads, gpu_device));
+    return rcpp_result_gen;
+END_RCPP
+}
 // kodama_umap_cpp
-Rcpp::NumericMatrix kodama_umap_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::NumericMatrix> init, int n_neighbors, int n_epochs, double learning_rate, double min_dist, double repulsion_strength, int negative_sample_rate, int spectral_n_iter, int n_threads, int seed, std::string backend, int gpu_device, std::string graph_mode);
-RcppExport SEXP _kodamaR_kodama_umap_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP initSEXP, SEXP n_neighborsSEXP, SEXP n_epochsSEXP, SEXP learning_rateSEXP, SEXP min_distSEXP, SEXP repulsion_strengthSEXP, SEXP negative_sample_rateSEXP, SEXP spectral_n_iterSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP backendSEXP, SEXP gpu_deviceSEXP, SEXP graph_modeSEXP) {
+Rcpp::NumericMatrix kodama_umap_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::NumericMatrix> init, int n_neighbors, int n_epochs, double learning_rate, double min_dist, double repulsion_strength, int negative_sample_rate, int spectral_n_iter, int n_threads, int seed, std::string backend, int gpu_device, std::string graph_mode, std::string init_source, std::string init_backend);
+RcppExport SEXP _kodamaR_kodama_umap_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP initSEXP, SEXP n_neighborsSEXP, SEXP n_epochsSEXP, SEXP learning_rateSEXP, SEXP min_distSEXP, SEXP repulsion_strengthSEXP, SEXP negative_sample_rateSEXP, SEXP spectral_n_iterSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP backendSEXP, SEXP gpu_deviceSEXP, SEXP graph_modeSEXP, SEXP init_sourceSEXP, SEXP init_backendSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -226,13 +243,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
     Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
     Rcpp::traits::input_parameter< std::string >::type graph_mode(graph_modeSEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_umap_cpp(indices, distances, init, n_neighbors, n_epochs, learning_rate, min_dist, repulsion_strength, negative_sample_rate, spectral_n_iter, n_threads, seed, backend, gpu_device, graph_mode));
+    Rcpp::traits::input_parameter< std::string >::type init_source(init_sourceSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init_backend(init_backendSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_umap_cpp(indices, distances, init, n_neighbors, n_epochs, learning_rate, min_dist, repulsion_strength, negative_sample_rate, spectral_n_iter, n_threads, seed, backend, gpu_device, graph_mode, init_source, init_backend));
     return rcpp_result_gen;
 END_RCPP
 }
 // kodama_opentsne_cpp
-Rcpp::NumericMatrix kodama_opentsne_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::NumericMatrix> init, int n_neighbors, double perplexity, double theta, int early_exaggeration_iter, int n_iter, double early_exaggeration, double exaggeration, double learning_rate, bool learning_rate_auto, double initial_momentum, double final_momentum, double min_gain, double max_step_norm, int n_threads, int seed, std::string backend, int gpu_device);
-RcppExport SEXP _kodamaR_kodama_opentsne_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP initSEXP, SEXP n_neighborsSEXP, SEXP perplexitySEXP, SEXP thetaSEXP, SEXP early_exaggeration_iterSEXP, SEXP n_iterSEXP, SEXP early_exaggerationSEXP, SEXP exaggerationSEXP, SEXP learning_rateSEXP, SEXP learning_rate_autoSEXP, SEXP initial_momentumSEXP, SEXP final_momentumSEXP, SEXP min_gainSEXP, SEXP max_step_normSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP backendSEXP, SEXP gpu_deviceSEXP) {
+Rcpp::NumericMatrix kodama_opentsne_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::NumericMatrix> init, int n_neighbors, double perplexity, double theta, int early_exaggeration_iter, int n_iter, double early_exaggeration, double exaggeration, double learning_rate, bool learning_rate_auto, double initial_momentum, double final_momentum, double min_gain, double max_step_norm, int n_threads, int seed, std::string backend, int gpu_device, std::string init_source, std::string init_backend);
+RcppExport SEXP _kodamaR_kodama_opentsne_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP initSEXP, SEXP n_neighborsSEXP, SEXP perplexitySEXP, SEXP thetaSEXP, SEXP early_exaggeration_iterSEXP, SEXP n_iterSEXP, SEXP early_exaggerationSEXP, SEXP exaggerationSEXP, SEXP learning_rateSEXP, SEXP learning_rate_autoSEXP, SEXP initial_momentumSEXP, SEXP final_momentumSEXP, SEXP min_gainSEXP, SEXP max_step_normSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP backendSEXP, SEXP gpu_deviceSEXP, SEXP init_sourceSEXP, SEXP init_backendSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -256,7 +275,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
     Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_opentsne_cpp(indices, distances, init, n_neighbors, perplexity, theta, early_exaggeration_iter, n_iter, early_exaggeration, exaggeration, learning_rate, learning_rate_auto, initial_momentum, final_momentum, min_gain, max_step_norm, n_threads, seed, backend, gpu_device));
+    Rcpp::traits::input_parameter< std::string >::type init_source(init_sourceSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init_backend(init_backendSEXP);
+    rcpp_result_gen = Rcpp::wrap(kodama_opentsne_cpp(indices, distances, init, n_neighbors, perplexity, theta, early_exaggeration_iter, n_iter, early_exaggeration, exaggeration, learning_rate, learning_rate_auto, initial_momentum, final_momentum, min_gain, max_step_norm, n_threads, seed, backend, gpu_device, init_source, init_backend));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -303,16 +324,17 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_kodamaR_kodama_matrix_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_cpp, 22},
+    {"_kodamaR_kodama_matrix_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_cpp, 23},
     {"_kodamaR_kodama_matrix_graph_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_graph_cpp, 26},
     {"_kodamaR_knncv_cpp", (DL_FUNC) &_kodamaR_knncv_cpp, 11},
     {"_kodamaR_plsldacv_cpp", (DL_FUNC) &_kodamaR_plsldacv_cpp, 12},
     {"_kodamaR_core_knn_cpp", (DL_FUNC) &_kodamaR_core_knn_cpp, 13},
     {"_kodamaR_core_plslda_cpp", (DL_FUNC) &_kodamaR_core_plslda_cpp, 12},
-    {"_kodamaR_kodama_knn_graph_cpp", (DL_FUNC) &_kodamaR_kodama_knn_graph_cpp, 6},
+    {"_kodamaR_kodama_knn_graph_cpp", (DL_FUNC) &_kodamaR_kodama_knn_graph_cpp, 7},
     {"_kodamaR_kodama_pca_cpp", (DL_FUNC) &_kodamaR_kodama_pca_cpp, 10},
-    {"_kodamaR_kodama_umap_cpp", (DL_FUNC) &_kodamaR_kodama_umap_cpp, 15},
-    {"_kodamaR_kodama_opentsne_cpp", (DL_FUNC) &_kodamaR_kodama_opentsne_cpp, 20},
+    {"_kodamaR_kodama_visual_init_cpp", (DL_FUNC) &_kodamaR_kodama_visual_init_cpp, 5},
+    {"_kodamaR_kodama_umap_cpp", (DL_FUNC) &_kodamaR_kodama_umap_cpp, 17},
+    {"_kodamaR_kodama_opentsne_cpp", (DL_FUNC) &_kodamaR_kodama_opentsne_cpp, 22},
     {"_kodamaR_kodama_graph_cluster_cpp", (DL_FUNC) &_kodamaR_kodama_graph_cluster_cpp, 9},
     {"_kodamaR_kodama_embedding_cluster_cpp", (DL_FUNC) &_kodamaR_kodama_embedding_cluster_cpp, 12},
     {NULL, NULL, 0}

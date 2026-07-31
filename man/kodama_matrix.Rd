@@ -13,11 +13,11 @@ kodama_matrix(
   fix = NULL,
   M = 100L,
   Tcycle = 20L,
-  ncomp = min(50L, ncol(data)),
+  ncomp = NULL,
   landmarks = 10000L,
-  splitting = ifelse(nrow(data) < 40000, 100L, 300L),
+  splitting = NULL,
   n.cores = 4L,
-  graph.neighbors = 100L,
+  graph.neighbors = NULL,
   knn.k = 30L,
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
@@ -26,14 +26,15 @@ kodama_matrix(
   classifier = c("knn", "pls_lda"),
   backend = c("cpu", "cuda", "metal"),
   seed = 1234L,
+  raw.data = NULL,
   visual.init = TRUE,
   progress = TRUE,
   apply.kodama.dissimilarity = TRUE
 )
 }
 \arguments{
-\item{data}{Numeric matrix. The C++ core stores the analysis matrix as
-float32 internally.}
+\item{data}{A numeric matrix, a \code{KODAMA.graph} result, or a bare list with
+\code{indices} and \code{distances}. The C++ core stores analysis values as float32.}
 
 \item{spatial}{Optional numeric matrix of spatial coordinates.}
 
@@ -74,8 +75,12 @@ optional coordinate constraints are supplied.}
 
 \item{seed}{Integer random seed.}
 
-\item{visual.init}{Whether to store a PCA-based initialization used by
-\code{KODAMA.visualization} when no explicit \code{init} is supplied.}
+\item{raw.data}{Optional original numeric matrix used with a prepared or bare
+graph. When omitted, graph inputs use self-tuning Laplacian features.}
+
+\item{visual.init}{Whether the same native matrix call performs one float32
+PCA and stores both UMAP and openTSNE initializations for reuse by
+\code{KODAMA.visualization}.}
 
 \item{progress}{Whether the C++ core prints run/cycle progress.}
 
@@ -83,7 +88,10 @@ optional coordinate constraints are supplied.}
 neighbor graph rather than only the base graph.}
 }
 \value{
-A list returned by the kodama-cpp core.
+A list returned by the kodama-cpp core. The full-data graph is built
+once before all \code{M} runs. The result contains one \code{knn} graph;
+\code{knn_is_kodama_corrected}, \code{graph_storage_bytes}, \code{graph_builds}, and
+\code{timing} expose its lifecycle.
 }
 \description{
 Run KODAMA matrix optimization

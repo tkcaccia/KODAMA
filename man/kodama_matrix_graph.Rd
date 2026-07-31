@@ -15,11 +15,11 @@ kodama_matrix_graph(
   fix = NULL,
   M = 100L,
   Tcycle = 20L,
-  ncomp = 50L,
+  ncomp = NULL,
   landmarks = 10000L,
-  splitting = 100L,
+  splitting = NULL,
   n.cores = 4L,
-  graph.neighbors = if (is.list(indices)) ncol(indices$indices) else ncol(indices),
+  graph.neighbors = NULL,
   knn.k = 30L,
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
@@ -30,6 +30,7 @@ kodama_matrix_graph(
   graph.feature.components = 0L,
   graph.feature.steps = 3L,
   seed = 1234L,
+  visual.init = TRUE,
   progress = TRUE,
   apply.kodama.dissimilarity = TRUE
 )
@@ -91,6 +92,9 @@ graph-only initialization. The standard path is
 \item{graph.feature.steps}{Power iterations used by graph feature extraction.}
 
 \item{seed}{Integer random seed.}
+
+\item{visual.init}{Whether to propagate the PCA starts stored in a
+\code{KODAMA.graph} object.}
 
 \item{progress}{Whether the C++ core prints progress.}
 

@@ -8,6 +8,8 @@ KODAMA.visualization(
   x,
   method = c("UMAP", "t-SNE", "opentsne"),
   init = NULL,
+  raw.data = NULL,
+  initialize.from.raw = TRUE,
   k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda"),
@@ -27,6 +29,15 @@ KODAMA.visualization(
 \item{method}{Embedding method.}
 
 \item{init}{Optional two-column initialization matrix.}
+
+\item{raw.data}{Optional raw data used for backend-native PCA
+initialization. When \code{x} is a raw matrix, that matrix is used
+automatically. A stored initialization from \code{KODAMA.matrix()} is reused
+first when its backend matches \code{backend}; \code{raw.data} is used only when a
+compatible stored start is unavailable.}
+
+\item{initialize.from.raw}{Whether raw-data PCA initialization is the
+default when no explicit \code{init} is supplied.}
 
 \item{k}{Number of graph neighbors used by the embedding.}
 
