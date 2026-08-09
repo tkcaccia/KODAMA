@@ -82,8 +82,8 @@ KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build-metal && pwd)" \
 R CMD INSTALL .
 ```
 
-Native KNN, PLS-LDA, Core, matrix, graph, and PCA entry points accept
-`backend = "metal"`. UMAP and openTSNE currently remain CPU/CUDA operations.
+Native KNN, PLS-LDA, Core, matrix, graph, PCA, UMAP, and FFT-grid openTSNE
+entry points accept `backend = "metal"`.
 
 ## CRAN-Style Local Check
 

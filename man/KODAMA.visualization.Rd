@@ -12,7 +12,7 @@ KODAMA.visualization(
   initialize.from.raw = TRUE,
   k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
-  backend = c("cpu", "cuda"),
+  backend = c("cpu", "cuda", "metal"),
   n.cores = 4L,
   gpu.device = 0L,
   n.epochs = 200L,
@@ -43,7 +43,8 @@ default when no explicit \code{init} is supplied.}
 
 \item{metric}{Distance or similarity metric used when \code{x} is a matrix.}
 
-\item{backend}{Execution backend, either \code{"cpu"} or \code{"cuda"}.}
+\item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"} for
+UMAP and openTSNE.}
 
 \item{n.cores}{Number of CPU worker threads requested by the wrapper.}
 
@@ -61,6 +62,13 @@ default when no explicit \code{init} is supplied.}
 \item{seed}{Integer random seed.}
 
 \item{...}{Additional embedding parameters forwarded to the C++ wrapper.}
+}
+\value{
+A two-column numeric matrix with attributes describing the selected
+backend, optimizer, initialization source and backend, runtime, and (for
+UMAP) fuzzy-graph edge count and maximum weight. The graph diagnostics are
+zero for openTSNE because its sparse probability matrix is not a UMAP
+fuzzy graph.
 }
 \description{
 Visualize a matrix or KODAMA graph with UMAP or openTSNE

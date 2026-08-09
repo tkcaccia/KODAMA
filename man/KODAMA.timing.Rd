@@ -8,7 +8,9 @@
 KODAMA.timing(x)
 }
 \arguments{
-\item{x}{A \code{kodama_matrix} result or compatible list with timing fields.}
+\item{x}{A \code{kodama_matrix} result or compatible list with timing fields.
+Matrix results include separate landmark-selection aggregates and
+classifier optimization timings.}
 }
 \description{
 Return a compact timing table for a KODAMA result

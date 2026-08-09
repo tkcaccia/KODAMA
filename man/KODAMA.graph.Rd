@@ -8,16 +8,22 @@
 \usage{
 KODAMA.graph(
   data,
+  spatial = NULL,
   k = 100L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda", "metal"),
   n.cores = 4L,
   gpu.device = 0L,
-  seed = 1234L
+  seed = 1234L,
+  storage = c("handle", "matrix")
 )
 }
 \arguments{
 \item{data}{Numeric matrix with samples in rows and variables in columns.}
+
+\item{spatial}{Optional spatial coordinates. When supplied, their invariant
+nearest-neighbor graph and jitter scale are prepared once here and reused
+by every classifier passed to \code{KODAMA.matrix}.}
 
 \item{k}{Number of nearest neighbors to retain.}
 
@@ -31,11 +37,15 @@ construction and graph querying.}
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
 
 \item{seed}{Integer seed used by the backend-specific PCA initialization.}
+
+\item{storage}{Graph representation. \code{"matrix"} returns conventional R
+matrices; \code{"handle"} keeps one float32 graph behind a process-local
+external pointer. Materialize a handle before saving it for another R
+session.}
 }
 \value{
-A memory-light \code{kodama_graph} object containing the KNN indices and
-distances plus PCA starts for UMAP and openTSNE. The raw matrix is not
-retained.
+A \code{kodama_graph} object containing either graph matrices or a graph
+handle, plus PCA starts for UMAP and openTSNE. Raw data are not retained.
 }
 \description{
 Build the reusable KODAMA graph and visualization initialization

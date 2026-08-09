@@ -20,7 +20,7 @@ kodama_matrix_graph(
   splitting = NULL,
   n.cores = 4L,
   graph.neighbors = NULL,
-  knn.k = 30L,
+  knn.k = 10L,
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
@@ -30,9 +30,12 @@ kodama_matrix_graph(
   graph.feature.components = 0L,
   graph.feature.steps = 3L,
   seed = 1234L,
+  folds = 5L,
   visual.init = TRUE,
   progress = TRUE,
-  apply.kodama.dissimilarity = TRUE
+  apply.kodama.dissimilarity = TRUE,
+  return.graph = FALSE,
+  ...
 )
 }
 \arguments{
@@ -65,7 +68,8 @@ constrained grouping when supplied.}
 
 \item{splitting}{Initial number of classes.}
 
-\item{n.cores}{CPU workers or CUDA automatic lanes when backend permits.}
+\item{n.cores}{CPU workers. For CUDA or Metal, \code{0} enables backend-specific
+automatic independent-run lane selection.}
 
 \item{graph.neighbors}{Number of neighbors retained in the returned graph.}
 
@@ -93,6 +97,8 @@ graph-only initialization. The standard path is
 
 \item{seed}{Integer random seed.}
 
+\item{folds}{Number of cross-validation folds used by the classifier.}
+
 \item{visual.init}{Whether to propagate the PCA starts stored in a
 \code{KODAMA.graph} object.}
 
@@ -100,6 +106,11 @@ graph-only initialization. The standard path is
 
 \item{apply.kodama.dissimilarity}{Whether to return the KODAMA-corrected
 graph.}
+
+\item{return.graph}{\code{FALSE} omits the graph, \code{TRUE} materializes matrices,
+and \code{"handle"} returns a reusable external C++ graph pointer.}
+
+\item{...}{Reserved internal controls for reproducibility experiments.}
 }
 \description{
 KODAMA matrix from a precomputed KNN graph

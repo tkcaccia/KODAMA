@@ -45,6 +45,11 @@ proposal and fold groups.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
 }
+\value{
+A list containing the best labels and predictions, accuracy and score
+traces, plus explicit proposal, acceptance, rejection, coarsening, and
+absorption counters for optimizer-state diagnostics.
+}
 \description{
 KODAMA core optimization with PLS-LDA classifier
 }

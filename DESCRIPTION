@@ -3,10 +3,10 @@ Title: R Wrapper for the Kodama-Cpp Library
 Version: 0.1.0
 Authors@R: c(
     person("Stefano", "Cacciatore", role = c("aut", "cre"),
-           email = "tkcaccia@gmail.com")
+           email = "stefano.cacciatore@icgeb.org")
   )
 Author: Stefano Cacciatore [aut, cre]
-Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
+Maintainer: Stefano Cacciatore <stefano.cacciatore@icgeb.org>
 Description: Thin R bindings for the standalone kodama-cpp C++ library.
     The package exposes KODAMA matrix optimization with KNN and PLS-LDA
     classifiers on CPU, NVIDIA CUDA, and Apple Metal while keeping all

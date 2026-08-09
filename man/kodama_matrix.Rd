@@ -19,7 +19,7 @@ kodama_matrix(
   splitting = NULL,
   n.cores = 4L,
   graph.neighbors = NULL,
-  knn.k = 30L,
+  knn.k = 10L,
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
@@ -27,9 +27,12 @@ kodama_matrix(
   classifier = c("knn", "pls_lda"),
   backend = c("cpu", "cuda", "metal"),
   seed = 1234L,
+  folds = 5L,
   visual.init = TRUE,
   progress = TRUE,
-  apply.kodama.dissimilarity = TRUE
+  apply.kodama.dissimilarity = TRUE,
+  return.graph = FALSE,
+  ...
 )
 }
 \arguments{
@@ -57,7 +60,8 @@ and \code{distances}.}
 
 \item{splitting}{Initial number of label classes used for each run.}
 
-\item{n.cores}{Number of CPU worker threads requested by the wrapper.}
+\item{n.cores}{CPU worker count. For CUDA or Metal matrix optimization,
+\code{0} enables backend-specific automatic independent-run lane selection.}
 
 \item{graph.neighbors}{Number of neighbors retained in the returned graph.}
 
@@ -78,6 +82,8 @@ optional coordinate constraints are supplied.}
 
 \item{seed}{Integer random seed.}
 
+\item{folds}{Number of cross-validation folds used by the classifier.}
+
 \item{visual.init}{Whether the same native matrix call performs one float32
 PCA and stores both UMAP and openTSNE initializations for reuse by
 \code{KODAMA.visualization}.}
@@ -86,12 +92,21 @@ PCA and stores both UMAP and openTSNE initializations for reuse by
 
 \item{apply.kodama.dissimilarity}{Whether to return the KODAMA-corrected
 neighbor graph rather than only the base graph.}
+
+\item{return.graph}{\code{FALSE} omits the result graph, \code{TRUE} materializes R
+index and distance matrices, and \code{"handle"} retains one float32 graph in
+an external C++ pointer for reuse without two large R matrices.}
+
+\item{...}{Reserved internal controls for reproducibility experiments.}
 }
 \value{
 A list returned by the kodama-cpp core. The full-data graph is built
 once before all \code{M} runs. The result contains one \code{knn} graph;
 \code{knn_is_kodama_corrected}, \code{graph_storage_bytes}, \code{graph_builds}, and
-\code{timing} expose its lifecycle.
+\code{timing} expose its lifecycle. Per-run landmark-selection times are
+retained in \code{landmark_seconds}; their sum, mean, and median are also
+reported in \code{timing} so landmark construction is not conflated with the
+classifier core.
 }
 \description{
 Run KODAMA matrix optimization

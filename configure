@@ -120,6 +120,32 @@ fi
 PKG_LIBS_VALUE="$PKG_LIBS_VALUE $CUDA_LIBS"
 PKG_LIBS_VALUE="$PKG_LIBS_VALUE \$(KODAMA_R_CUDA_LIBS)"
 
+# R may retain package objects between development installs.  Track both the
+# selected core archive and public headers so changing the core build cannot
+# silently reuse a wrapper linked against another backend configuration.
+CORE_SIGNATURE="$PKG_DIR/src/.kodama-core.signature"
+CORE_SIGNATURE_TMP="$CORE_SIGNATURE.tmp"
+{
+  printf 'core_library=%s\n' "$KODAMA_CPP_LIB"
+  cksum "$KODAMA_CPP_LIB"
+  find "$KODAMA_CPP_ROOT/include/kodama" -type f -name '*.hpp' -print |
+    LC_ALL=C sort |
+    while IFS= read -r header; do
+      printf 'header=%s\n' "$header"
+      cksum "$header"
+    done
+} > "$CORE_SIGNATURE_TMP"
+CORE_SIGNATURE_CHANGED=0
+if [ -f "$CORE_SIGNATURE" ] && cmp -s "$CORE_SIGNATURE_TMP" "$CORE_SIGNATURE"; then
+  rm -f "$CORE_SIGNATURE_TMP"
+else
+  mv "$CORE_SIGNATURE_TMP" "$CORE_SIGNATURE"
+  CORE_SIGNATURE_CHANGED=1
+fi
+if [ "$CORE_SIGNATURE_CHANGED" -eq 1 ]; then
+  touch "$PKG_DIR/src/RcppExports.cpp" "$PKG_DIR/src/kodama_r.cpp"
+fi
+
 cat > "$PKG_DIR/src/Makevars" <<EOF
 CXX_STD = CXX17
 PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"

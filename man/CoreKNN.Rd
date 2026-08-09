@@ -13,7 +13,7 @@ CoreKNN(
   folds = 10L,
   stratified = TRUE,
   seed = 1L,
-  k = 30L,
+  k = 10L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda", "metal"),
   n.cores = 4L,
@@ -47,6 +47,11 @@ proposal and fold groups.}
 \item{n.cores}{Number of CPU worker threads requested by the wrapper.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
+}
+\value{
+A list containing the best labels and predictions, accuracy and score
+traces, plus explicit proposal, acceptance, rejection, coarsening, and
+absorption counters for optimizer-state diagnostics.
 }
 \description{
 KODAMA core optimization with KNN classifier
