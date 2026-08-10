@@ -13,7 +13,7 @@ CoreKNN(
   folds = 10L,
   stratified = TRUE,
   seed = 1L,
-  k = 10L,
+  k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda", "metal"),
   n.cores = 4L,

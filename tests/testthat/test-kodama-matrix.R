@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MIT
 
 test_that("KNN classifier defaults are benchmark-selected without changing graph defaults", {
-  expect_identical(formals(CoreKNN)$k, 10L)
-  expect_identical(formals(kodama_matrix)$knn.k, 10L)
-  expect_identical(formals(kodama_matrix_graph)$knn.k, 10L)
+  expect_identical(formals(CoreKNN)$k, 30L)
+  expect_identical(formals(kodama_matrix)$knn.k, 30L)
+  expect_identical(formals(kodama_matrix_graph)$knn.k, 30L)
   expect_identical(formals(KODAMA.graph)$k, 100L)
   expect_identical(formals(KODAMA.visualization)$k, 30L)
 })
@@ -210,7 +210,7 @@ test_that("public API wrappers are exposed", {
   expect_identical(attr(emb_raw, "initialization"), "raw_pca")
   expect_identical(
     attr(tsne_raw, "optimizer"),
-    "opentsne_fitsne_fft_grid_sparse_knn_float32"
+    "opentsne_exact_sparse_knn_float32"
   )
   expect_identical(attr(tsne_raw, "backend"), "cpu")
   expect_equal(attr(tsne_raw, "graph_edges"), 0)

@@ -19,7 +19,7 @@ kodama_matrix(
   splitting = NULL,
   n.cores = 4L,
   graph.neighbors = NULL,
-  knn.k = 10L,
+  knn.k = 30L,
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
