@@ -43,6 +43,15 @@ as_kodama_labels <- function(x) {
   as.integer(as.factor(x))
 }
 
+as_kodama_samples <- function(samples, n) {
+  if (is.null(samples)) return(NULL)
+  if (length(samples) != n) stop("samples must have one value per data row.")
+  sample_names <- names(table(samples))
+  encoded <- match(as.character(samples), sample_names)
+  if (anyNA(encoded)) stop("samples must not contain missing values.")
+  as.integer(encoded)
+}
+
 extract_kodama_graph <- function(x) {
   if (is.list(x) && !is.null(x$knn)) return(x$knn)
   if (is.list(x) && inherits(x$handle, "kodama_graph_handle")) return(x)
@@ -296,6 +305,9 @@ CorePLSLDA <- function(data,
 #' @param graph Optional `KODAMA.graph` result or a bare list with `indices`
 #'   and `distances`.
 #' @param spatial Optional numeric matrix of spatial coordinates.
+#' @param samples Optional sample or slide identifier. With more than one
+#'   unique value, spatial coordinate 1 is separated exactly as in the original
+#'   KODAMA implementation before spatial graph and constraint construction.
 #' @param W Optional integer vector.
 #' @param constrain Optional integer vector of sample constraints.
 #' @param fix Optional integer vector marking fixed samples.
@@ -339,6 +351,7 @@ CorePLSLDA <- function(data,
 kodama_matrix <- function(data = NULL,
                           graph = NULL,
                           spatial = NULL,
+                          samples = NULL,
                           W = NULL,
                           constrain = NULL,
                           fix = NULL,
@@ -395,19 +408,20 @@ kodama_matrix <- function(data = NULL,
       backend <- match.arg(as.character(graph$backend), c("cpu", "cuda", "metal"))
     }
     raw_data <- if (is.null(data)) NULL else as_kodama_matrix(data)
-    samples <- kodama_graph_samples(graph_input)
-    if (!is.null(raw_data) && nrow(raw_data) != samples) {
+    n_samples <- kodama_graph_samples(graph_input)
+    if (!is.null(raw_data) && nrow(raw_data) != n_samples) {
       stop("data and graph must contain the same number of samples.")
     }
     if (is.null(ncomp)) {
       ncomp <- if (is.null(raw_data)) 50L else min(50L, ncol(raw_data))
     }
-    if (is.null(splitting)) splitting <- ifelse(samples < 40000, 100L, 300L)
+    if (is.null(splitting)) splitting <- ifelse(n_samples < 40000, 100L, 300L)
     if (is.null(graph.neighbors)) graph.neighbors <- kodama_graph_neighbors(graph_input)
     return(kodama_matrix_graph(
       indices = graph,
       data = raw_data,
       spatial = spatial,
+      samples = samples,
       W = W,
       constrain = constrain,
       fix = fix,
@@ -441,6 +455,7 @@ kodama_matrix <- function(data = NULL,
     stop("data must be the raw numeric matrix; pass graph inputs through graph.")
   }
   data_matrix <- as_kodama_matrix(data)
+  sample_ids <- as_kodama_samples(samples, nrow(data_matrix))
   if (is.null(ncomp)) ncomp <- min(50L, ncol(data_matrix))
   if (is.null(splitting)) {
     splitting <- ifelse(nrow(data_matrix) < 40000, 100L, 300L)
@@ -456,6 +471,7 @@ kodama_matrix <- function(data = NULL,
     graph.neighbors = as.integer(graph.neighbors),
     knn.k = as.integer(knn.k),
     spatial.resolution = as.numeric(spatial.resolution),
+    samples = if (is.null(sample_ids)) 0L else length(unique(sample_ids)),
     spatial.graph.mix = isTRUE(spatial.graph.mix),
     spatial.constraint.mode = spatial.constraint.mode,
     metric = metric,
@@ -471,6 +487,7 @@ kodama_matrix <- function(data = NULL,
   result <- kodama_matrix_cpp(
     data = data_matrix,
     spatial = if (is.null(spatial)) NULL else as_kodama_matrix(spatial),
+    samples = sample_ids,
     W = if (is.null(W)) NULL else as.integer(W),
     constrain = if (is.null(constrain)) NULL else as.integer(constrain),
     fix = if (is.null(fix)) NULL else as.integer(fix),
@@ -513,6 +530,8 @@ KODAMA.matrix <- kodama_matrix
 #'   KODAMA graph. When omitted, a self-tuning graph Laplacian geometry is used.
 #' @param spatial Optional spatial or external coordinate matrix used only for
 #'   constrained grouping when supplied.
+#' @param samples Optional sample or slide identifier used to separate spatial
+#'   coordinate 1 before spatial graph and constraint construction.
 #' @param W Optional starting labels.
 #' @param constrain Optional group vector.
 #' @param fix Optional fixed-label mask.
@@ -553,6 +572,7 @@ kodama_matrix_graph <- function(indices,
                                 distances = NULL,
                                 data = NULL,
                                 spatial = NULL,
+                                samples = NULL,
                                 W = NULL,
                                 constrain = NULL,
                                 fix = NULL,
@@ -611,11 +631,12 @@ kodama_matrix_graph <- function(indices,
     backend <- match.arg(as.character(graph_object$backend), c("cpu", "cuda", "metal"))
   }
   if (is.null(ncomp)) ncomp <- if (is.null(data)) 50L else min(50L, ncol(data))
-  samples <- if (is.null(graph_handle)) nrow(indices) else kodama_graph_samples(supplied_graph)
+  n_samples <- if (is.null(graph_handle)) nrow(indices) else kodama_graph_samples(supplied_graph)
   neighbors <- if (is.null(graph_handle)) ncol(indices) else kodama_graph_neighbors(supplied_graph)
   if (is.null(splitting)) {
-    splitting <- ifelse(samples < 40000, 100L, 300L)
+    splitting <- ifelse(n_samples < 40000, 100L, 300L)
   }
+  sample_ids <- as_kodama_samples(samples, n_samples)
   if (is.null(graph.neighbors)) graph.neighbors <- neighbors
   spatial.constraint.mode <- match.arg(spatial.constraint.mode)
   graph.feature.mode <- match.arg(graph.feature.mode)
@@ -647,6 +668,7 @@ kodama_matrix_graph <- function(indices,
     graph.neighbors = as.integer(graph.neighbors),
     knn.k = as.integer(knn.k),
     spatial.resolution = as.numeric(spatial.resolution),
+    samples = if (is.null(sample_ids)) 0L else length(unique(sample_ids)),
     spatial.graph.mix = isTRUE(spatial.graph.mix),
     spatial.constraint.mode = spatial.constraint.mode,
     classifier = classifier,
@@ -665,6 +687,7 @@ kodama_matrix_graph <- function(indices,
   common_args <- list(
     data = if (is.null(data)) NULL else as_kodama_matrix(data),
     spatial = if (is.null(spatial)) NULL else as_kodama_matrix(spatial),
+    samples = sample_ids,
     W = if (is.null(W)) NULL else as.integer(W),
     constrain = if (is.null(constrain)) NULL else as.integer(constrain),
     fix = if (is.null(fix)) NULL else as.integer(fix),
@@ -822,6 +845,8 @@ print.kodama_diagnostics <- function(x, ...) {
 #' @param spatial Optional spatial coordinates. When supplied, their invariant
 #'   nearest-neighbor graph and jitter scale are prepared once here and reused
 #'   by every classifier passed to `KODAMA.matrix`.
+#' @param samples Optional sample or slide identifier. Multiple samples are
+#'   separated along spatial coordinate 1 using the original KODAMA rule.
 #' @param k Number of nearest neighbors to retain.
 #' @param metric Distance or similarity metric.
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
@@ -839,6 +864,7 @@ print.kodama_diagnostics <- function(x, ...) {
 #' @export
 KODAMA.graph <- function(data,
                          spatial = NULL,
+                         samples = NULL,
                          k = 100L,
                          metric = c("euclidean", "cosine", "inner_product"),
                          backend = c("cpu", "cuda", "metal"),
@@ -850,9 +876,11 @@ KODAMA.graph <- function(data,
   backend <- match.arg(backend)
   storage <- match.arg(storage)
   data_matrix <- as_kodama_matrix(data)
+  sample_ids <- as_kodama_samples(samples, nrow(data_matrix))
   result <- kodama_knn_graph_cpp(
     data_matrix,
     if (is.null(spatial)) NULL else as_kodama_matrix(spatial),
+    sample_ids,
     as.integer(k),
     metric,
     backend,
@@ -864,6 +892,7 @@ KODAMA.graph <- function(data,
   result$parameters <- list(
     k = as.integer(k),
     spatial = !is.null(spatial),
+    samples = if (is.null(sample_ids)) 0L else length(unique(sample_ids)),
     metric = metric,
     backend = backend,
     n.cores = as.integer(n.cores),

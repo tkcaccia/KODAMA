@@ -10,6 +10,7 @@ kodama_matrix_graph(
   distances = NULL,
   data = NULL,
   spatial = NULL,
+  samples = NULL,
   W = NULL,
   constrain = NULL,
   fix = NULL,
@@ -51,6 +52,9 @@ KODAMA graph. When omitted, a self-tuning graph Laplacian geometry is used.}
 
 \item{spatial}{Optional spatial or external coordinate matrix used only for
 constrained grouping when supplied.}
+
+\item{samples}{Optional sample or slide identifier used to separate spatial
+coordinate 1 before spatial graph and constraint construction.}
 
 \item{W}{Optional starting labels.}
 

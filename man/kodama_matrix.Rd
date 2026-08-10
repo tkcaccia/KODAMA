@@ -9,6 +9,7 @@ kodama_matrix(
   data = NULL,
   graph = NULL,
   spatial = NULL,
+  samples = NULL,
   W = NULL,
   constrain = NULL,
   fix = NULL,
@@ -43,6 +44,10 @@ supplied. The C++ core stores analysis values as float32.}
 and \code{distances}.}
 
 \item{spatial}{Optional numeric matrix of spatial coordinates.}
+
+\item{samples}{Optional sample or slide identifier. With more than one
+unique value, spatial coordinate 1 is separated exactly as in the original
+KODAMA implementation before spatial graph and constraint construction.}
 
 \item{W}{Optional integer vector.}
 

@@ -251,6 +251,19 @@ when R arrays are required. Both forms carry
 backend-matched UMAP/openTSNE PCA starts and never retain the raw matrix.
 External handles are process-local; materialize the graph before saving it for
 use in another R session.
+Multiple slides can be kept distinct during spatial graph construction with
+the original KODAMA `samples` contract:
+
+```r
+prepared <- KODAMA.graph(x, spatial = xy, samples = slide_id)
+kk <- KODAMA.matrix(
+  data = x, graph = prepared, spatial = xy, samples = slide_id,
+  classifier = "knn"
+)
+```
+
+The first spatial coordinate is offset slide by slide before spatial neighbors
+and constraints are built. A one-level `samples` vector is a no-op.
 `KODAMA.matrix(..., return.graph = FALSE)` returns labels only and omits the
 otherwise-unused final graph-distance correction.
 `KODAMA.matrix()` reserves `data` for

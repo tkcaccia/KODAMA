@@ -9,6 +9,7 @@
 KODAMA.graph(
   data,
   spatial = NULL,
+  samples = NULL,
   k = 100L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = c("cpu", "cuda", "metal"),
@@ -24,6 +25,9 @@ KODAMA.graph(
 \item{spatial}{Optional spatial coordinates. When supplied, their invariant
 nearest-neighbor graph and jitter scale are prepared once here and reused
 by every classifier passed to \code{KODAMA.matrix}.}
+
+\item{samples}{Optional sample or slide identifier. Multiple samples are
+separated along spatial coordinate 1 using the original KODAMA rule.}
 
 \item{k}{Number of nearest neighbors to retain.}
 

@@ -707,6 +707,7 @@ Rcpp::List kodama_matrix_result_to_r(
 Rcpp::List kodama_matrix_cpp(
   Rcpp::NumericMatrix data,
   Rcpp::Nullable<Rcpp::NumericMatrix> spatial = R_NilValue,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> W = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> constrain = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> fix = R_NilValue,
@@ -768,6 +769,7 @@ Rcpp::List kodama_matrix_cpp(
   options.knn.hnsw_target_recall = 0.99;
   options.knn.n_threads = 1;
   options.pls.n_threads = 1;
+  options.samples = optional_int_vector(samples);
 
   if (!spatial.isNull()) {
     Rcpp::NumericMatrix s(spatial);
@@ -804,6 +806,7 @@ Rcpp::List kodama_matrix_graph_cpp(
   int prepared_spatial_dimensions = 0,
   Rcpp::Nullable<Rcpp::NumericMatrix> data = R_NilValue,
   Rcpp::Nullable<Rcpp::NumericMatrix> spatial = R_NilValue,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> W = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> constrain = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> fix = R_NilValue,
@@ -879,6 +882,7 @@ Rcpp::List kodama_matrix_graph_cpp(
   options.graph_feature_mode = parse_graph_feature_mode(graph_feature_mode);
   options.graph_feature_components = graph_feature_components;
   options.graph_feature_steps = graph_feature_steps;
+  options.samples = optional_int_vector(samples);
   if (!spatial.isNull()) {
     Rcpp::NumericMatrix s(spatial);
     if (s.nrow() != n) Rcpp::stop("spatial rows must match graph rows.");
@@ -915,6 +919,7 @@ Rcpp::List kodama_matrix_graph_handle_cpp(
   SEXP graph_handle,
   Rcpp::Nullable<Rcpp::NumericMatrix> data = R_NilValue,
   Rcpp::Nullable<Rcpp::NumericMatrix> spatial = R_NilValue,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> W = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> constrain = R_NilValue,
   Rcpp::Nullable<Rcpp::IntegerVector> fix = R_NilValue,
@@ -972,6 +977,7 @@ Rcpp::List kodama_matrix_graph_handle_cpp(
   options.graph_feature_mode = parse_graph_feature_mode(graph_feature_mode);
   options.graph_feature_components = graph_feature_components;
   options.graph_feature_steps = graph_feature_steps;
+  options.samples = optional_int_vector(samples);
   if (!spatial.isNull()) {
     Rcpp::NumericMatrix s(spatial);
     if (s.nrow() != n) Rcpp::stop("spatial rows must match graph rows.");
@@ -1172,6 +1178,7 @@ Rcpp::List core_plslda_cpp(
 Rcpp::List kodama_knn_graph_cpp(
   Rcpp::NumericMatrix data,
   Rcpp::Nullable<Rcpp::NumericMatrix> spatial = R_NilValue,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
   int k = 30,
   std::string metric = "euclidean",
   std::string backend = "cpu",
@@ -1190,6 +1197,7 @@ Rcpp::List kodama_knn_graph_cpp(
   options.n_threads = n_threads;
   options.gpu_device = gpu_device;
   options.seed = static_cast<std::uint64_t>(seed);
+  options.samples = optional_int_vector(samples);
   if (storage != "matrix" && storage != "handle") {
     Rcpp::stop("storage must be 'matrix' or 'handle'.");
   }

@@ -13,13 +13,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // kodama_matrix_cpp
-Rcpp::List kodama_matrix_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string metric, std::string classifier, std::string backend, int seed, bool progress, bool apply_kodama_dissimilarity, bool compute_visual_init, int graph_output, int folds, std::string evolution_policy);
-RcppExport SEXP _kodamaR_kodama_matrix_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP metricSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP compute_visual_initSEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
+Rcpp::List kodama_matrix_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> samples, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string metric, std::string classifier, std::string backend, int seed, bool progress, bool apply_kodama_dissimilarity, bool compute_visual_init, int graph_output, int folds, std::string evolution_policy);
+RcppExport SEXP _kodamaR_kodama_matrix_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP samplesSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP metricSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP compute_visual_initSEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type spatial(spatialSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type W(WSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type constrain(constrainSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type fix(fixSEXP);
@@ -44,13 +45,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type graph_output(graph_outputSEXP);
     Rcpp::traits::input_parameter< int >::type folds(foldsSEXP);
     Rcpp::traits::input_parameter< std::string >::type evolution_policy(evolution_policySEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_matrix_cpp(data, spatial, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, metric, classifier, backend, seed, progress, apply_kodama_dissimilarity, compute_visual_init, graph_output, folds, evolution_policy));
+    rcpp_result_gen = Rcpp::wrap(kodama_matrix_cpp(data, spatial, samples, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, metric, classifier, backend, seed, progress, apply_kodama_dissimilarity, compute_visual_init, graph_output, folds, evolution_policy));
     return rcpp_result_gen;
 END_RCPP
 }
 // kodama_matrix_graph_cpp
-Rcpp::List kodama_matrix_graph_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::IntegerMatrix> spatial_indices, Rcpp::Nullable<Rcpp::NumericMatrix> spatial_distances, Rcpp::Nullable<Rcpp::NumericVector> spatial_jitter, int prepared_spatial_dimensions, Rcpp::Nullable<Rcpp::NumericMatrix> data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string classifier, std::string backend, std::string graph_feature_mode, int graph_feature_components, int graph_feature_steps, int seed, bool progress, bool apply_kodama_dissimilarity, int graph_output, int folds, std::string evolution_policy);
-RcppExport SEXP _kodamaR_kodama_matrix_graph_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP spatial_indicesSEXP, SEXP spatial_distancesSEXP, SEXP spatial_jitterSEXP, SEXP prepared_spatial_dimensionsSEXP, SEXP dataSEXP, SEXP spatialSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP graph_feature_modeSEXP, SEXP graph_feature_componentsSEXP, SEXP graph_feature_stepsSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
+Rcpp::List kodama_matrix_graph_cpp(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix distances, Rcpp::Nullable<Rcpp::IntegerMatrix> spatial_indices, Rcpp::Nullable<Rcpp::NumericMatrix> spatial_distances, Rcpp::Nullable<Rcpp::NumericVector> spatial_jitter, int prepared_spatial_dimensions, Rcpp::Nullable<Rcpp::NumericMatrix> data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> samples, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string classifier, std::string backend, std::string graph_feature_mode, int graph_feature_components, int graph_feature_steps, int seed, bool progress, bool apply_kodama_dissimilarity, int graph_output, int folds, std::string evolution_policy);
+RcppExport SEXP _kodamaR_kodama_matrix_graph_cpp(SEXP indicesSEXP, SEXP distancesSEXP, SEXP spatial_indicesSEXP, SEXP spatial_distancesSEXP, SEXP spatial_jitterSEXP, SEXP prepared_spatial_dimensionsSEXP, SEXP dataSEXP, SEXP spatialSEXP, SEXP samplesSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP graph_feature_modeSEXP, SEXP graph_feature_componentsSEXP, SEXP graph_feature_stepsSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -62,6 +63,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type prepared_spatial_dimensions(prepared_spatial_dimensionsSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type spatial(spatialSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type W(WSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type constrain(constrainSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type fix(fixSEXP);
@@ -87,19 +89,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type graph_output(graph_outputSEXP);
     Rcpp::traits::input_parameter< int >::type folds(foldsSEXP);
     Rcpp::traits::input_parameter< std::string >::type evolution_policy(evolution_policySEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_matrix_graph_cpp(indices, distances, spatial_indices, spatial_distances, spatial_jitter, prepared_spatial_dimensions, data, spatial, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, classifier, backend, graph_feature_mode, graph_feature_components, graph_feature_steps, seed, progress, apply_kodama_dissimilarity, graph_output, folds, evolution_policy));
+    rcpp_result_gen = Rcpp::wrap(kodama_matrix_graph_cpp(indices, distances, spatial_indices, spatial_distances, spatial_jitter, prepared_spatial_dimensions, data, spatial, samples, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, classifier, backend, graph_feature_mode, graph_feature_components, graph_feature_steps, seed, progress, apply_kodama_dissimilarity, graph_output, folds, evolution_policy));
     return rcpp_result_gen;
 END_RCPP
 }
 // kodama_matrix_graph_handle_cpp
-Rcpp::List kodama_matrix_graph_handle_cpp(SEXP graph_handle, Rcpp::Nullable<Rcpp::NumericMatrix> data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string classifier, std::string backend, std::string graph_feature_mode, int graph_feature_components, int graph_feature_steps, int seed, bool progress, bool apply_kodama_dissimilarity, int graph_output, int folds, std::string evolution_policy);
-RcppExport SEXP _kodamaR_kodama_matrix_graph_handle_cpp(SEXP graph_handleSEXP, SEXP dataSEXP, SEXP spatialSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP graph_feature_modeSEXP, SEXP graph_feature_componentsSEXP, SEXP graph_feature_stepsSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
+Rcpp::List kodama_matrix_graph_handle_cpp(SEXP graph_handle, Rcpp::Nullable<Rcpp::NumericMatrix> data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> samples, Rcpp::Nullable<Rcpp::IntegerVector> W, Rcpp::Nullable<Rcpp::IntegerVector> constrain, Rcpp::Nullable<Rcpp::IntegerVector> fix, int M, int Tcycle, int ncomp, int landmarks, int splitting, int n_cores, int graph_neighbors, int knn_k, double spatial_resolution, bool spatial_graph_mix, int spatial_constraint_mode, std::string classifier, std::string backend, std::string graph_feature_mode, int graph_feature_components, int graph_feature_steps, int seed, bool progress, bool apply_kodama_dissimilarity, int graph_output, int folds, std::string evolution_policy);
+RcppExport SEXP _kodamaR_kodama_matrix_graph_handle_cpp(SEXP graph_handleSEXP, SEXP dataSEXP, SEXP spatialSEXP, SEXP samplesSEXP, SEXP WSEXP, SEXP constrainSEXP, SEXP fixSEXP, SEXP MSEXP, SEXP TcycleSEXP, SEXP ncompSEXP, SEXP landmarksSEXP, SEXP splittingSEXP, SEXP n_coresSEXP, SEXP graph_neighborsSEXP, SEXP knn_kSEXP, SEXP spatial_resolutionSEXP, SEXP spatial_graph_mixSEXP, SEXP spatial_constraint_modeSEXP, SEXP classifierSEXP, SEXP backendSEXP, SEXP graph_feature_modeSEXP, SEXP graph_feature_componentsSEXP, SEXP graph_feature_stepsSEXP, SEXP seedSEXP, SEXP progressSEXP, SEXP apply_kodama_dissimilaritySEXP, SEXP graph_outputSEXP, SEXP foldsSEXP, SEXP evolution_policySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type graph_handle(graph_handleSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type spatial(spatialSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type W(WSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type constrain(constrainSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type fix(fixSEXP);
@@ -125,7 +128,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type graph_output(graph_outputSEXP);
     Rcpp::traits::input_parameter< int >::type folds(foldsSEXP);
     Rcpp::traits::input_parameter< std::string >::type evolution_policy(evolution_policySEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_matrix_graph_handle_cpp(graph_handle, data, spatial, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, classifier, backend, graph_feature_mode, graph_feature_components, graph_feature_steps, seed, progress, apply_kodama_dissimilarity, graph_output, folds, evolution_policy));
+    rcpp_result_gen = Rcpp::wrap(kodama_matrix_graph_handle_cpp(graph_handle, data, spatial, samples, W, constrain, fix, M, Tcycle, ncomp, landmarks, splitting, n_cores, graph_neighbors, knn_k, spatial_resolution, spatial_graph_mix, spatial_constraint_mode, classifier, backend, graph_feature_mode, graph_feature_components, graph_feature_steps, seed, progress, apply_kodama_dissimilarity, graph_output, folds, evolution_policy));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -218,13 +221,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // kodama_knn_graph_cpp
-Rcpp::List kodama_knn_graph_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, int k, std::string metric, std::string backend, int n_threads, int gpu_device, int seed, std::string storage);
-RcppExport SEXP _kodamaR_kodama_knn_graph_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP, SEXP seedSEXP, SEXP storageSEXP) {
+Rcpp::List kodama_knn_graph_cpp(Rcpp::NumericMatrix data, Rcpp::Nullable<Rcpp::NumericMatrix> spatial, Rcpp::Nullable<Rcpp::IntegerVector> samples, int k, std::string metric, std::string backend, int n_threads, int gpu_device, int seed, std::string storage);
+RcppExport SEXP _kodamaR_kodama_knn_graph_cpp(SEXP dataSEXP, SEXP spatialSEXP, SEXP samplesSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP backendSEXP, SEXP n_threadsSEXP, SEXP gpu_deviceSEXP, SEXP seedSEXP, SEXP storageSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type spatial(spatialSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     Rcpp::traits::input_parameter< std::string >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::string >::type backend(backendSEXP);
@@ -232,7 +236,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type gpu_device(gpu_deviceSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< std::string >::type storage(storageSEXP);
-    rcpp_result_gen = Rcpp::wrap(kodama_knn_graph_cpp(data, spatial, k, metric, backend, n_threads, gpu_device, seed, storage));
+    rcpp_result_gen = Rcpp::wrap(kodama_knn_graph_cpp(data, spatial, samples, k, metric, backend, n_threads, gpu_device, seed, storage));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -492,14 +496,14 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_kodamaR_kodama_matrix_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_cpp, 26},
-    {"_kodamaR_kodama_matrix_graph_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_graph_cpp, 33},
-    {"_kodamaR_kodama_matrix_graph_handle_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_graph_handle_cpp, 28},
+    {"_kodamaR_kodama_matrix_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_cpp, 27},
+    {"_kodamaR_kodama_matrix_graph_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_graph_cpp, 34},
+    {"_kodamaR_kodama_matrix_graph_handle_cpp", (DL_FUNC) &_kodamaR_kodama_matrix_graph_handle_cpp, 29},
     {"_kodamaR_knncv_cpp", (DL_FUNC) &_kodamaR_knncv_cpp, 11},
     {"_kodamaR_plsldacv_cpp", (DL_FUNC) &_kodamaR_plsldacv_cpp, 12},
     {"_kodamaR_core_knn_cpp", (DL_FUNC) &_kodamaR_core_knn_cpp, 13},
     {"_kodamaR_core_plslda_cpp", (DL_FUNC) &_kodamaR_core_plslda_cpp, 12},
-    {"_kodamaR_kodama_knn_graph_cpp", (DL_FUNC) &_kodamaR_kodama_knn_graph_cpp, 9},
+    {"_kodamaR_kodama_knn_graph_cpp", (DL_FUNC) &_kodamaR_kodama_knn_graph_cpp, 10},
     {"_kodamaR_kodama_graph_materialize_cpp", (DL_FUNC) &_kodamaR_kodama_graph_materialize_cpp, 1},
     {"_kodamaR_kodama_pca_cpp", (DL_FUNC) &_kodamaR_kodama_pca_cpp, 10},
     {"_kodamaR_kodama_normalization_cpp", (DL_FUNC) &_kodamaR_kodama_normalization_cpp, 7},

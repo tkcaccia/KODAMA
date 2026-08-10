@@ -9,6 +9,79 @@ test_that("KNN classifier defaults are benchmark-selected without changing graph
   expect_identical(formals(KODAMA.visualization)$k, 30L)
 })
 
+test_that("samples reproduces original KODAMA spatial separation", {
+  set.seed(11)
+  x <- matrix(rnorm(24 * 4), 24, 4)
+  spatial <- cbind(rep(0:5, 4), rep(0:3, each = 6))
+  samples <- rep(c("slide_b", "slide_a"), each = 12)
+  separated <- spatial
+  sample_names <- names(table(samples))
+  ma <- 0
+  for (sample_name in sample_names) {
+    selected <- sample_name == samples
+    separated[selected, 1] <- separated[selected, 1] + ma
+    ran <- range(separated[selected, 1])
+    ma <- ran[2] + stats::dist(ran)[1] * 0.5
+  }
+
+  from_samples <- KODAMA.graph(
+    x, spatial = spatial, samples = samples, k = 8,
+    backend = "cpu", n.cores = 1, seed = 4, storage = "matrix"
+  )
+  from_manual <- KODAMA.graph(
+    x, spatial = separated, k = 8,
+    backend = "cpu", n.cores = 1, seed = 4, storage = "matrix"
+  )
+  single_sample <- KODAMA.graph(
+    x, spatial = spatial, samples = rep("one", nrow(x)), k = 8,
+    backend = "cpu", n.cores = 1, seed = 4, storage = "matrix"
+  )
+  without_samples <- KODAMA.graph(
+    x, spatial = spatial, k = 8,
+    backend = "cpu", n.cores = 1, seed = 4, storage = "matrix"
+  )
+
+  expect_identical(
+    from_samples$spatial_knn$indices,
+    from_manual$spatial_knn$indices
+  )
+  expect_equal(
+    from_samples$spatial_knn$distances,
+    from_manual$spatial_knn$distances,
+    tolerance = 0
+  )
+  expect_identical(
+    single_sample$spatial_knn$indices,
+    without_samples$spatial_knn$indices
+  )
+  expect_error(
+    KODAMA.graph(x, spatial = spatial, samples = samples[-1]),
+    "one value per data row"
+  )
+  expect_error(KODAMA.graph(x, samples = samples), "requires spatial")
+
+  matrix_from_samples <- KODAMA.matrix(
+    data = x, spatial = spatial, samples = samples,
+    M = 1, Tcycle = 1, landmarks = 18, splitting = 6,
+    graph.neighbors = 8, knn.k = 5, classifier = "knn",
+    backend = "cpu", n.cores = 1, seed = 4,
+    visual.init = FALSE, progress = FALSE, return.graph = FALSE
+  )
+  matrix_from_manual <- KODAMA.matrix(
+    data = x, spatial = separated,
+    M = 1, Tcycle = 1, landmarks = 18, splitting = 6,
+    graph.neighbors = 8, knn.k = 5, classifier = "knn",
+    backend = "cpu", n.cores = 1, seed = 4,
+    visual.init = FALSE, progress = FALSE, return.graph = FALSE
+  )
+  expect_identical(matrix_from_samples$res, matrix_from_manual$res)
+  expect_identical(
+    matrix_from_samples$res_constrain,
+    matrix_from_manual$res_constrain
+  )
+  expect_equal(matrix_from_samples$acc, matrix_from_manual$acc, tolerance = 0)
+})
+
 test_that("kodama_matrix runs KNN and PLS-LDA on a small matrix", {
   set.seed(1)
   x <- matrix(rnorm(90 * 6), 90, 6)
