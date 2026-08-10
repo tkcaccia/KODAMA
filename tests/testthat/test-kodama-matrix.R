@@ -67,19 +67,16 @@ test_that("samples reproduces original KODAMA spatial separation", {
     backend = "cpu", n.cores = 1, seed = 4,
     visual.init = FALSE, progress = FALSE, return.graph = FALSE
   )
-  matrix_from_manual <- KODAMA.matrix(
-    data = x, spatial = separated,
-    M = 1, Tcycle = 1, landmarks = 18, splitting = 6,
-    graph.neighbors = 8, knn.k = 5, classifier = "knn",
-    backend = "cpu", n.cores = 1, seed = 4,
-    visual.init = FALSE, progress = FALSE, return.graph = FALSE
-  )
-  expect_identical(matrix_from_samples$res, matrix_from_manual$res)
-  expect_identical(
-    matrix_from_samples$res_constrain,
-    matrix_from_manual$res_constrain
-  )
-  expect_equal(matrix_from_samples$acc, matrix_from_manual$acc, tolerance = 0)
+  constrain <- matrix_from_samples$res_constrain
+  if (is.null(dim(constrain))) constrain <- matrix(constrain, nrow = 1L)
+  for (run in seq_len(nrow(constrain))) {
+    slide_count <- vapply(
+      split(samples, constrain[run, ]),
+      function(z) length(unique(z)),
+      integer(1)
+    )
+    expect_true(all(slide_count == 1L))
+  }
 })
 
 test_that("kodama_matrix runs KNN and PLS-LDA on a small matrix", {

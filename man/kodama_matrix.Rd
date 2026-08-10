@@ -47,7 +47,9 @@ and \code{distances}.}
 
 \item{samples}{Optional sample or slide identifier. With more than one
 unique value, spatial coordinate 1 is separated exactly as in the original
-KODAMA implementation before spatial graph and constraint construction.}
+KODAMA implementation before spatial graph and constraint construction.
+Spatial landmark strata and constraint IDs are additionally keyed by sample,
+so an optimization block cannot span slides.}
 
 \item{W}{Optional integer vector.}
 

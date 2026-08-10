@@ -54,7 +54,8 @@ KODAMA graph. When omitted, a self-tuning graph Laplacian geometry is used.}
 constrained grouping when supplied.}
 
 \item{samples}{Optional sample or slide identifier used to separate spatial
-coordinate 1 before spatial graph and constraint construction.}
+coordinate 1 before spatial graph and constraint construction and to prevent
+spatial constraint groups from spanning slides.}
 
 \item{W}{Optional starting labels.}
 

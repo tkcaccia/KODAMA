@@ -27,7 +27,8 @@ nearest-neighbor graph and jitter scale are prepared once here and reused
 by every classifier passed to \code{KODAMA.matrix}.}
 
 \item{samples}{Optional sample or slide identifier. Multiple samples are
-separated along spatial coordinate 1 using the original KODAMA rule.}
+separated along spatial coordinate 1 using the original KODAMA rule. The same
+identifier provides a hard slide boundary for downstream spatial constraints.}
 
 \item{k}{Number of nearest neighbors to retain.}
 

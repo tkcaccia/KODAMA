@@ -263,7 +263,9 @@ kk <- KODAMA.matrix(
 ```
 
 The first spatial coordinate is offset slide by slide before spatial neighbors
-and constraints are built. A one-level `samples` vector is a no-op.
+and constraints are built. Spatial landmark strata and optimization constraint
+IDs are also keyed by slide, so no constraint group can cross a slide boundary.
+A one-level `samples` vector is a no-op.
 `KODAMA.matrix(..., return.graph = FALSE)` returns labels only and omits the
 otherwise-unused final graph-distance correction.
 `KODAMA.matrix()` reserves `data` for
