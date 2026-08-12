@@ -28,6 +28,17 @@ help(package = "KODAMA")
 
 The sections below explain optional CUDA, Metal, and development workflows.
 
+Set one default backend for KODAMA, fastPLS, fastEmbedR, and faissR in the
+current R session, or through the process environment:
+
+```r
+options(backend = "cuda")
+# or: Sys.setenv(BACKEND = "cuda")
+```
+
+An explicit function argument such as `backend = "cpu"` always overrides the
+shared setting.
+
 `KODAMA` does not reimplement the mathematics in R. It converts R matrices and
 vectors to the C++ API and returns R-friendly lists, matrices, and S3 objects.
 The vendored CPU sources are synchronized from `kodama-cpp`; the same public

@@ -14,11 +14,12 @@ The active backend. Setting returns the previous value invisibly.
 }
 \description{
 KODAMA uses an explicit \code{backend} argument when supplied. Otherwise it reads
-\code{options(KODAMA.backend = ...)}, then \code{KODAMA_BACKEND}, and finally uses
-\code{"cpu"}. This function gets or sets the package option.
+\code{options(backend = ...)}, then \code{BACKEND}, and finally uses \code{"cpu"}.
+The former KODAMA-specific option and environment variable remain compatibility
+fallbacks. This function gets or sets the shared option.
 }
 \examples{
 KODAMA_backend()
 old <- KODAMA_backend("cpu")
-options(KODAMA.backend = old)
+options(backend = old)
 }

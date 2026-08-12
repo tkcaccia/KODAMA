@@ -39,13 +39,13 @@ session. An explicit function argument has the highest priority.
 # Session-wide default
 old.backend <- KODAMA_backend("cpu")
 
-# The equivalent direct option is options(KODAMA.backend = "cpu")
+# The equivalent direct option is options(backend = "cpu")
 KODAMA_backend()
 
 # Explicit arguments override the session default. For example:
 # KODAMA.graph(x, backend = "cuda")
 
-options(KODAMA.backend = old.backend)
+options(backend = old.backend)
 ```
 
 For an accelerator session, set one of the following before the analysis:
@@ -58,7 +58,7 @@ KODAMA_backend("metal")
 graph <- KODAMA.graph(x)
 ```
 
-For non-interactive jobs, `KODAMA_BACKEND=cpu|cuda|metal` supplies the default
+For non-interactive jobs, `BACKEND=cpu|cuda|metal` supplies the default
 when the R option is unset. The precedence is explicit argument, R option,
 environment variable, then CPU. Selecting an unavailable accelerator produces
 an error; KODAMA does not silently change the requested backend.

@@ -1,12 +1,15 @@
+# KODAMA 0.99.2
+
+* Standardized session-wide backend selection across KODAMA, fastPLS,
+  fastEmbedR, and faissR through `options(backend = ...)` and `BACKEND`.
+  Legacy KODAMA-specific selectors remain compatibility fallbacks.
+
 # KODAMA 0.99.1
 
 * Established `tkcaccia/KODAMA` as the canonical repository for the new
   C++-backed R package and preserved the classic implementation in
   `tkcaccia/KODAMAlegacy`, aligning the repository and package names required
   for Bioconductor submission.
-* Added a session-wide backend selector through `KODAMA_backend()`,
-  `options(KODAMA.backend = ...)`, and `KODAMA_BACKEND`. Explicit function
-  arguments retain precedence and CPU remains the default.
 * Replaced the legacy R implementation with bindings to the standalone
   float32 `kodama-cpp` library.
 * Added reusable `KODAMA.graph()`, KNN and PLS-LDA optimization, CPU, CUDA,
