@@ -46,6 +46,10 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+          if test "$status" -ne 0; then
+            diagnostic=$(tail -n 80 rcmdcheck-console.log | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error file=.github/workflows/bioc-check.yml,line=37::$diagnostic"
+          fi
           exit "$status"
       - name: Show R CMD check log
         if: always()
