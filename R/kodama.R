@@ -133,11 +133,11 @@ KNNCV <- function(data,
                   seed = 1L,
                   k = 10L,
                   metric = c("cosine", "inner_product", "euclidean"),
-                  backend = c("cpu", "cuda", "metal"),
+                  backend = NULL,
                   n.cores = 1L,
                   gpu.device = 0L) {
   metric <- match.arg(metric)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   knncv_cpp(
     as_kodama_matrix(data),
     as_kodama_labels(labels),
@@ -178,10 +178,10 @@ PLSLDACV <- function(data,
                      ncomp = min(50L, ncol(data)),
                      center = TRUE,
                      scale = TRUE,
-                     backend = c("cpu", "cuda", "metal"),
+                     backend = NULL,
                      n.cores = 1L,
                      gpu.device = 0L) {
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   plsldacv_cpp(
     as_kodama_matrix(data),
     as_kodama_labels(labels),
@@ -228,11 +228,11 @@ CoreKNN <- function(data,
                     seed = 1L,
                     k = 30L,
                     metric = c("euclidean", "cosine", "inner_product"),
-                    backend = c("cpu", "cuda", "metal"),
+                    backend = NULL,
                     n.cores = 4L,
                     gpu.device = 0L) {
   metric <- match.arg(metric)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   core_knn_cpp(
     as_kodama_matrix(data),
     as_kodama_labels(labels),
@@ -278,10 +278,10 @@ CorePLSLDA <- function(data,
                        stratified = TRUE,
                        seed = 1L,
                        ncomp = min(50L, ncol(data)),
-                       backend = c("cpu", "cuda", "metal"),
+                       backend = NULL,
                        n.cores = 4L,
                        gpu.device = 0L) {
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   core_plslda_cpp(
     as_kodama_matrix(data),
     as_kodama_labels(labels),
@@ -372,7 +372,7 @@ kodama_matrix <- function(data = NULL,
                           spatial.mode = c("standard", "population"),
                           metric = "euclidean",
                           classifier = c("knn", "pls_lda"),
-                          backend = c("cpu", "cuda", "metal"),
+                          backend = NULL,
                           seed = 1234L,
                           folds = 5L,
                           visual.init = TRUE,
@@ -390,9 +390,8 @@ kodama_matrix <- function(data = NULL,
   } else {
     experimental$.evolution.policy
   }
-  backend_was_missing <- missing(backend)
   classifier <- match.arg(classifier)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   spatial.constraint.mode <- match.arg(spatial.constraint.mode)
   spatial.mode <- match.arg(spatial.mode)
   .evolution.policy <- match.arg(.evolution.policy, c(
@@ -408,9 +407,6 @@ kodama_matrix <- function(data = NULL,
     }
     if (!is.null(data) && !is.null(extract_kodama_graph(data))) {
       stop("data must be the raw numeric matrix; pass graph inputs through graph.")
-    }
-    if (backend_was_missing && !is.null(graph$backend)) {
-      backend <- match.arg(as.character(graph$backend), c("cpu", "cuda", "metal"))
     }
     raw_data <- if (is.null(data)) NULL else as_kodama_matrix(data)
     n_samples <- kodama_graph_samples(graph_input)
@@ -600,7 +596,7 @@ kodama_matrix_graph <- function(indices,
                                 spatial.constraint.mode = c("kmeans", "graph", "auto"),
                                 spatial.mode = c("standard", "population"),
                                 classifier = c("knn", "pls_lda"),
-                                backend = c("cpu", "cuda", "metal"),
+                                backend = NULL,
                                 graph.feature.mode = "laplacian_self_tuning",
                                 graph.feature.components = 0L,
                                 graph.feature.steps = 3L,
@@ -624,7 +620,6 @@ kodama_matrix_graph <- function(indices,
   graph_object <- if (is.list(indices)) indices else NULL
   supplied_graph <- extract_kodama_graph(indices)
   graph_handle <- NULL
-  backend_was_missing <- missing(backend)
   if (!is.null(supplied_graph)) {
     if (kodama_graph_is_handle(supplied_graph)) {
       graph_handle <- supplied_graph$handle
@@ -637,11 +632,8 @@ kodama_matrix_graph <- function(indices,
     stop("indices and distances, or a KODAMA graph handle, are required.")
   }
   classifier <- match.arg(classifier)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   graph_output <- kodama_graph_output_mode(return.graph)
-  if (backend_was_missing && !is.null(graph_object$backend)) {
-    backend <- match.arg(as.character(graph_object$backend), c("cpu", "cuda", "metal"))
-  }
   if (is.null(ncomp)) ncomp <- if (is.null(data)) 50L else min(50L, ncol(data))
   n_samples <- if (is.null(graph_handle)) nrow(indices) else kodama_graph_samples(supplied_graph)
   neighbors <- if (is.null(graph_handle)) ncol(indices) else kodama_graph_neighbors(supplied_graph)
@@ -882,13 +874,13 @@ KODAMA.graph <- function(data,
                          samples = NULL,
                          k = 100L,
                          metric = c("euclidean", "cosine", "inner_product"),
-                         backend = c("cpu", "cuda", "metal"),
+                         backend = NULL,
                          n.cores = 4L,
                          gpu.device = 0L,
                          seed = 1234L,
                          storage = c("handle", "matrix")) {
   metric <- match.arg(metric)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   storage <- match.arg(storage)
   data_matrix <- as_kodama_matrix(data)
   sample_ids <- as_kodama_samples(samples, nrow(data_matrix))
@@ -965,13 +957,13 @@ kodama_pca <- function(data,
                        ncomp = 2L,
                        center = TRUE,
                        scale = FALSE,
-                       backend = c("cpu", "cuda", "metal"),
+                       backend = NULL,
                        n.cores = 1L,
                        gpu.device = 0L,
                        seed = 4L,
                        oversample = NULL,
                        power = NULL) {
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   kodama_pca_cpp(
     as_kodama_matrix(data),
     ncomp = as.integer(ncomp),
@@ -1028,7 +1020,7 @@ KODAMA.visualization <- function(x,
                                  initialize.from.raw = TRUE,
                                  k = 30L,
                                  metric = c("euclidean", "cosine", "inner_product"),
-                                 backend = c("cpu", "cuda", "metal"),
+                                 backend = NULL,
                                  n.cores = 4L,
                                  gpu.device = 0L,
                                  n.epochs = 200L,
@@ -1039,7 +1031,7 @@ KODAMA.visualization <- function(x,
                                  ...) {
   method <- match.arg(method)
   metric <- match.arg(metric)
-  backend <- match.arg(backend)
+  backend <- kodama_resolve_backend(backend)
   graph.mode <- match.arg(graph.mode)
   raw_matrix <- if (!is.null(raw.data)) {
     as_kodama_matrix(raw.data)
@@ -1172,14 +1164,14 @@ KODAMA.clustering <- function(x,
                               weight = c("distance", "snn", "adaptive", "binary"),
                               k = 30L,
                               metric = c("euclidean", "cosine", "inner_product"),
-                              graph.backend = c("cpu", "cuda", "metal"),
+                              graph.backend = NULL,
                               n.cores = 4L,
                               n.iterations = 10L,
                               random.walk.steps = 4L,
                               gpu.device = 0L) {
   weight <- match.arg(weight)
   metric <- match.arg(metric)
-  graph.backend <- match.arg(graph.backend)
+  graph.backend <- kodama_resolve_backend(graph.backend, "graph.backend")
   graph <- extract_kodama_graph(x)
   if (!is.null(graph)) {
     if (kodama_graph_is_handle(graph)) {

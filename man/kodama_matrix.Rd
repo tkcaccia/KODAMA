@@ -27,7 +27,7 @@ kodama_matrix(
   spatial.mode = c("standard", "population"),
   metric = "euclidean",
   classifier = c("knn", "pls_lda"),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   seed = 1234L,
   folds = 5L,
   visual.init = TRUE,

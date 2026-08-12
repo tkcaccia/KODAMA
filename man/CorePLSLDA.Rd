@@ -14,7 +14,7 @@ CorePLSLDA(
   stratified = TRUE,
   seed = 1L,
   ncomp = min(50L, ncol(data)),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   n.cores = 4L,
   gpu.device = 0L
 )

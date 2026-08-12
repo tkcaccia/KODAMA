@@ -8,7 +8,7 @@ scaling(
   Xtrain,
   Xtest = NULL,
   method = "autoscaling",
-  backend = "cpu",
+  backend = NULL,
   n.cores = 1L,
   gpu.device = 0L
 )

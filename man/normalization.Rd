@@ -9,7 +9,7 @@ normalization(
   Xtest = NULL,
   method = "pqn",
   ref = NULL,
-  backend = "cpu",
+  backend = NULL,
   n.cores = 1L,
   gpu.device = 0L
 )

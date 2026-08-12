@@ -14,7 +14,7 @@ PLSLDACV(
   ncomp = min(50L, ncol(data)),
   center = TRUE,
   scale = TRUE,
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   n.cores = 1L,
   gpu.device = 0L
 )

@@ -12,7 +12,7 @@ KODAMA.graph(
   samples = NULL,
   k = 100L,
   metric = c("euclidean", "cosine", "inner_product"),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   n.cores = 4L,
   gpu.device = 0L,
   seed = 1234L,

@@ -9,7 +9,7 @@ passing.message(
   spatial,
   number_knn = 15L,
   samples = NULL,
-  backend = "cpu",
+  backend = NULL,
   n.cores = 4L,
   gpu.device = 0L
 )

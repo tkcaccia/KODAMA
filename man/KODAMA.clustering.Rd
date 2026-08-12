@@ -10,7 +10,7 @@ KODAMA.clustering(
   weight = c("distance", "snn", "adaptive", "binary"),
   k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
-  graph.backend = c("cpu", "cuda", "metal"),
+  graph.backend = NULL,
   n.cores = 4L,
   n.iterations = 10L,
   random.walk.steps = 4L,

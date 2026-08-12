@@ -13,7 +13,7 @@ KNNCV(
   seed = 1L,
   k = 10L,
   metric = c("cosine", "inner_product", "euclidean"),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   n.cores = 1L,
   gpu.device = 0L
 )

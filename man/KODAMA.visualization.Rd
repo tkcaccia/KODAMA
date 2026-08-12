@@ -12,7 +12,7 @@ KODAMA.visualization(
   initialize.from.raw = TRUE,
   k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   n.cores = 4L,
   gpu.device = 0L,
   n.epochs = 200L,

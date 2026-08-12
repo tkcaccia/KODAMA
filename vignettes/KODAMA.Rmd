@@ -29,6 +29,30 @@ backends. The R interface deliberately remains focused on the KODAMA workflow;
 general dimensionality-reduction and PLS modeling APIs are maintained in
 `fastEmbedR` and `fastPLS`.
 
+# Select a default execution backend
+
+Backend-capable functions use CPU unless a backend is selected for the R
+session. An explicit function argument has the highest priority.
+
+```r
+# Session-wide default
+options(KODAMA.backend = "cuda")
+
+# Equivalent helper
+KODAMA_backend("cuda")
+
+# Uses the session default
+graph <- KODAMA.graph(x)
+
+# Explicit arguments override the session default
+fit.cpu <- KODAMA.matrix(data = x, graph = graph, backend = "cpu")
+```
+
+For non-interactive jobs, `KODAMA_BACKEND=cpu|cuda|metal` supplies the default
+when the R option is unset. The precedence is explicit argument, R option,
+environment variable, then CPU. Selecting an unavailable accelerator produces
+an error; KODAMA does not silently change the requested backend.
+
 # Basic workflow
 
 ```{r data}

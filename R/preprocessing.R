@@ -26,7 +26,8 @@
 #' @seealso [scaling()]
 #' @export
 normalization <- function(Xtrain, Xtest = NULL, method = "pqn", ref = NULL,
-                          backend = "cpu", n.cores = 1L, gpu.device = 0L) {
+                          backend = NULL, n.cores = 1L, gpu.device = 0L) {
+  backend <- kodama_resolve_backend(backend)
   methods <- c("pqn", "sum", "median", "sqrt", "none")
   method <- pmatch(method, methods)
   if (is.na(method)) stop("invalid normalization method")
@@ -59,7 +60,8 @@ normalization <- function(Xtrain, Xtest = NULL, method = "pqn", ref = NULL,
 #' @seealso [normalization()]
 #' @export
 scaling <- function(Xtrain, Xtest = NULL, method = "autoscaling",
-                    backend = "cpu", n.cores = 1L, gpu.device = 0L) {
+                    backend = NULL, n.cores = 1L, gpu.device = 0L) {
+  backend <- kodama_resolve_backend(backend)
   methods <- c(
     "none", "centering", "autoscaling", "rangescaling", "paretoscaling"
   )
@@ -100,8 +102,9 @@ scaling <- function(Xtrain, Xtest = NULL, method = "autoscaling",
 #'   backend, precision, and sample-group metadata are attached as attributes.
 #' @export
 passing.message <- function(data, spatial, number_knn = 15L, samples = NULL,
-                            backend = "cpu", n.cores = 4L,
+                            backend = NULL, n.cores = 4L,
                             gpu.device = 0L) {
+  backend <- kodama_resolve_backend(backend)
   data <- as.matrix(data)
   spatial <- as.matrix(spatial)
   if (nrow(data) != nrow(spatial)) {

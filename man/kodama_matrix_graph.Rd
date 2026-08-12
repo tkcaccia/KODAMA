@@ -27,7 +27,7 @@ kodama_matrix_graph(
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
   spatial.mode = c("standard", "population"),
   classifier = c("knn", "pls_lda"),
-  backend = c("cpu", "cuda", "metal"),
+  backend = NULL,
   graph.feature.mode = "laplacian_self_tuning",
   graph.feature.components = 0L,
   graph.feature.steps = 3L,
