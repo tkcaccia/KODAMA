@@ -51,6 +51,63 @@ test_that("scaling reuses training statistics", {
   expect_error(scaling(Xtrain, method = "bad"), "invalid scaling")
 })
 
+test_that("passing.message isolates slides and preserves the native formula", {
+  data <- rbind(
+    c(1, 2), c(2, 1), c(4, 3),
+    c(10, 20), c(20, 10), c(40, 30)
+  )
+  spatial <- rbind(c(0, 0), c(1, 0), c(3, 0), c(0, 0), c(1, 0), c(3, 0))
+  samples <- rep(c("slide-a", "slide-b"), each = 3L)
+  result <- passing.message(
+    data, spatial, number_knn = 2L, samples = samples,
+    backend = "cpu", n.cores = 2L
+  )
+  weight <- exp(-0.5)
+  expected <- rbind(
+    data[1, ] + data[2, ] * weight,
+    data[2, ] + data[1, ] * weight,
+    data[3, ] + data[2, ] * exp(-1),
+    data[4, ] + data[5, ] * weight,
+    data[5, ] + data[4, ] * weight,
+    data[6, ] + data[5, ] * exp(-1)
+  )
+  expect_equal(as.vector(result), as.vector(expected), tolerance = 2e-6)
+  expect_identical(attr(result, "precision"), "float32")
+  expect_equal(attr(result, "sample_groups"), 2)
+  expect_named(attr(result, "timing"), c(
+    "graph_seconds", "aggregation_seconds", "runtime_seconds"
+  ))
+  expect_error(
+    passing.message(data, spatial, 4L, samples = samples),
+    "at least neighbors rows"
+  )
+})
+
+test_that("spatial feature selection recovers signals independently across slides", {
+  expect_false("backend" %in% names(formals(spatial_feature_selection)))
+  expect_false("gpu.device" %in% names(formals(spatial_feature_selection)))
+  set.seed(2026)
+  n <- 120L
+  spatial <- rbind(
+    cbind(seq(0, 1, length.out = n), 0),
+    cbind(seq(0, 1, length.out = n), 1)
+  )
+  data <- matrix(rnorm(2L * n * 24L), nrow = 2L * n, ncol = 24L)
+  data[, 1L] <- spatial[, 1L]
+  data[, 2L] <- sin(3 * spatial[, 1L])
+  colnames(data) <- paste0("feature", seq_len(ncol(data)))
+  result <- spatial_feature_selection(
+    data, spatial, samples = rep(c("a", "b"), each = n),
+    n.cores = 2L
+  )
+  expect_setequal(result$ranking[1:2], 1:2)
+  expect_true(all(result$p.value[1:2] < 1e-4))
+  expect_equal(dim(result$per.sample.score), c(2L, 24L))
+  expect_identical(result$backend, "cpu")
+  expect_identical(result$precision, "float32")
+  expect_identical(result$features[1:2], colnames(data)[result$ranking[1:2]])
+})
+
 test_that("synthetic manifolds preserve KODAMA constructions", {
   set.seed(17)
   dini <- dinisurface(25)

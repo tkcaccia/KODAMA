@@ -722,6 +722,7 @@ Rcpp::List kodama_matrix_cpp(
   double spatial_resolution = 0.4,
   bool spatial_graph_mix = false,
   int spatial_constraint_mode = 0,
+  int spatial_coordinate_mode = 0,
   std::string metric = "euclidean",
   std::string classifier = "knn",
   std::string backend = "cpu",
@@ -756,6 +757,9 @@ Rcpp::List kodama_matrix_cpp(
   options.spatial_resolution = spatial_resolution;
   options.spatial_graph_mix = spatial_graph_mix;
   options.spatial_constraint_mode = spatial_constraint_mode;
+  options.spatial_coordinate_mode = spatial_coordinate_mode == 1 ?
+    kodama::SpatialCoordinateMode::Population :
+    kodama::SpatialCoordinateMode::Standard;
   options.seed = static_cast<std::uint64_t>(seed);
   options.metric = parse_metric(metric);
   options.backend = parse_backend(backend);
@@ -821,6 +825,7 @@ Rcpp::List kodama_matrix_graph_cpp(
   double spatial_resolution = 0.3,
   bool spatial_graph_mix = false,
   int spatial_constraint_mode = 0,
+  int spatial_coordinate_mode = 0,
   std::string classifier = "knn",
   std::string backend = "cpu",
   std::string graph_feature_mode = "laplacian_self_tuning",
@@ -866,6 +871,9 @@ Rcpp::List kodama_matrix_graph_cpp(
   options.spatial_resolution = spatial_resolution;
   options.spatial_graph_mix = spatial_graph_mix;
   options.spatial_constraint_mode = spatial_constraint_mode;
+  options.spatial_coordinate_mode = spatial_coordinate_mode == 1 ?
+    kodama::SpatialCoordinateMode::Population :
+    kodama::SpatialCoordinateMode::Standard;
   options.seed = static_cast<std::uint64_t>(seed);
   options.metric = kodama::DistanceMetric::Euclidean;
   options.backend = parse_backend(backend);
@@ -934,6 +942,7 @@ Rcpp::List kodama_matrix_graph_handle_cpp(
   double spatial_resolution = 0.3,
   bool spatial_graph_mix = false,
   int spatial_constraint_mode = 0,
+  int spatial_coordinate_mode = 0,
   std::string classifier = "knn",
   std::string backend = "cpu",
   std::string graph_feature_mode = "laplacian_self_tuning",
@@ -961,6 +970,9 @@ Rcpp::List kodama_matrix_graph_handle_cpp(
   options.spatial_resolution = spatial_resolution;
   options.spatial_graph_mix = spatial_graph_mix;
   options.spatial_constraint_mode = spatial_constraint_mode;
+  options.spatial_coordinate_mode = spatial_coordinate_mode == 1 ?
+    kodama::SpatialCoordinateMode::Population :
+    kodama::SpatialCoordinateMode::Standard;
   options.seed = static_cast<std::uint64_t>(seed);
   options.metric = kodama::DistanceMetric::Euclidean;
   options.backend = parse_backend(backend);
@@ -1415,6 +1427,116 @@ Rcpp::List kodama_scaling_cpp(
   );
   if (test_rows > 0) out["newXtest"] = float_matrix_to_r(result.test, test_rows, variables);
   return out;
+}
+
+// [[Rcpp::export]]
+Rcpp::List kodama_passing_message_cpp(
+  Rcpp::NumericMatrix data,
+  Rcpp::NumericMatrix spatial,
+  int number_knn = 15,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
+  std::string backend = "cpu",
+  int n_threads = 4,
+  int gpu_device = 0
+) {
+  if (data.nrow() != spatial.nrow()) {
+    Rcpp::stop("data and spatial must have the same number of rows.");
+  }
+  const int rows = data.nrow();
+  const int variables = data.ncol();
+  const int dimensions = spatial.ncol();
+  std::vector<float> expression = matrix_to_float(data);
+  std::vector<float> coordinates = matrix_to_float(spatial);
+  std::vector<int> sample_ids;
+  if (!samples.isNull()) {
+    const Rcpp::IntegerVector values(samples);
+    sample_ids.assign(values.begin(), values.end());
+  }
+  kodama::PassingMessageOptions options;
+  options.neighbors = number_knn;
+  options.backend = parse_backend(backend);
+  options.n_threads = n_threads;
+  options.gpu_device = gpu_device;
+  const kodama::PassingMessageResult result = kodama::PassingMessage(
+    kodama::MatrixView{expression.data(), static_cast<std::size_t>(rows),
+      static_cast<std::size_t>(variables)},
+    kodama::MatrixView{coordinates.data(), static_cast<std::size_t>(rows),
+      static_cast<std::size_t>(dimensions)},
+    sample_ids, options
+  );
+  return Rcpp::List::create(
+    Rcpp::Named("data") = float_matrix_to_r(result.values, rows, variables),
+    Rcpp::Named("backend") = kodama::to_string(result.backend),
+    Rcpp::Named("sample_groups") = static_cast<double>(result.sample_groups),
+    Rcpp::Named("sample_max_distances") = Rcpp::NumericVector(
+      result.sample_max_distances.begin(), result.sample_max_distances.end()),
+    Rcpp::Named("graph_seconds") = result.graph_seconds,
+    Rcpp::Named("aggregation_seconds") = result.aggregation_seconds,
+    Rcpp::Named("runtime_seconds") = result.runtime_seconds,
+    Rcpp::Named("precision") = "float32"
+  );
+}
+
+// [[Rcpp::export]]
+Rcpp::List kodama_spatial_features_cpp(
+  Rcpp::NumericMatrix data,
+  Rcpp::NumericMatrix spatial,
+  Rcpp::Nullable<Rcpp::IntegerVector> samples = R_NilValue,
+  int n_threads = 4,
+  bool require_nonzero_each_sample = true
+) {
+  if (data.nrow() != spatial.nrow()) {
+    Rcpp::stop("data and spatial must have the same number of rows.");
+  }
+  const int rows = data.nrow();
+  const int variables = data.ncol();
+  std::vector<float> expression = matrix_to_float(data);
+  std::vector<float> coordinates = matrix_to_float(spatial);
+  std::vector<int> sample_ids;
+  if (!samples.isNull()) {
+    const Rcpp::IntegerVector values(samples);
+    sample_ids.assign(values.begin(), values.end());
+  }
+  kodama::SpatialFeatureOptions options;
+  options.n_threads = n_threads;
+  options.require_nonzero_each_sample = require_nonzero_each_sample;
+  const kodama::SpatialFeatureResult result = kodama::SpatialFeatureSelection_CPU(
+    kodama::MatrixView{expression.data(), static_cast<std::size_t>(rows),
+      static_cast<std::size_t>(variables)},
+    kodama::MatrixView{coordinates.data(), static_cast<std::size_t>(rows),
+      static_cast<std::size_t>(spatial.ncol())},
+    sample_ids, options
+  );
+  Rcpp::IntegerVector ranking(result.ranking.begin(), result.ranking.end());
+  for (int& value : ranking) ++value;
+  Rcpp::IntegerVector basis_dimensions(
+    result.basis_dimensions.begin(), result.basis_dimensions.end());
+  Rcpp::NumericMatrix per_sample_p(
+    static_cast<int>(result.sample_groups), variables);
+  for (int sample = 0; sample < static_cast<int>(result.sample_groups); ++sample) {
+    for (int variable = 0; variable < variables; ++variable) {
+      per_sample_p(sample, variable) = result.per_sample_p_value[
+        static_cast<std::size_t>(sample) * variables + variable];
+    }
+  }
+  return Rcpp::List::create(
+    Rcpp::Named("score") = Rcpp::NumericVector(result.score.begin(), result.score.end()),
+    Rcpp::Named("p.value") = Rcpp::NumericVector(result.p_value.begin(), result.p_value.end()),
+    Rcpp::Named("adjusted.p.value") = Rcpp::NumericVector(
+      result.adjusted_p_value.begin(), result.adjusted_p_value.end()),
+    Rcpp::Named("ranking") = ranking,
+    Rcpp::Named("per.sample.score") = float_matrix_to_r(
+      result.per_sample_score, static_cast<int>(result.sample_groups), variables),
+    Rcpp::Named("per.sample.p.value") = per_sample_p,
+    Rcpp::Named("sample.labels") = Rcpp::IntegerVector(
+      result.sample_labels.begin(), result.sample_labels.end()),
+    Rcpp::Named("basis.dimensions") = basis_dimensions,
+    Rcpp::Named("backend") = kodama::to_string(result.backend),
+    Rcpp::Named("basis.seconds") = result.basis_seconds,
+    Rcpp::Named("statistic.seconds") = result.statistic_seconds,
+    Rcpp::Named("runtime.seconds") = result.runtime_seconds,
+    Rcpp::Named("precision") = "float32"
+  );
 }
 
 // [[Rcpp::export]]

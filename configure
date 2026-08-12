@@ -2,22 +2,32 @@
 set -eu
 
 PKG_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-if [ -z "${KODAMA_CPP_ROOT:-}" ]; then
-  for candidate in "$PKG_DIR/../kodama-cpp" "$PKG_DIR/../.." "$PKG_DIR/../../kodama-cpp"; do
-    candidate=$(CDPATH= cd -- "$candidate" 2>/dev/null && pwd || true)
-    if [ -n "$candidate" ] && [ -f "$candidate/include/kodama/kodama.hpp" ]; then
-      KODAMA_CPP_ROOT="$candidate"
-      break
-    fi
-  done
-fi
-: "${KODAMA_CPP_ROOT:=$(CDPATH= cd -- "$PKG_DIR/../.." && pwd)}"
-: "${KODAMA_CPP_BUILD_DIR:=$KODAMA_CPP_ROOT/build}"
+MAKEVARS="$PKG_DIR/src/Makevars"
+MAKEVARS_WIN="$PKG_DIR/src/Makevars.win"
 
+# Portable release mode: compile the vendored MIT-licensed CPU core. This is
+# the default used by CRAN and Bioconductor builders and needs no system KODAMA
+# installation. Developers may opt into an externally built CUDA/Metal core by
+# setting both KODAMA_CPP_ROOT and KODAMA_CPP_BUILD_DIR.
+if [ -z "${KODAMA_CPP_ROOT:-}" ]; then
+  cat > "$MAKEVARS" <<'EOF'
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I../inst/include -DKODAMA_DISABLE_NATIVE_PROGRESS
+PKG_LIBS = $(KODAMA_R_OPENMP_LIBS)
+EOF
+  cat > "$MAKEVARS_WIN" <<'EOF'
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I../inst/include -DKODAMA_DISABLE_NATIVE_PROGRESS
+EOF
+  exit 0
+fi
+
+: "${KODAMA_CPP_BUILD_DIR:=$KODAMA_CPP_ROOT/build}"
 if [ ! -f "$KODAMA_CPP_ROOT/include/kodama/kodama.hpp" ]; then
-  echo "Cannot find kodama-cpp headers. Set KODAMA_CPP_ROOT." >&2
+  echo "KODAMA_CPP_ROOT does not contain include/kodama/kodama.hpp." >&2
   exit 1
 fi
+
 KODAMA_CPP_LIB=
 for candidate in \
   "$KODAMA_CPP_BUILD_DIR/libkodama_cpp.a" \
@@ -28,132 +38,44 @@ for candidate in \
     break
   fi
 done
-
 if [ -z "$KODAMA_CPP_LIB" ]; then
-  echo "Cannot find libkodama_cpp in KODAMA_CPP_BUILD_DIR=$KODAMA_CPP_BUILD_DIR." >&2
+  echo "Cannot find libkodama_cpp in $KODAMA_CPP_BUILD_DIR." >&2
   exit 1
 fi
 
-CONDA_PREFIX_VALUE=${CONDA_PREFIX:-}
 SYSTEM_NAME=$(uname -s 2>/dev/null || echo unknown)
-if [ "$SYSTEM_NAME" = "Darwin" ] && [ -f /opt/homebrew/opt/libomp/lib/libomp.dylib ]; then
-  OMP_LIB=/opt/homebrew/opt/libomp/lib/libomp.dylib
-elif [ "$SYSTEM_NAME" != "Darwin" ] && [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libgomp.so" ]; then
-  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libgomp.so"
-elif [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libomp.so" ]; then
-  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libomp.so"
-elif [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libgomp.so" ]; then
-  OMP_LIB="$CONDA_PREFIX_VALUE/lib/libgomp.so"
-else
-  OMP_LIB=-lgomp
-fi
-if [ -n "$CONDA_PREFIX_VALUE" ] && [ -f "$CONDA_PREFIX_VALUE/lib/libstdc++.so.6" ]; then
-  STDCXX_LIB="$CONDA_PREFIX_VALUE/lib/libstdc++.so.6"
-else
-  STDCXX_LIB=
-fi
-
 PKG_LIBS_VALUE="\"$KODAMA_CPP_LIB\""
-
-add_lib_dir() {
-  if [ -n "$1" ] && [ -d "$1" ]; then
-    PKG_LIBS_VALUE="$PKG_LIBS_VALUE -L\"$1\""
+if [ "$SYSTEM_NAME" = "Darwin" ]; then
+  PKG_LIBS_VALUE="$PKG_LIBS_VALUE -framework Metal -framework MetalPerformanceShaders -framework Foundation"
+  if [ -f /opt/homebrew/opt/libomp/lib/libomp.dylib ]; then
+    PKG_LIBS_VALUE="$PKG_LIBS_VALUE /opt/homebrew/opt/libomp/lib/libomp.dylib -Wl,-rpath,/opt/homebrew/opt/libomp/lib"
   fi
-}
-
-add_rpath() {
-  if [ -n "$1" ] && [ -d "$1" ]; then
-    PKG_LIBS_VALUE="$PKG_LIBS_VALUE -Wl,-rpath,\"$1\""
-  fi
-}
-
-CUDA_LIBS=
-add_optional_lib() {
-  lib_name=$1
-  for lib_dir in \
-    "$CONDA_PREFIX_VALUE/lib" \
-    "$CONDA_PREFIX_VALUE/targets/x86_64-linux/lib" \
+else
+  for directory in \
+    "${CONDA_PREFIX:-}/lib" \
+    "${CONDA_PREFIX:-}/targets/x86_64-linux/lib" \
     /usr/local/cuda/lib64 \
-    /usr/local/cuda-13.0/targets/x86_64-linux/lib \
-    /usr/local/lib; do
-    if [ -n "$lib_dir" ] && [ -d "$lib_dir" ]; then
-      for candidate in \
-        "$lib_dir/lib${lib_name}.so" \
-        "$lib_dir/lib${lib_name}.dylib" \
-        "$lib_dir/lib${lib_name}.a"; do
-        if [ -f "$candidate" ]; then
-          CUDA_LIBS="$CUDA_LIBS -l${lib_name}"
-          return 0
-        fi
-      done
+    /usr/local/cuda-13.0/targets/x86_64-linux/lib; do
+    if [ -n "$directory" ] && [ -d "$directory" ]; then
+      PKG_LIBS_VALUE="$PKG_LIBS_VALUE -L\"$directory\" -Wl,-rpath,\"$directory\""
     fi
   done
-}
-
-add_lib_dir "$KODAMA_CPP_BUILD_DIR"
-if [ -n "$CONDA_PREFIX_VALUE" ]; then
-  add_lib_dir "$CONDA_PREFIX_VALUE/lib"
-  add_lib_dir "$CONDA_PREFIX_VALUE/targets/x86_64-linux/lib"
-  add_rpath "$CONDA_PREFIX_VALUE/lib"
-fi
-add_lib_dir /opt/homebrew/opt/libomp/lib
-add_lib_dir /opt/homebrew/opt/llvm/lib
-add_lib_dir /usr/local/lib
-add_lib_dir /usr/local/cuda/lib64
-add_lib_dir /usr/local/cuda-13.0/targets/x86_64-linux/lib
-add_rpath /opt/homebrew/opt/libomp/lib
-add_rpath /opt/homebrew/opt/llvm/lib
-
-if [ "$SYSTEM_NAME" != "Darwin" ]; then
-  for lib_name in \
-    cublasLt cublas cusolver cusparse curand cufft cudart; do
-    add_optional_lib "$lib_name"
-  done
-else
-  PKG_LIBS_VALUE="$PKG_LIBS_VALUE -framework Metal -framework MetalPerformanceShaders -framework Foundation"
+  PKG_LIBS_VALUE="$PKG_LIBS_VALUE ${KODAMA_R_CUDA_LIBS:-} ${KODAMA_R_OPENMP_LIBS:--lgomp}"
 fi
 
-PKG_LIBS_VALUE="$PKG_LIBS_VALUE $OMP_LIB"
-if [ -n "$STDCXX_LIB" ]; then
-  PKG_LIBS_VALUE="$PKG_LIBS_VALUE \"$STDCXX_LIB\""
-fi
-PKG_LIBS_VALUE="$PKG_LIBS_VALUE $CUDA_LIBS"
-PKG_LIBS_VALUE="$PKG_LIBS_VALUE \$(KODAMA_R_CUDA_LIBS)"
-
-# R may retain package objects between development installs.  Track both the
-# selected core archive and public headers so changing the core build cannot
-# silently reuse a wrapper linked against another backend configuration.
-CORE_SIGNATURE="$PKG_DIR/src/.kodama-core.signature"
-CORE_SIGNATURE_TMP="$CORE_SIGNATURE.tmp"
-{
-  printf 'core_library=%s\n' "$KODAMA_CPP_LIB"
-  cksum "$KODAMA_CPP_LIB"
-  find "$KODAMA_CPP_ROOT/include/kodama" -type f -name '*.hpp' -print |
-    LC_ALL=C sort |
-    while IFS= read -r header; do
-      printf 'header=%s\n' "$header"
-      cksum "$header"
-    done
-} > "$CORE_SIGNATURE_TMP"
-CORE_SIGNATURE_CHANGED=0
-if [ -f "$CORE_SIGNATURE" ] && cmp -s "$CORE_SIGNATURE_TMP" "$CORE_SIGNATURE"; then
-  rm -f "$CORE_SIGNATURE_TMP"
-else
-  mv "$CORE_SIGNATURE_TMP" "$CORE_SIGNATURE"
-  CORE_SIGNATURE_CHANGED=1
-fi
-if [ "$CORE_SIGNATURE_CHANGED" -eq 1 ]; then
-  touch "$PKG_DIR/src/RcppExports.cpp" "$PKG_DIR/src/kodama_r.cpp"
-fi
-
-cat > "$PKG_DIR/src/Makevars" <<EOF
+# Do not compile the vendored core when an external archive is selected.
+VENDORED_OBJECTS='common.o core.o graph_cluster.o kodama_matrix.o knncv.o native_knn.o pca.o passing_message.o preprocessing.o plscv.o resident_ivf.o spatial_features.o visualization.o metal_backend_stub.o'
+cat > "$MAKEVARS" <<EOF
 CXX_STD = CXX17
 PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
+OBJECTS = RcppExports.o kodama_r.o
 PKG_LIBS = $PKG_LIBS_VALUE
 EOF
-
-cat > "$PKG_DIR/src/Makevars.win" <<EOF
+cat > "$MAKEVARS_WIN" <<EOF
 CXX_STD = CXX17
 PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
+OBJECTS = RcppExports.o kodama_r.o
 PKG_LIBS = "$KODAMA_CPP_LIB"
 EOF
+
+rm -f "$PKG_DIR/src/.kodama-core.signature"

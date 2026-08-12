@@ -1,0 +1,116 @@
+---
+title: "KODAMA: Knowledge Discovery by Accuracy Maximization"
+author: "Stefano Cacciatore"
+package: KODAMA
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{KODAMA: Knowledge Discovery by Accuracy Maximization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+# Overview
+
+`KODAMA` is the R interface to the standalone `kodama-cpp` library. KODAMA
+constructs a reusable nearest-neighbor graph, evolves independent candidate
+label vectors by maximizing cross-validated prediction accuracy, and uses the
+ensemble of label solutions to correct graph dissimilarities for downstream
+embedding. The supported classifiers are KNN and SIMPLS followed by LDA in
+latent-component space.
+
+The numerical core uses float32 data and has CPU, NVIDIA CUDA, and Apple Metal
+backends. The R interface deliberately remains focused on the KODAMA workflow;
+general dimensionality-reduction and PLS modeling APIs are maintained in
+`fastEmbedR` and `fastPLS`.
+
+# Basic workflow
+
+```{r data}
+library(KODAMA)
+data(MetRef)
+
+x <- MetRef$data
+x <- x[, colSums(x) != 0, drop = FALSE]
+x <- normalization(x)$newXtrain
+x <- scaling(x)$newXtrain
+```
+
+Build the expensive graph once and reuse it for either classifier:
+
+```{r workflow, eval=FALSE}
+g <- KODAMA.graph(x, k = 100, backend = "cpu", n.cores = 4)
+
+fit.knn <- KODAMA.matrix(
+  data = x, graph = g, classifier = "knn",
+  M = 100, Tcycle = 100, knn.k = 30,
+  backend = "cpu", n.cores = 4
+)
+
+fit.pls <- KODAMA.matrix(
+  data = x, graph = g, classifier = "pls_lda",
+  M = 100, Tcycle = 100, ncomp = 50,
+  backend = "cpu", n.cores = 4
+)
+
+embedding <- KODAMA.visualization(
+  fit.pls, method = "UMAP", raw.data = x,
+  graph.mode = "fuzzy", backend = "cpu"
+)
+```
+
+`KODAMA.matrix()` also accepts raw data without an explicit graph. In that
+case it calls `KODAMA.graph()` internally. A precomputed KNN graph can be used
+when the original feature matrix is unavailable; PLS-LDA then operates on
+self-tuning graph-Laplacian features.
+
+# Bioconductor objects
+
+`RunKODAMAgraph()`, `RunKODAMAmatrix()`, and `RunKODAMAvisualization()` provide
+methods for `SingleCellExperiment`, `SpatialExperiment`, Seurat, and Giotto
+objects. Optional packages are checked at run time and remain in `Suggests`, so
+the base package can be installed without a complete single-cell ecosystem.
+
+# Migration from KODAMA 2.4
+
+This package is a new implementation, not a byte-for-byte continuation of the
+legacy R code. The previous implementation is archived as `KODAMAlegacy`.
+
+## Innovations
+
+* The mathematical core is a standalone C++17 library that can be wrapped by R
+  and Python without embedding either language runtime.
+* CPU, CUDA, and Metal backends share the same KODAMA evolution contract and
+  use float32 analysis buffers.
+* `KODAMA.graph()` separates graph construction from accuracy maximization, so
+  KNN and PLS-LDA analyses can reuse the same graph and PCA initialization.
+* `KODAMA.matrix()` accepts raw matrices, reusable graph handles, or explicit
+  KNN indices and distances.
+* KNN and SIMPLS plus latent-space LDA are explicit classifiers. Independent
+  `M` runs retain cycle diagnostics, timing, and backend provenance.
+* Landmark strata are constructed once as a shared coarse atlas, preserving
+  coverage while avoiding repeated full-data partitioning.
+* Native UMAP and openTSNE consume the corrected KODAMA graph and use raw-data
+  PCA initialization by default when available.
+
+## Renamed or deprecated interfaces
+
+| Legacy interface | New location or replacement |
+|---|---|
+| `KODAMA.matrix()` | Retained with graph reuse, explicit classifier, backend, and diagnostics arguments. |
+| `KODAMA.visualization()` | Retained; configuration is supplied as named arguments rather than `config.*.default` lists. |
+| `core_cpp()` | Replaced by `CoreKNN()` and `CorePLSLDA()`. |
+| `pca()` | Use `fastEmbedR::pca()` for the general R workflow. `KODAMA.pca()` remains available for backend-native initialization and diagnostics. |
+| t-SNE/UMAP configuration objects | Use `fastEmbedR` for general embedding or named arguments to `KODAMA.visualization()`. |
+| legacy PLS-DA helpers | Use `fastPLS::pls()` for general PLS modeling; KODAMA supports KNN and PLS-LDA classifiers. |
+| `floyd()`, `transformy()`, `kabsch()`, `mcplot()` | Deprecated legacy utilities. Diagnostics are available through `KODAMA.diagnostics()` and `KODAMA.timing()`. |
+| `ancestry = TRUE` | Replaced by the explicit `spatial.mode = "population"`. |
+
+The synthetic manifold generators, `normalization()`, and `scaling()` remain
+available for compatibility. The historical `MetRef`, `USA`, and `lymphoma`
+datasets are included so published examples remain reproducible.

@@ -167,7 +167,7 @@ test_that("kodama_matrix runs KNN and PLS-LDA on a small matrix", {
     kodama_make_visual_init = function(...) {
       stop("stored initialization was not reused")
     },
-    .package = "kodamaR"
+    .package = "KODAMA"
   )
   emb_with_raw <- KODAMA.visualization(
     knn,
@@ -295,7 +295,7 @@ test_that("public API wrappers are exposed", {
   expect_length(clu$membership, nrow(x))
   metal_graph <- KODAMA.graph.materialize(graph)
   metal_umap <- tryCatch(
-    kodamaR:::kodama_umap_cpp(
+    KODAMA:::kodama_umap_cpp(
       metal_graph$indices,
       metal_graph$distances,
       n_neighbors = 5L,
@@ -319,7 +319,7 @@ test_that("public API wrappers are exposed", {
   expect_gt(attr(metal_umap, "graph_edges"), 0)
   expect_equal(attr(metal_umap, "graph_max_weight"), 1)
   expect_true(all(is.finite(metal_umap)))
-  metal_tsne <- kodamaR:::kodama_opentsne_cpp(
+  metal_tsne <- KODAMA:::kodama_opentsne_cpp(
       metal_graph$indices,
       metal_graph$distances,
       perplexity = 3,
@@ -534,6 +534,32 @@ test_that("shared k-means landmark atlas is reported", {
   )
   expect_true(result$shared_landmark_partition_used)
   expect_identical(result$shared_landmark_partition_strata, 8L)
+})
+
+test_that("population spatial mode regularizes repeated coordinates reproducibly", {
+  set.seed(31)
+  x <- matrix(rnorm(60 * 5), 60, 5)
+  locations <- rbind(
+    c(0, 0), c(1, 0), c(2, 0), c(0, 1), c(1, 1), c(2, 1)
+  )
+  spatial <- locations[(seq_len(nrow(x)) - 1L) %% nrow(locations) + 1L, ]
+  common <- list(
+    data = x, spatial = spatial, spatial.mode = "population",
+    M = 1L, Tcycle = 1L, landmarks = 40L, splitting = 6L,
+    graph.neighbors = 12L, knn.k = 5L, backend = "cpu", seed = 31L,
+    visual.init = FALSE, progress = FALSE
+  )
+  first <- do.call(KODAMA.matrix, common)
+  second <- do.call(KODAMA.matrix, common)
+  expect_identical(first$res, second$res)
+  expect_identical(first$parameters$spatial.mode, "population")
+  expect_error(
+    do.call(
+      KODAMA.matrix,
+      c(common[names(common) != "spatial.mode"], list(ancestry = TRUE))
+    ),
+    "Unknown reserved KODAMA.matrix control: ancestry"
+  )
 })
 
 test_that("reviewer evolution policies are reproducible but hidden", {

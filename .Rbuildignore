@@ -10,3 +10,9 @@
 ^src/symbols\.rds$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^cran-comments\.md$
+^codecov\.yml$
+^\.github$
+^src/\.kodama-core\.signature$
+^kodamaR.*$
+^KODAMA_.*\.tar\.gz$

@@ -1,12 +1,15 @@
-# Installing kodamaR Against kodama-cpp
+# Installing KODAMA
 
-`kodamaR` is a thin R wrapper. The KODAMA algorithms are compiled in
-`libkodama_cpp`; the R package compiles an Rcpp bridge and links to that library
-during `R CMD INSTALL`.
+The source package vendors the portable MIT-licensed CPU implementation from
+`kodama-cpp`. A normal installation requires no external KODAMA system library:
 
-## Required Build Inputs
+```sh
+R CMD INSTALL KODAMA
+```
 
-Set these environment variables when installing:
+## Optional external accelerator build
+
+CUDA and Metal developers may build `kodama-cpp` separately and set:
 
 - `KODAMA_CPP_ROOT`: directory containing `include/kodama/kodama.hpp`.
 - `KODAMA_CPP_BUILD_DIR`: CMake build directory containing `libkodama_cpp`.
@@ -17,7 +20,7 @@ Example CPU build and install:
 cmake -S kodama-cpp -B kodama-cpp/build -DKODAMA_ENABLE_CUDA=OFF
 cmake --build kodama-cpp/build -j
 
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build && pwd)" \
 R CMD INSTALL .
@@ -33,7 +36,7 @@ export LD_LIBRARY_PATH="$ENV_DIR/lib:$ENV_DIR/targets/x86_64-linux/lib:/usr/loca
 cmake -S kodama-cpp -B kodama-cpp/build-cuda -DKODAMA_ENABLE_CUDA=ON
 cmake --build kodama-cpp/build-cuda -j
 
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build-cuda && pwd)" \
 R CMD INSTALL .
@@ -49,7 +52,7 @@ export KODAMA_R_CUDA_LIBS="-lcudart -lcublas -lcusolver -lcusparse"
 ## Runtime Verification
 
 ```r
-library(kodamaR)
+library(KODAMA)
 KODAMA.diagnostics()
 ```
 
@@ -76,7 +79,7 @@ cmake -S kodama-cpp -B kodama-cpp/build-metal \
   -DKODAMA_ENABLE_METAL=ON
 cmake --build kodama-cpp/build-metal -j
 
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build-metal && pwd)" \
 R CMD INSTALL .
@@ -85,17 +88,12 @@ R CMD INSTALL .
 Native KNN, PLS-LDA, Core, matrix, graph, PCA, UMAP, and FFT-grid openTSNE
 entry points accept `backend = "metal"`.
 
-## CRAN-Style Local Check
+## CRAN/Bioconductor-style local check
 
 Build a source package and check the tarball:
 
 ```sh
-cd split-repos
-KODAMA_CPP_ROOT="$(cd .. && pwd)" \
-KODAMA_CPP_BUILD_DIR="$(cd ../build && pwd)" \
-R CMD build kodama-r
-
-KODAMA_CPP_ROOT="$(cd .. && pwd)" \
-KODAMA_CPP_BUILD_DIR="$(cd ../build && pwd)" \
-R CMD check --as-cran kodamaR_0.1.0.tar.gz
+R CMD build KODAMA
+R CMD check --as-cran KODAMA_0.99.0.tar.gz
+Rscript -e 'BiocCheck::BiocCheck("KODAMA_0.99.0.tar.gz")'
 ```

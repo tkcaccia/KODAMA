@@ -24,6 +24,7 @@ kodama_matrix(
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
+  spatial.mode = c("standard", "population"),
   metric = "euclidean",
   classifier = c("knn", "pls_lda"),
   backend = c("cpu", "cuda", "metal"),
@@ -47,9 +48,7 @@ and \code{distances}.}
 
 \item{samples}{Optional sample or slide identifier. With more than one
 unique value, spatial coordinate 1 is separated exactly as in the original
-KODAMA implementation before spatial graph and constraint construction.
-Spatial landmark strata and constraint IDs are additionally keyed by sample,
-so an optimization block cannot span slides.}
+KODAMA implementation before spatial graph and constraint construction.}
 
 \item{W}{Optional integer vector.}
 
@@ -80,6 +79,10 @@ optional coordinate constraints are supplied.}
 \item{spatial.graph.mix}{Logical flag passed to the C++ constraint builder.}
 
 \item{spatial.constraint.mode}{Constraint construction mode.}
+
+\item{spatial.mode}{Coordinate treatment. \code{"population"} applies the
+classic repeated-coordinate regularization independently in every \code{M}
+run before spatial clustering. The default \code{"standard"} is unchanged.}
 
 \item{metric}{Distance or similarity metric.}
 

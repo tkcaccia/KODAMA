@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 
-suppressPackageStartupMessages(library(kodamaR))
+suppressPackageStartupMessages(library(KODAMA))
 
 get_env <- function(name, default) {
   value <- Sys.getenv(name, "")
@@ -74,7 +74,7 @@ run_one <- function(name, ds, classifier, backend, M, Tcycle, landmarks, knn.k, 
   )
 }
 
-out_dir <- get_env("KODAMA_R_BENCH_OUT", file.path(getwd(), "kodama-r-benchmarks"))
+out_dir <- get_env("KODAMA_R_BENCH_OUT", file.path(getwd(), "KODAMA-benchmarks"))
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 datasets <- list(

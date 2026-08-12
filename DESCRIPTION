@@ -1,28 +1,45 @@
-Package: kodamaR
-Title: R Wrapper for the Kodama-Cpp Library
-Version: 0.1.0
+Package: KODAMA
+Title: Knowledge Discovery by Accuracy Maximization
+Version: 0.99.0
 Authors@R: c(
     person("Stefano", "Cacciatore", role = c("aut", "cre"),
            email = "stefano.cacciatore@icgeb.org")
   )
 Author: Stefano Cacciatore [aut, cre]
 Maintainer: Stefano Cacciatore <stefano.cacciatore@icgeb.org>
-Description: Thin R bindings for the standalone kodama-cpp C++ library.
-    The package exposes KODAMA matrix optimization with KNN and PLS-LDA
-    classifiers on CPU, NVIDIA CUDA, and Apple Metal while keeping all
-    numerical kernels in kodama-cpp. It also provides the normalization,
-    scaling, and synthetic-manifold utilities from the KODAMA R workflow.
+Description: Knowledge Discovery by Accuracy Maximization using KNN or
+    SIMPLS followed by latent-space LDA. The portable source package vendors
+    the MIT-licensed CPU implementation from the standalone 'kodama-cpp'
+    library. Optional developer builds can link the same public interface to
+    NVIDIA CUDA or Apple Metal backends. Reusable nearest-neighbor graphs,
+    graph-aware visualization, preprocessing, and adapters for common
+    single-cell containers are provided.
 License: MIT + file LICENSE
+Depends:
+    R (>= 4.4.0)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LinkingTo: Rcpp
 Imports:
+    methods,
     Rcpp,
     stats
 Suggests:
+    BiocStyle,
+    knitr,
+    rmarkdown,
+    S4Vectors,
+    Seurat,
+    SeuratObject,
+    SingleCellExperiment,
+    SpatialExperiment,
+    SummarizedExperiment,
     testthat (>= 3.0.0)
+VignetteBuilder: knitr
+biocViews: Software, Classification, Clustering, DimensionReduction,
+    Visualization, SingleCell, Spatial
 Config/testthat/edition: 3
-SystemRequirements: kodama-cpp; optional CUDA Toolkit or Apple Metal frameworks
-URL: https://github.com/tkcaccia/kodama-r
-BugReports: https://github.com/tkcaccia/kodama-r/issues
+SystemRequirements: C++17
+URL: https://github.com/tkcaccia/KODAMA
+BugReports: https://github.com/tkcaccia/KODAMA/issues
 Config/roxygen2/version: 8.0.0

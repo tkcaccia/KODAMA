@@ -1,55 +1,44 @@
-# kodama-r
+# KODAMA
 
-Thin R wrapper for the standalone `kodama-cpp` C++/CUDA/Metal library.
+R interface to the standalone `kodama-cpp` C++/CUDA/Metal library.
 
 The wrapper and numerical core are maintained as separate repositories:
 
-- [`tkcaccia/kodama-r`](https://github.com/tkcaccia/kodama-r)
+- [`tkcaccia/KODAMA`](https://github.com/tkcaccia/KODAMA)
 - [`tkcaccia/kodama-cpp`](https://github.com/tkcaccia/kodama-cpp)
 
 ## Quick Install
 
-Clone the repositories as siblings, build the core, and install the wrapper:
+The source package contains the portable MIT-licensed CPU core and does not
+require a separately installed C++ library:
 
 ```sh
-git clone https://github.com/tkcaccia/kodama-cpp.git
-git clone https://github.com/tkcaccia/kodama-r.git
-
-cmake -S kodama-cpp -B kodama-cpp/build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DKODAMA_ENABLE_CUDA=OFF \
-  -DKODAMA_ENABLE_METAL=OFF
-cmake --build kodama-cpp/build -j
-
+git clone https://github.com/tkcaccia/KODAMA.git
 Rscript -e 'install.packages("Rcpp", repos = "https://cloud.r-project.org")'
-
-KODAMA_CPP_ROOT="$PWD/kodama-cpp" \
-KODAMA_CPP_BUILD_DIR="$PWD/kodama-cpp/build" \
-R CMD INSTALL kodama-r
+R CMD INSTALL KODAMA
 ```
 
 Then verify the installation with:
 
 ```r
-library(kodamaR)
+library(KODAMA)
 KODAMA.diagnostics()
-help(package = "kodamaR")
+help(package = "KODAMA")
 ```
 
-The sections below explain CPU, CUDA, Metal, and development-check workflows.
+The sections below explain optional CUDA, Metal, and development workflows.
 
-`kodama-r` does not reimplement the KODAMA mathematics in R. It converts R
-matrices and vectors to the C++ ABI, calls the compiled `kodama-cpp` library,
-and returns R-friendly lists, matrices, and S3 objects. The numerical kernels
-remain in `kodama-cpp`, so the same core can be reused by R and Python wrappers.
+`KODAMA` does not reimplement the mathematics in R. It converts R matrices and
+vectors to the C++ API and returns R-friendly lists, matrices, and S3 objects.
+The vendored CPU sources are synchronized from `kodama-cpp`; the same public
+core is shared by the independently maintained R and Python wrappers.
 
 ## What Is Linked
 
-At install time the package compiles only the small Rcpp bridge in `src/`.
-The bridge links against a previously built `libkodama_cpp` library:
+The normal source installation compiles the Rcpp bridge and portable CPU core:
 
 ```text
-R session -> kodamaR R functions -> Rcpp bridge -> libkodama_cpp
+R session -> KODAMA R functions -> Rcpp bridge -> vendored kodama-cpp CPU core
 ```
 
 The wrapper exports:
@@ -62,16 +51,63 @@ The wrapper exports:
 - `KODAMA.visualization()` for UMAP/openTSNE embeddings from KODAMA graphs.
 - `KODAMA.graph()`, `KODAMA.makeSNNGraph()`, `makeSNNGraph()`, and
   `KODAMA.clustering()` for graph construction and CPU random-walk clustering.
+- `RunKODAMAgraph()`, `RunKODAMAmatrix()`, and
+  `RunKODAMAvisualization()` for `SingleCellExperiment`, `SpatialExperiment`,
+  Seurat, and Giotto containers.
+- `SpatialFeatureSelection()` / `RunSpatialFeatureSelection()` for
+  `SpatialExperiment`, Seurat, and Giotto containers. The selector is
+  multicore CPU-only.
+
+## Single-Cell Object Workflow
+
+The three object generics mirror the matrix pipeline. Graph construction is
+performed once and retained as an opaque native handle; the matrix step reuses
+that graph, and only the visualization step creates a KODAMA reduced dimension:
+
+```r
+object <- RunKODAMAgraph(
+  object,
+  reduction = "PCA", # use "pca" for Seurat and Giotto
+  dims = 50,
+  backend = "cpu"
+)
+object <- RunKODAMAmatrix(
+  object,
+  reduction = "PCA",
+  dims = 50,
+  classifier = "pls_lda",
+  backend = "cpu",
+  M = 100,
+  Tcycle = 100
+)
+object <- RunKODAMAvisualization(
+  object,
+  reduction = "PCA",
+  dims = 50,
+  method = "UMAP",
+  backend = "cpu"
+)
+```
+
+For `SpatialExperiment`, spatial coordinates are used by default and
+`colData(object)$sample_id` keeps slides independent. Set
+`use.spatial = FALSE` for a data-only analysis or change `sample.column` when
+slide identifiers use another column. Seurat spatial methods obtain coordinates
+from the image objects and use image names as slide identifiers. Giotto methods
+use its selected spatial-location object. Lists of Seurat objects are processed
+element by element.
+
+Bioconductor containers retain graph and matrix state under
+`metadata(object)$KODAMA$KODAMA`. Seurat stores the same state in
+`Misc(object, "KODAMA")$KODAMA`; Giotto stores it in the `misc` field of its
+KODAMA dimensional-reduction object. The final coordinates are available from
+`reducedDim(object, "KODAMA")`, `Embeddings(object, "KODAMA")`, or the
+corresponding Giotto dimensional reduction.
 
 ## Prerequisites
 
-Install the C++ dependencies required by `kodama-cpp` before installing the R
-wrapper:
-
-- CMake and a C++17 compiler.
-- R, `Rcpp`, and `testthat`.
-- The CUDA Toolkit when installing a CUDA-enabled `kodama-cpp` build.
-- macOS and Xcode command-line tools for the Apple Metal backend.
+The portable package requires R, `Rcpp`, and a C++17 compiler. CMake is needed
+only for optional accelerator builds against a separate `kodama-cpp` checkout.
 
 On macOS with Homebrew, the CPU development environment is typically:
 
@@ -84,9 +120,9 @@ On Linux/CUDA machines, use the same CUDA environment used to build the core.
 The important rule is that `R CMD INSTALL` and later R sessions must see the
 same CUDA Toolkit libraries used by `kodama-cpp`.
 
-## Detailed installation
+## Optional accelerator installation
 
-From a checkout where `kodama-cpp` and `kodama-r` are siblings:
+From a checkout where `kodama-cpp` and `KODAMA` are siblings:
 
 ```sh
 cmake -S ../kodama-cpp -B ../kodama-cpp/build -DKODAMA_ENABLE_CUDA=OFF
@@ -116,9 +152,10 @@ cmake -S ../kodama-cpp -B ../kodama-cpp/build-metal \
 cmake --build ../kodama-cpp/build-metal -j
 ```
 
-## Install The R Wrapper
+## Link an external core
 
-The wrapper needs two paths:
+The portable default does not use environment variables. To opt into a CUDA or
+Metal build, provide two paths:
 
 - `KODAMA_CPP_ROOT`: directory containing `include/kodama/kodama.hpp`.
 - `KODAMA_CPP_BUILD_DIR`: directory containing `libkodama_cpp.a`,
@@ -127,7 +164,7 @@ The wrapper needs two paths:
 CPU install from a sibling checkout:
 
 ```sh
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build && pwd)" \
 R CMD INSTALL .
@@ -136,7 +173,7 @@ R CMD INSTALL .
 CPU install from this development checkout:
 
 ```sh
-cd split-repos/kodama-r
+cd split-repos/KODAMA
 KODAMA_CPP_ROOT="$(cd ../.. && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../../build && pwd)" \
 R CMD INSTALL .
@@ -159,7 +196,7 @@ export ENV_DIR=/path/to/cuda-runtime-env
 export CONDA_PREFIX="$ENV_DIR"
 export LD_LIBRARY_PATH="$ENV_DIR/lib:$ENV_DIR/targets/x86_64-linux/lib:/usr/local/cuda/targets/x86_64-linux/lib:${LD_LIBRARY_PATH:-}"
 
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build-cuda && pwd)" \
 R CMD INSTALL .
@@ -180,7 +217,7 @@ macOS it links the Metal, Metal Performance Shaders, and Foundation frameworks.
 Metal installation uses the Metal-enabled core build:
 
 ```sh
-cd kodama-r
+cd KODAMA
 KODAMA_CPP_ROOT="$(cd ../kodama-cpp && pwd)" \
 KODAMA_CPP_BUILD_DIR="$(cd ../kodama-cpp/build-metal && pwd)" \
 R CMD INSTALL .
@@ -191,7 +228,7 @@ R CMD INSTALL .
 Start R and check the linked runtime:
 
 ```r
-library(kodamaR)
+library(KODAMA)
 KODAMA.diagnostics()
 ```
 
@@ -266,6 +303,15 @@ The first spatial coordinate is offset slide by slide before spatial neighbors
 and constraints are built. Spatial landmark strata and optimization constraint
 IDs are also keyed by slide, so no constraint group can cross a slide boundary.
 A one-level `samples` vector is a no-op.
+
+Repeated population collection coordinates can be handled with
+`spatial.mode = "population"`. This opt-in mode regularizes identical
+latitude/longitude groups independently inside every `M` run using the
+classic harmonic attraction/repulsion and within/between-location
+equalization. The former `ancestry = TRUE` spelling has been removed; use
+`spatial.mode = "population"`. Always report a
+genetics-only call without `spatial` alongside the geographic analysis.
+
 `KODAMA.matrix(..., return.graph = FALSE)` returns labels only and omits the
 otherwise-unused final graph-distance correction.
 `KODAMA.matrix()` reserves `data` for
@@ -290,32 +336,6 @@ utilities from KODAMA:
 x_normalized <- normalization(x, method = "pqn")$newXtrain
 x_scaled <- scaling(x_normalized, method = "autoscaling", backend = "cpu",
                     n.cores = 4)$newXtrain
-x_scaled <- scaling(x_normalized, method = "autoscaling")$newXtrain
-
-dini <- dinisurface(1000)
-helix <- helicoid(1000)
-spiral_clusters <- spirals(c(100, 100, 100), c(0.1, 0.1, 0.1))
-roll <- swissroll(1000)
-```
-
-`normalization()` supports `pqn`, `sum`, `median`, `sqrt`, and `none`.
-`scaling()` supports `none`, `centering`, `autoscaling`, `rangescaling`, and
-`paretoscaling`. Both are thin calls to the standalone float32 C++ core and
-accept `backend = "cpu"`, `"cuda"`, `"metal"`, or `"auto"`; no R numerical
-implementation is used.
-`scaling()` supports `none`, `centering`, `autoscaling`, `rangescaling`, and
-`paretoscaling`. Their signatures and returned fields match the KODAMA R
-package.
-
-## Preprocessing and example manifolds
-
-The wrapper includes the dependency-free preprocessing and synthetic-data
-utilities from KODAMA:
-
-```r
-x_normalized <- normalization(x, method = "pqn")$newXtrain
-x_scaled <- scaling(x_normalized, method = "autoscaling", backend = "cpu",
-                    n.cores = 4)$newXtrain
 
 dini <- dinisurface(1000)
 helix <- helicoid(1000)
@@ -330,6 +350,34 @@ accept `backend = "cpu"`, `"cuda"`, `"metal"`, or `"auto"`; no R numerical
 implementation is used, and their signatures and returned fields match the
 KODAMA R package.
 
+Spatially variable features can be ranked independently across slides without
+SPARK-X or a GPL runtime dependency:
+
+```r
+svg <- spatial_feature_selection(
+  expression, coordinates, samples = slide_id,
+  n.cores = 4
+)
+head(svg$features)
+
+# Containers provide their own expression values, coordinates, and slide IDs.
+svg_spe <- SpatialFeatureSelection(
+  spe, assay.type = "logcounts", sample.column = "sample_id", n.cores = 4
+)
+svg_seurat <- SpatialFeatureSelection(
+  seurat_object, assay = "RNA", layer = "data", n.cores = 4
+)
+svg_giotto <- SpatialFeatureSelection(
+  giotto_object, values = "normalized", sample.column = "slide_id",
+  n.cores = 4
+)
+```
+
+The fixed low-rank projection statistic uses a multicore CPU implementation.
+Heavy arithmetic is float32; probability tails and BH adjustment are double
+precision. CUDA and Metal are intentionally not exposed for this function
+because they did not improve end-to-end runtime on the validation workloads.
+
 ## Run `R CMD check`
 
 The CRAN-style source-tarball procedure is documented once in
@@ -340,7 +388,7 @@ and builds the manual.
 ## Recommended Workflow
 
 ```r
-library(kodamaR)
+library(KODAMA)
 
 kk <- KODAMA.matrix(
   x,

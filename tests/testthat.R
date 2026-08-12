@@ -2,6 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 library(testthat)
-library(kodamaR)
+library(KODAMA)
 
-test_check("kodamaR")
+test_check("KODAMA")

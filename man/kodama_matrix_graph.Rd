@@ -25,6 +25,7 @@ kodama_matrix_graph(
   spatial.resolution = 0.4,
   spatial.graph.mix = FALSE,
   spatial.constraint.mode = c("kmeans", "graph", "auto"),
+  spatial.mode = c("standard", "population"),
   classifier = c("knn", "pls_lda"),
   backend = c("cpu", "cuda", "metal"),
   graph.feature.mode = "laplacian_self_tuning",
@@ -54,8 +55,7 @@ KODAMA graph. When omitted, a self-tuning graph Laplacian geometry is used.}
 constrained grouping when supplied.}
 
 \item{samples}{Optional sample or slide identifier used to separate spatial
-coordinate 1 before spatial graph and constraint construction and to prevent
-spatial constraint groups from spanning slides.}
+coordinate 1 before spatial graph and constraint construction.}
 
 \item{W}{Optional starting labels.}
 
@@ -87,6 +87,10 @@ derived inside the core.}
 grouping.}
 
 \item{spatial.constraint.mode}{Spatial constraint strategy.}
+
+\item{spatial.mode}{Coordinate treatment. \code{"population"} applies the
+classic repeated-coordinate regularization independently in every \code{M}
+run before spatial clustering.}
 
 \item{classifier}{Either \code{"knn"} or \code{"pls_lda"}.}
 

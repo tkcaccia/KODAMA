@@ -324,6 +324,9 @@ CorePLSLDA <- function(data,
 #'   optional coordinate constraints are supplied.
 #' @param spatial.graph.mix Logical flag passed to the C++ constraint builder.
 #' @param spatial.constraint.mode Constraint construction mode.
+#' @param spatial.mode Coordinate treatment. `"population"` applies the
+#'   classic repeated-coordinate regularization independently in every `M`
+#'   run before spatial clustering. The default `"standard"` is unchanged.
 #' @param metric Distance or similarity metric.
 #' @param classifier Either `"knn"` or `"pls_lda"`.
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
@@ -366,6 +369,7 @@ kodama_matrix <- function(data = NULL,
                           spatial.resolution = 0.4,
                           spatial.graph.mix = FALSE,
                           spatial.constraint.mode = c("kmeans", "graph", "auto"),
+                          spatial.mode = c("standard", "population"),
                           metric = "euclidean",
                           classifier = c("knn", "pls_lda"),
                           backend = c("cpu", "cuda", "metal"),
@@ -390,6 +394,7 @@ kodama_matrix <- function(data = NULL,
   classifier <- match.arg(classifier)
   backend <- match.arg(backend)
   spatial.constraint.mode <- match.arg(spatial.constraint.mode)
+  spatial.mode <- match.arg(spatial.mode)
   .evolution.policy <- match.arg(.evolution.policy, c(
     "full", "no_prediction_guidance", "fixed_proposal_budget",
     "no_transition_proposal", "greedy_acceptance", "raw_cv_score",
@@ -436,6 +441,7 @@ kodama_matrix <- function(data = NULL,
       spatial.resolution = spatial.resolution,
       spatial.graph.mix = spatial.graph.mix,
       spatial.constraint.mode = spatial.constraint.mode,
+      spatial.mode = spatial.mode,
       classifier = classifier,
       backend = backend,
       seed = seed,
@@ -474,6 +480,7 @@ kodama_matrix <- function(data = NULL,
     samples = if (is.null(sample_ids)) 0L else length(unique(sample_ids)),
     spatial.graph.mix = isTRUE(spatial.graph.mix),
     spatial.constraint.mode = spatial.constraint.mode,
+    spatial.mode = spatial.mode,
     metric = metric,
     classifier = classifier,
     backend = backend,
@@ -502,6 +509,7 @@ kodama_matrix <- function(data = NULL,
     spatial_resolution = as.numeric(spatial.resolution),
     spatial_graph_mix = isTRUE(spatial.graph.mix),
     spatial_constraint_mode = if (spatial.constraint.mode == "auto") -1L else if (spatial.constraint.mode == "graph") 1L else 0L,
+    spatial_coordinate_mode = if (spatial.mode == "population") 1L else 0L,
     metric = metric,
     classifier = classifier,
     backend = backend,
@@ -549,6 +557,9 @@ KODAMA.matrix <- kodama_matrix
 #' @param spatial.graph.mix Whether to combine spatial and feature graphs for
 #'   grouping.
 #' @param spatial.constraint.mode Spatial constraint strategy.
+#' @param spatial.mode Coordinate treatment. `"population"` applies the
+#'   classic repeated-coordinate regularization independently in every `M`
+#'   run before spatial clustering.
 #' @param classifier Either `"knn"` or `"pls_lda"`.
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
 #' @param graph.feature.mode Graph-to-feature transform for PLS-LDA and
@@ -587,6 +598,7 @@ kodama_matrix_graph <- function(indices,
                                 spatial.resolution = 0.4,
                                 spatial.graph.mix = FALSE,
                                 spatial.constraint.mode = c("kmeans", "graph", "auto"),
+                                spatial.mode = c("standard", "population"),
                                 classifier = c("knn", "pls_lda"),
                                 backend = c("cpu", "cuda", "metal"),
                                 graph.feature.mode = "laplacian_self_tuning",
@@ -639,6 +651,7 @@ kodama_matrix_graph <- function(indices,
   sample_ids <- as_kodama_samples(samples, n_samples)
   if (is.null(graph.neighbors)) graph.neighbors <- neighbors
   spatial.constraint.mode <- match.arg(spatial.constraint.mode)
+  spatial.mode <- match.arg(spatial.mode)
   graph.feature.mode <- match.arg(graph.feature.mode)
   .evolution.policy <- match.arg(.evolution.policy, c(
     "full", "no_prediction_guidance", "fixed_proposal_budget",
@@ -671,6 +684,7 @@ kodama_matrix_graph <- function(indices,
     samples = if (is.null(sample_ids)) 0L else length(unique(sample_ids)),
     spatial.graph.mix = isTRUE(spatial.graph.mix),
     spatial.constraint.mode = spatial.constraint.mode,
+    spatial.mode = spatial.mode,
     classifier = classifier,
     backend = backend,
     graph.feature.mode = graph.feature.mode,
@@ -702,6 +716,7 @@ kodama_matrix_graph <- function(indices,
     spatial_resolution = as.numeric(spatial.resolution),
     spatial_graph_mix = isTRUE(spatial.graph.mix),
     spatial_constraint_mode = if (spatial.constraint.mode == "auto") -1L else if (spatial.constraint.mode == "graph") 1L else 0L,
+    spatial_coordinate_mode = if (spatial.mode == "population") 1L else 0L,
     classifier = classifier,
     backend = backend,
     graph_feature_mode = graph.feature.mode,
@@ -772,7 +787,7 @@ kodama_timing <- KODAMA.timing
 #' @aliases kodama_diagnostics
 #' @export
 KODAMA.diagnostics <- function(all = FALSE) {
-  lib <- system.file("libs", paste0("kodamaR", .Platform$dynlib.ext), package = "kodamaR")
+  lib <- system.file("libs", paste0("KODAMA", .Platform$dynlib.ext), package = "KODAMA")
   linker <- if (.Platform$OS.type == "unix" && Sys.info()[["sysname"]] == "Darwin") "otool" else "ldd"
   args <- if (linker == "otool") c("-L", lib) else lib
   linked <- character()
@@ -793,7 +808,7 @@ KODAMA.diagnostics <- function(all = FALSE) {
     recommended <- candidates[file.exists(candidates)]
   }
   out <- list(
-    package = as.character(utils::packageVersion("kodamaR")),
+    package = as.character(utils::packageVersion("KODAMA")),
     platform = paste(R.version$platform, R.version$version.string, sep = " / "),
     shared_object = lib,
     linked_libraries = linked,
@@ -824,7 +839,7 @@ print.kodama_matrix <- function(x, ...) {
 
 #' @export
 print.kodama_diagnostics <- function(x, ...) {
-  cat("kodamaR diagnostics\n")
+  cat("KODAMA diagnostics\n")
   cat("  package:", x$package, "\n")
   cat("  shared object:", x$shared_object, "\n")
   if (length(x$recommended_ld_preload)) {
