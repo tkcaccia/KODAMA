@@ -25,7 +25,10 @@ jobs:
         shell: Rscript {0}
         run: |
           BiocManager::install(
-            c("BiocCheck", "BiocStyle", "Rcpp", "knitr", "rmarkdown", "testthat"),
+            c(
+              "BiocCheck", "BiocStyle", "S4Vectors", "Rcpp", "knitr",
+              "rmarkdown", "testthat"
+            ),
             ask = FALSE,
             update = FALSE
           )
