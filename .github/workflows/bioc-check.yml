@@ -69,6 +69,10 @@ jobs:
             result <- BiocCheck::BiocCheck(
               tarball,
               `new-package` = TRUE,
+              # These are submission-account/repository state checks rather
+              # than package checks. They remain manual release requirements.
+              `no-check-CRAN` = TRUE,
+              `no-check-bioc-help` = TRUE,
               `quit-with-status` = FALSE
             ),
             file = "bioccheck-console.log"
