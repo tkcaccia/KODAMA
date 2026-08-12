@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Windows uses the portable vendored CPU core configured by src/Makevars.win.
+exit 0

@@ -140,10 +140,11 @@ class CompactHNSW {
       m_(std::max(2, std::min(m, std::max(2, n - 1)))),
       ef_construction_(std::max(1, ef_construction)),
       ef_search_(std::max(1, ef_search)),
+      node_mutexes_(std::make_unique<std::mutex[]>(static_cast<std::size_t>(std::max(0, n))))
 #ifdef KODAMA_NATIVE_AVX2_DISPATCH
-      use_avx2_(cpu_has_avx2_fma()),
+      , use_avx2_(cpu_has_avx2_fma())
 #endif
-      node_mutexes_(std::make_unique<std::mutex[]>(static_cast<std::size_t>(std::max(0, n)))) {
+  {
     generate_levels();
     allocate_graph();
   }

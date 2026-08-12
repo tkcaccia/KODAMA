@@ -156,7 +156,8 @@ void build_bases(const std::vector<float> &coordinates, const int rows,
                     span
               : 0.0f;
   }
-  offsets = {0};
+  offsets.clear();
+  offsets.push_back(0);
   append_orthonormal_basis(normalized, rows, dimensions, bases, offsets);
   for (const float scale : kScales) {
     std::vector<float> transformed(static_cast<std::size_t>(dimensions) * rows);
