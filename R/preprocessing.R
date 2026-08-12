@@ -24,6 +24,10 @@
 #'   complex biological mixtures. *Analytical Chemistry* 78, 4281-4290
 #'   (2006).
 #' @seealso [scaling()]
+#' @examples
+#' x <- abs(as.matrix(iris[, 1:4])) + 1
+#' fit <- normalization(x, method = "pqn")
+#' dim(fit$newXtrain)
 #' @export
 normalization <- function(Xtrain, Xtest = NULL, method = "pqn", ref = NULL,
                           backend = NULL, n.cores = 1L, gpu.device = 0L) {
@@ -58,6 +62,9 @@ normalization <- function(Xtrain, Xtest = NULL, method = "pqn", ref = NULL,
 #'   scaling, and transformations: improving the biological information
 #'   content of metabolomics data. *BMC Genomics* 7, 142 (2006).
 #' @seealso [normalization()]
+#' @examples
+#' fit <- scaling(as.matrix(iris[, 1:4]), method = "autoscaling")
+#' dim(fit$newXtrain)
 #' @export
 scaling <- function(Xtrain, Xtest = NULL, method = "autoscaling",
                     backend = NULL, n.cores = 1L, gpu.device = 0L) {

@@ -40,6 +40,16 @@ reports an error when it cannot produce the requested count exactly.}
 
 \item{gpu.device}{CUDA device id when \code{graph.backend = "cuda"}.}
 }
+\value{
+A list containing integer cluster membership, cluster count, graph metadata,
+and runtime diagnostics.
+}
 \description{
 Cluster a graph or embedding with random walks
+}
+\examples{
+set.seed(1)
+x <- rbind(matrix(rnorm(40, -2), 20, 2), matrix(rnorm(40, 2), 20, 2))
+fit <- KODAMA.clustering(x, k = 5, n.cores = 1)
+table(fit$membership)
 }

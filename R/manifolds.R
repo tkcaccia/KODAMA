@@ -10,6 +10,8 @@
 #' @param N Number of data points.
 #' @return An `N` by 3 numeric matrix with columns `x`, `y`, and `z`.
 #' @seealso [helicoid()], [spirals()], [swissroll()]
+#' @examples
+#' dim(dinisurface(100))
 #' @export
 dinisurface <- function(N = 1000) {
   u <- sort(stats::runif(N) * 4 * pi)
@@ -30,6 +32,8 @@ dinisurface <- function(N = 1000) {
 #' @inheritParams dinisurface
 #' @return An `N` by 3 numeric matrix with columns `x`, `y`, and `z`.
 #' @seealso [dinisurface()], [spirals()], [swissroll()]
+#' @examples
+#' dim(helicoid(100))
 #' @export
 helicoid <- function(N = 1000) {
   a <- 1
@@ -51,6 +55,8 @@ helicoid <- function(N = 1000) {
 #'   spiral.
 #' @return A `sum(n)` by 2 numeric matrix with columns `x` and `y`.
 #' @seealso [dinisurface()], [helicoid()], [swissroll()]
+#' @examples
+#' dim(spirals(c(50, 50)))
 #' @export
 spirals <- function(n = c(100, 100, 100), sd = c(0, 0, 0)) {
   clusters <- length(n)
@@ -72,6 +78,8 @@ spirals <- function(n = c(100, 100, 100), sd = c(0, 0, 0)) {
 #' @inheritParams dinisurface
 #' @return An `N` by 3 numeric matrix with columns `x`, `y`, and `z`.
 #' @seealso [dinisurface()], [helicoid()], [spirals()]
+#' @examples
+#' dim(swissroll(100))
 #' @export
 swissroll <- function(N = 1000) {
   tt <- sort((3 * pi / 2) * (1 + 2 * stats::runif(N)))

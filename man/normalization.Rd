@@ -49,3 +49,8 @@ complex biological mixtures. \emph{Analytical Chemistry} 78, 4281-4290
 \seealso{
 \code{\link[=scaling]{scaling()}}
 }
+\examples{
+x <- abs(as.matrix(iris[, 1:4])) + 1
+fit <- normalization(x, method = "pqn")
+dim(fit$newXtrain)
+}

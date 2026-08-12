@@ -44,3 +44,10 @@ spanning linear, smooth, and periodic coordinate bases. Basis-level evidence
 is combined with the Cauchy rule; slides are processed independently. This
 implementation was written independently and does not use SPARK-X code.
 }
+\examples{
+set.seed(1)
+x <- matrix(rnorm(120), 30, 4)
+xy <- matrix(runif(60), 30, 2)
+fit <- spatial_feature_selection(x, xy, n.cores = 1)
+head(fit$ranking)
+}

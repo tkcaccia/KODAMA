@@ -1,0 +1,40 @@
+name: Bioconductor checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bioc-check:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install package dependencies
+        shell: Rscript {0}
+        run: |
+          BiocManager::install(
+            c("BiocCheck", "BiocStyle", "Rcpp", "knitr", "rmarkdown", "testthat"),
+            ask = FALSE,
+            update = FALSE
+          )
+      - name: Build source package
+        run: R CMD build --no-build-vignettes .
+      - name: Run R CMD check
+        run: R CMD check --no-manual --no-build-vignettes KODAMA_*.tar.gz
+      - name: Run BiocCheck for a new package
+        shell: Rscript {0}
+        run: |
+          tarball <- Sys.glob("KODAMA_*.tar.gz")
+          stopifnot(length(tarball) == 1L)
+          BiocCheck::BiocCheck(
+            tarball,
+            `new-package` = TRUE,
+            `quit-with-status` = TRUE
+          )

@@ -56,3 +56,9 @@ absorption counters for optimizer-state diagnostics.
 \description{
 KODAMA core optimization with KNN classifier
 }
+\examples{
+x <- as.matrix(iris[, 1:4])
+y <- rep(1:3, each = 50)
+fit <- CoreKNN(x, y, cycles = 1, folds = 3, k = 5, n.cores = 1)
+fit$accuracy
+}

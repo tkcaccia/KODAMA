@@ -121,6 +121,20 @@ and \code{"handle"} returns a reusable external C++ graph pointer.}
 
 \item{...}{Reserved internal controls for reproducibility experiments.}
 }
+\value{
+A \code{kodama_matrix} result with evolved labels, accuracy traces,
+diagnostics, timing, and the corrected graph when requested.
+}
 \description{
 KODAMA matrix from a precomputed KNN graph
+}
+\examples{
+x <- as.matrix(iris[, 1:4])
+g <- KODAMA.graph(x, k = 10, storage = "matrix", n.cores = 1)
+fit <- KODAMA.matrix.graph(
+  g$indices, g$distances, data = x, M = 1, Tcycle = 1,
+  landmarks = 100, splitting = 10, knn.k = 5, n.cores = 1,
+  return.graph = FALSE
+)
+fit$acc
 }

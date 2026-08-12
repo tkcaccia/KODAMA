@@ -42,6 +42,16 @@ fold groups.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
 }
+\value{
+A cross-validation result containing predictions, truth, fold assignments,
+fold and global accuracy, confusion matrix, timing, and backend diagnostics.
+}
 \description{
 Cross-validated KNN classification
+}
+\examples{
+x <- as.matrix(iris[, 1:4])
+y <- as.integer(iris$Species)
+fit <- KNNCV(x, y, folds = 3, k = 5, backend = "cpu")
+fit$accuracy
 }

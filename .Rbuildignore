@@ -16,3 +16,4 @@
 ^src/\.kodama-core\.signature$
 ^kodamaR.*$
 ^KODAMA_.*\.tar\.gz$
+^.*\.BiocCheck$

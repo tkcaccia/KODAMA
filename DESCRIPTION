@@ -3,7 +3,8 @@ Title: Knowledge Discovery by Accuracy Maximization
 Version: 0.99.0
 Authors@R: c(
     person("Stefano", "Cacciatore", role = c("aut", "cre"),
-           email = "stefano.cacciatore@icgeb.org")
+           email = "stefano.cacciatore@icgeb.org",
+           comment = c(ORCID = "0000-0001-7052-7156"))
   )
 Author: Stefano Cacciatore [aut, cre]
 Maintainer: Stefano Cacciatore <stefano.cacciatore@icgeb.org>
@@ -16,19 +17,19 @@ Description: Knowledge Discovery by Accuracy Maximization using KNN or
     single-cell containers are provided.
 License: MIT + file LICENSE
 Depends:
-    R (>= 4.4.0)
+    R (>= 4.6.0)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LinkingTo: Rcpp
 Imports:
     methods,
     Rcpp,
+    S4Vectors,
     stats
 Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    S4Vectors,
     Seurat,
     SeuratObject,
     SingleCellExperiment,
@@ -36,10 +37,10 @@ Suggests:
     SummarizedExperiment,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-biocViews: Software, Classification, Clustering, DimensionReduction,
-    Visualization, SingleCell, Spatial
+biocViews: Software, Classification, Clustering, DimensionReduction, GPU,
+    Preprocessing, Visualization, SingleCell, Spatial
 Config/testthat/edition: 3
 SystemRequirements: C++17
-URL: https://github.com/tkcaccia/KODAMA
-BugReports: https://github.com/tkcaccia/KODAMA/issues
+URL: https://github.com/tkcaccia/kodama-r
+BugReports: https://github.com/tkcaccia/kodama-r/issues
 Config/roxygen2/version: 8.0.0

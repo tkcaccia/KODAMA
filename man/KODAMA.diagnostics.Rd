@@ -11,6 +11,12 @@ KODAMA.diagnostics(all = FALSE)
 \item{all}{If \code{TRUE}, return all linked shared libraries reported by the
 platform linker tool. If \code{FALSE}, keep only likely runtime dependencies.}
 }
+\value{
+A \code{kodama_diagnostics} list describing package and runtime state.
+}
 \description{
 Diagnose wrapper runtime libraries and environment
+}
+\examples{
+KODAMA.diagnostics()
 }

@@ -19,3 +19,6 @@ the KODAMA R package.
 \seealso{
 \code{\link[=helicoid]{helicoid()}}, \code{\link[=spirals]{spirals()}}, \code{\link[=swissroll]{swissroll()}}
 }
+\examples{
+dim(dinisurface(100))
+}

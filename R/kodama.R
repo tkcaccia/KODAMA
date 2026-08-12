@@ -124,6 +124,14 @@ as_kodama_matrix_result <- function(result, parameters, visual_init = NULL) {
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
 #' @param n.cores Number of CPU worker threads requested by the wrapper.
 #' @param gpu.device CUDA device id when `backend = "cuda"`.
+#' @return A cross-validation result containing predictions, truth, fold
+#'   assignments, fold and global accuracy, confusion matrix, timing, and
+#'   backend diagnostics.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' y <- as.integer(iris$Species)
+#' fit <- KNNCV(x, y, folds = 3, k = 5, backend = "cpu")
+#' fit$accuracy
 #' @export
 KNNCV <- function(data,
                   labels,
@@ -168,6 +176,14 @@ KNNCV <- function(data,
 #' @param backend Execution backend: `"cpu"`, `"cuda"`, or `"metal"`.
 #' @param n.cores Number of CPU worker threads requested by the wrapper.
 #' @param gpu.device CUDA device id when `backend = "cuda"`.
+#' @return A cross-validation result containing predictions, truth, fold
+#'   assignments, fold and global accuracy, confusion matrix, timing, and
+#'   backend diagnostics.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' y <- as.integer(iris$Species)
+#' fit <- PLSLDACV(x, y, folds = 3, ncomp = 2, backend = "cpu")
+#' fit$accuracy
 #' @export
 PLSLDACV <- function(data,
                      labels,
@@ -217,6 +233,11 @@ PLSLDACV <- function(data,
 #' @return A list containing the best labels and predictions, accuracy and score
 #'   traces, plus explicit proposal, acceptance, rejection, coarsening, and
 #'   absorption counters for optimizer-state diagnostics.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' y <- rep(1:3, each = 50)
+#' fit <- CoreKNN(x, y, cycles = 1, folds = 3, k = 5, n.cores = 1)
+#' fit$accuracy
 #' @export
 CoreKNN <- function(data,
                     labels,
@@ -268,6 +289,11 @@ CoreKNN <- function(data,
 #' @return A list containing the best labels and predictions, accuracy and score
 #'   traces, plus explicit proposal, acceptance, rejection, coarsening, and
 #'   absorption counters for optimizer-state diagnostics.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' y <- rep(1:3, each = 50)
+#' fit <- CorePLSLDA(x, y, cycles = 1, folds = 3, ncomp = 2, n.cores = 1)
+#' fit$accuracy
 #' @export
 CorePLSLDA <- function(data,
                        labels,
@@ -349,6 +375,14 @@ CorePLSLDA <- function(data,
 #'   retained in `landmark_seconds`; their sum, mean, and median are also
 #'   reported in `timing` so landmark construction is not conflated with the
 #'   classifier core.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' fit <- KODAMA.matrix(
+#'   data = x, classifier = "knn", M = 1, Tcycle = 1,
+#'   landmarks = 100, splitting = 10, knn.k = 5, n.cores = 1,
+#'   return.graph = FALSE
+#' )
+#' fit$acc
 #' @aliases KODAMA.matrix
 #' @export
 kodama_matrix <- function(data = NULL,
@@ -573,6 +607,18 @@ KODAMA.matrix <- kodama_matrix
 #' @param return.graph `FALSE` omits the graph, `TRUE` materializes matrices,
 #'   and `"handle"` returns a reusable external C++ graph pointer.
 #' @param ... Reserved internal controls for reproducibility experiments.
+#' @return A `kodama_matrix` result with evolved labels, accuracy traces,
+#'   diagnostics, timing, and the corrected graph or graph handle when
+#'   requested.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' g <- KODAMA.graph(x, k = 10, storage = "matrix", n.cores = 1)
+#' fit <- KODAMA.matrix.graph(
+#'   g$indices, g$distances, data = x, M = 1, Tcycle = 1,
+#'   landmarks = 100, splitting = 10, knn.k = 5, n.cores = 1,
+#'   return.graph = FALSE
+#' )
+#' fit$acc
 #' @aliases KODAMA.matrix.graph
 #' @export
 kodama_matrix_graph <- function(indices,
@@ -750,6 +796,10 @@ KODAMA.matrix.graph <- kodama_matrix_graph
 #' @param x A `kodama_matrix` result or compatible list with timing fields.
 #'   Matrix results include separate landmark-selection aggregates and
 #'   classifier optimization timings.
+#' @return A data frame with analysis steps, elapsed seconds, and percentage
+#'   of the recorded total runtime.
+#' @examples
+#' KODAMA.timing(list(timing = list(graph = 0.5, runtime_seconds = 2)))
 #' @aliases kodama_timing
 #' @export
 KODAMA.timing <- function(x) {
@@ -776,6 +826,11 @@ kodama_timing <- KODAMA.timing
 #'
 #' @param all If `TRUE`, return all linked shared libraries reported by the
 #'   platform linker tool. If `FALSE`, keep only likely runtime dependencies.
+#' @return A `kodama_diagnostics` list describing the package version,
+#'   platform, linked libraries, relevant environment variables, and any
+#'   recommended runtime preload libraries.
+#' @examples
+#' KODAMA.diagnostics()
 #' @aliases kodama_diagnostics
 #' @export
 KODAMA.diagnostics <- function(all = FALSE) {
@@ -868,6 +923,9 @@ print.kodama_diagnostics <- function(x, ...) {
 #' @return A `kodama_graph` object containing either graph matrices or a graph
 #'   handle, plus PCA starts for UMAP and openTSNE. Raw data are not retained.
 #' @aliases KODAMA.makeSNNGraph makeSNNGraph
+#' @examples
+#' g <- KODAMA.graph(as.matrix(iris[, 1:4]), k = 5, n.cores = 1)
+#' g$parameters
 #' @export
 KODAMA.graph <- function(data,
                          spatial = NULL,
@@ -917,6 +975,10 @@ KODAMA.graph <- function(data,
 #'   KODAMA result whose `knn` member uses handle storage.
 #' @return A graph list containing R index and distance matrices.
 #'   Materialized graphs can be serialized normally.
+#' @examples
+#' g <- KODAMA.graph(as.matrix(iris[, 1:4]), k = 5, storage = "handle")
+#' materialized <- KODAMA.graph.materialize(g)
+#' dim(materialized$indices)
 #' @export
 KODAMA.graph.materialize <- function(graph) {
   graph <- extract_kodama_graph(graph)
@@ -952,6 +1014,9 @@ makeSNNGraph <- KODAMA.graph
 #'   policy from fastEmbedR.
 #' @return A list containing scores, loadings, singular values, explained
 #'   variance, preprocessing vectors, backend metadata, and runtime.
+#' @examples
+#' fit <- KODAMA.pca(as.matrix(iris[, 1:4]), ncomp = 2)
+#' dim(fit$scores)
 #' @export
 kodama_pca <- function(data,
                        ncomp = 2L,
@@ -1158,6 +1223,13 @@ KODAMA.visualization <- function(x,
 #' @param n.iterations Number of clustering refinement iterations.
 #' @param random.walk.steps Number of random-walk steps.
 #' @param gpu.device CUDA device id when `graph.backend = "cuda"`.
+#' @return A list containing integer cluster membership, the number of
+#'   clusters, graph metadata, and runtime diagnostics.
+#' @examples
+#' set.seed(1)
+#' x <- rbind(matrix(rnorm(40, -2), 20, 2), matrix(rnorm(40, 2), 20, 2))
+#' fit <- KODAMA.clustering(x, k = 5, n.cores = 1)
+#' table(fit$membership)
 #' @export
 KODAMA.clustering <- function(x,
                               n.clusters = 0L,

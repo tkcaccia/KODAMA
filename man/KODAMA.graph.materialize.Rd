@@ -17,3 +17,8 @@ Materialized graphs can be serialized normally.
 \description{
 Materialize a handle-backed KODAMA graph
 }
+\examples{
+g <- KODAMA.graph(as.matrix(iris[, 1:4]), k = 5, storage = "handle")
+materialized <- KODAMA.graph.materialize(g)
+dim(materialized$indices)
+}

@@ -61,3 +61,7 @@ variance, preprocessing vectors, backend metadata, and runtime.
 \description{
 Backend-native float32 PCA
 }
+\examples{
+fit <- KODAMA.pca(as.matrix(iris[, 1:4]), ncomp = 2)
+dim(fit$scores)
+}

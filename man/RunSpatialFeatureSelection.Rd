@@ -70,3 +70,10 @@ containers, then calls the multicore CPU \code{\link[=spatial_feature_selection]
 implementation. Expression values are passed without normalization or
 transformation.
 }
+\examples{
+set.seed(1)
+x <- matrix(rnorm(120), 30, 4)
+xy <- matrix(runif(60), 30, 2)
+fit <- RunSpatialFeatureSelection(x, spatial = xy, n.cores = 1)
+head(fit$ranking)
+}

@@ -13,6 +13,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(KODAMA)
 ```
 
 # Overview
@@ -34,18 +35,27 @@ general dimensionality-reduction and PLS modeling APIs are maintained in
 Backend-capable functions use CPU unless a backend is selected for the R
 session. An explicit function argument has the highest priority.
 
-```r
+```{r backend-configuration, eval=TRUE}
 # Session-wide default
-options(KODAMA.backend = "cuda")
+old.backend <- KODAMA_backend("cpu")
 
-# Equivalent helper
+# The equivalent direct option is options(KODAMA.backend = "cpu")
+KODAMA_backend()
+
+# Explicit arguments override the session default. For example:
+# KODAMA.graph(x, backend = "cuda")
+
+options(KODAMA.backend = old.backend)
+```
+
+For an accelerator session, set one of the following before the analysis:
+
+```{r accelerator-configuration, eval=FALSE}
 KODAMA_backend("cuda")
+KODAMA_backend("metal")
 
 # Uses the session default
 graph <- KODAMA.graph(x)
-
-# Explicit arguments override the session default
-fit.cpu <- KODAMA.matrix(data = x, graph = graph, backend = "cpu")
 ```
 
 For non-interactive jobs, `KODAMA_BACKEND=cpu|cuda|metal` supplies the default
@@ -56,7 +66,6 @@ an error; KODAMA does not silently change the requested backend.
 # Basic workflow
 
 ```{r data}
-library(KODAMA)
 data(MetRef)
 
 x <- MetRef$data
@@ -138,3 +147,9 @@ legacy R code. The previous implementation is archived as `KODAMAlegacy`.
 The synthetic manifold generators, `normalization()`, and `scaling()` remain
 available for compatibility. The historical `MetRef`, `USA`, and `lymphoma`
 datasets are included so published examples remain reproducible.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

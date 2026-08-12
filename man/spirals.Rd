@@ -22,3 +22,6 @@ KODAMA R package.
 \seealso{
 \code{\link[=dinisurface]{dinisurface()}}, \code{\link[=helicoid]{helicoid()}}, \code{\link[=swissroll]{swissroll()}}
 }
+\examples{
+dim(spirals(c(50, 50)))
+}

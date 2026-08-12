@@ -519,6 +519,12 @@ RunKODAMAmatrix.giotto <- function(
 #' @param ... Arguments passed to [KODAMA.visualization()].
 #' @return A matrix for a direct KODAMA input, otherwise the updated container
 #'   with a genuine KODAMA reduced dimension.
+#' @examples
+#' x <- as.matrix(iris[, 1:4])
+#' fit <- RunKODAMAvisualization(
+#'   x, method = "UMAP", k = 5, n.epochs = 5, n.cores = 1
+#' )
+#' dim(fit)
 #' @export
 RunKODAMAvisualization <- function(object, ...) {
   if (.kodama_is_seurat_list(object)) {

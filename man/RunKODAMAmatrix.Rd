@@ -86,3 +86,12 @@ Object methods reuse a graph previously stored by \code{\link[=RunKODAMAgraph]{R
 \code{reuse.graph = FALSE}. The optimization result is stored as KODAMA state;
 the actual reduced dimension is created by \code{\link[=RunKODAMAvisualization]{RunKODAMAvisualization()}}.
 }
+\examples{
+x <- as.matrix(iris[, 1:4])
+fit <- RunKODAMAmatrix(
+  x, M = 1, Tcycle = 1, landmarks = 100,
+  splitting = 10, knn.k = 5, n.cores = 1,
+  return.graph = FALSE
+)
+fit$acc
+}

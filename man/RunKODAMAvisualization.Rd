@@ -70,3 +70,10 @@ with a genuine KODAMA reduced dimension.
 \description{
 Visualize KODAMA results stored in single-cell containers
 }
+\examples{
+x <- as.matrix(iris[, 1:4])
+fit <- RunKODAMAvisualization(
+  x, method = "UMAP", k = 5, n.epochs = 5, n.cores = 1
+)
+dim(fit)
+}

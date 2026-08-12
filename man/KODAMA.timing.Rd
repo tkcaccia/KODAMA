@@ -12,6 +12,13 @@ KODAMA.timing(x)
 Matrix results include separate landmark-selection aggregates and
 classifier optimization timings.}
 }
+\value{
+A data frame with analysis steps, elapsed seconds, and percentage of the
+recorded total runtime.
+}
 \description{
 Return a compact timing table for a KODAMA result
+}
+\examples{
+KODAMA.timing(list(timing = list(graph = 0.5, runtime_seconds = 2)))
 }

@@ -54,3 +54,7 @@ handle, plus PCA starts for UMAP and openTSNE. Raw data are not retained.
 \description{
 Build the reusable KODAMA graph and visualization initialization
 }
+\examples{
+g <- KODAMA.graph(as.matrix(iris[, 1:4]), k = 5, n.cores = 1)
+g$parameters
+}

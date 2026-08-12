@@ -45,3 +45,7 @@ content of metabolomics data. \emph{BMC Genomics} 7, 142 (2006).
 \seealso{
 \code{\link[=normalization]{normalization()}}
 }
+\examples{
+fit <- scaling(as.matrix(iris[, 1:4]), method = "autoscaling")
+dim(fit$newXtrain)
+}

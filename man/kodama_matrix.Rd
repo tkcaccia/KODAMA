@@ -121,3 +121,12 @@ classifier core.
 \description{
 Run KODAMA matrix optimization
 }
+\examples{
+x <- as.matrix(iris[, 1:4])
+fit <- KODAMA.matrix(
+  data = x, classifier = "knn", M = 1, Tcycle = 1,
+  landmarks = 100, splitting = 10, knn.k = 5, n.cores = 1,
+  return.graph = FALSE
+)
+fit$acc
+}
