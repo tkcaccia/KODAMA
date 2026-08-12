@@ -65,8 +65,25 @@ jobs:
         run: |
           tarball <- Sys.glob("KODAMA_*.tar.gz")
           stopifnot(length(tarball) == 1L)
-          BiocCheck::BiocCheck(
-            tarball,
-            `new-package` = TRUE,
-            `quit-with-status` = TRUE
+          output <- capture.output(
+            result <- BiocCheck::BiocCheck(
+              tarball,
+              `new-package` = TRUE,
+              `quit-with-status` = FALSE
+            ),
+            type = "output"
           )
+          cat(output, sep = "\n")
+          writeLines(
+            c("### BiocCheck output", "```text", output, "```"),
+            Sys.getenv("GITHUB_STEP_SUMMARY")
+          )
+          status <- as.integer(
+            result$getNum("error") > 0L || result$getNum("warning") > 0L
+          )
+          if (status) {
+            tail_output <- utils::tail(output, 100L)
+            escaped <- gsub("%", "%25", paste(tail_output, collapse = "%0A"), fixed = TRUE)
+            cat("::error file=.github/workflows/bioc-check.yml,line=74::", escaped, "\n", sep = "")
+          }
+          quit(status = status)
