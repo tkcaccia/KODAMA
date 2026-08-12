@@ -139,7 +139,8 @@ legacy R code. The previous implementation is archived as `KODAMAlegacy`.
 | `KODAMA.visualization()` | Retained; configuration is supplied as named arguments rather than `config.*.default` lists. |
 | `core_cpp()` | Replaced by `CoreKNN()` and `CorePLSLDA()`. |
 | `pca()` | Use `fastEmbedR::pca()` for the general R workflow. `KODAMA.pca()` remains available for backend-native initialization and diagnostics. |
-| t-SNE/UMAP configuration objects | Use `fastEmbedR` for general embedding or named arguments to `KODAMA.visualization()`. |
+| `config.tsne.default` and `config.umap.default` | Use `fastEmbedR` for general embedding or named arguments to `KODAMA.visualization()`. |
+| `MDS.defaults` and the legacy MDS visualization path | Deprecated. Use the graph-based UMAP or openTSNE methods in `KODAMA.visualization()`, or a dedicated MDS implementation when metric MDS is specifically required. |
 | legacy PLS-DA helpers | Use `fastPLS::pls()` for general PLS modeling; KODAMA supports KNN and PLS-LDA classifiers. |
 | `floyd()`, `transformy()`, `kabsch()`, `mcplot()` | Deprecated legacy utilities. Diagnostics are available through `KODAMA.diagnostics()` and `KODAMA.timing()`. |
 | `ancestry = TRUE` | Replaced by the explicit `spatial.mode = "population"`. |
