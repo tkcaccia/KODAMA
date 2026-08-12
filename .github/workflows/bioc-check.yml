@@ -32,7 +32,21 @@ jobs:
       - name: Build source package
         run: R CMD build --no-build-vignettes .
       - name: Run R CMD check
-        run: R CMD check --no-manual --no-build-vignettes KODAMA_*.tar.gz
+        run: |
+          set +e
+          R CMD check --no-manual --no-build-vignettes KODAMA_*.tar.gz \
+            > rcmdcheck-console.log 2>&1
+          status=$?
+          cat rcmdcheck-console.log
+          if test -f KODAMA.Rcheck/00check.log; then
+            {
+              echo "### R CMD check log"
+              echo '```text'
+              cat KODAMA.Rcheck/00check.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
       - name: Show R CMD check log
         if: always()
         run: |
