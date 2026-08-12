@@ -293,6 +293,9 @@ struct PLSCVResult {
 
 struct CoreOptions {
   int cycles = 100;
+  bool progress = false;
+  int progress_run = 0;
+  int progress_runs = 0;
   CoreClassifier classifier = CoreClassifier::PLS_LDA;
   bool shake = false;
   std::uint64_t seed = 1;

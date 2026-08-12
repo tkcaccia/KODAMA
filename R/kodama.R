@@ -90,6 +90,30 @@ kodama_best_run <- function(acc) {
   as.integer(which.max(acc))
 }
 
+kodama_begin_progress <- function(progress, progress.file = NULL) {
+  if (!isTRUE(progress)) return(list(path = NULL, previous = NULL))
+  path <- progress.file
+  if (is.null(path)) {
+    path <- tempfile("kodama-progress-", fileext = ".log")
+  }
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(normalizePath(dirname(path), mustWork = TRUE), basename(path))
+  previous <- Sys.getenv("KODAMA_PROGRESS_FILE", unset = NA_character_)
+  Sys.setenv(KODAMA_PROGRESS_FILE = path)
+  message("KODAMA progress file: ", path)
+  list(path = path, previous = previous)
+}
+
+kodama_end_progress <- function(state) {
+  if (is.null(state$path)) return(invisible(NULL))
+  if (is.na(state$previous)) {
+    Sys.unsetenv("KODAMA_PROGRESS_FILE")
+  } else {
+    Sys.setenv(KODAMA_PROGRESS_FILE = state$previous)
+  }
+  invisible(NULL)
+}
+
 as_kodama_matrix_result <- function(result, parameters, visual_init = NULL) {
   counts <- kodama_class_counts(result$res)
   best_run <- kodama_best_run(result$acc)
@@ -361,6 +385,9 @@ CorePLSLDA <- function(data,
 #'   PCA and stores both UMAP and openTSNE initializations for reuse by
 #'   `KODAMA.visualization`.
 #' @param progress Whether the C++ core prints run/cycle progress.
+#' @param progress.file Optional progress-log path. When `progress=TRUE`, the
+#'   native workers append M/Tcycle checkpoints here. A temporary path is
+#'   created and announced when this is `NULL`.
 #' @param folds Number of cross-validation folds used by the classifier.
 #' @param ... Reserved internal controls for reproducibility experiments.
 #' @param apply.kodama.dissimilarity Whether to return the KODAMA-corrected
@@ -411,6 +438,7 @@ kodama_matrix <- function(data = NULL,
                           folds = 5L,
                           visual.init = TRUE,
                           progress = TRUE,
+                          progress.file = NULL,
                           apply.kodama.dissimilarity = TRUE,
                           return.graph = FALSE,
                           ...) {
@@ -478,6 +506,7 @@ kodama_matrix <- function(data = NULL,
       folds = folds,
       visual.init = visual.init,
       progress = progress,
+      progress.file = progress.file,
       apply.kodama.dissimilarity = apply.kodama.dissimilarity,
       return.graph = return.graph,
       .evolution.policy = .evolution.policy
@@ -518,9 +547,12 @@ kodama_matrix <- function(data = NULL,
     folds = as.integer(folds),
     evolution.policy = .evolution.policy,
     visual.init = isTRUE(visual.init),
+    progress.file = progress.file,
     apply.kodama.dissimilarity = isTRUE(apply.kodama.dissimilarity),
     return.graph = if (graph_output == 2L) "handle" else graph_output == 1L
   )
+  progress_state <- kodama_begin_progress(progress, progress.file)
+  on.exit(kodama_end_progress(progress_state), add = TRUE)
   result <- kodama_matrix_cpp(
     data = data_matrix,
     spatial = if (is.null(spatial)) NULL else as_kodama_matrix(spatial),
@@ -551,7 +583,9 @@ kodama_matrix <- function(data = NULL,
     folds = as.integer(folds),
     evolution_policy = .evolution.policy
   )
-  as_kodama_matrix_result(result, parameters)
+  result <- as_kodama_matrix_result(result, parameters)
+  result$progress_file <- progress_state$path
+  result
 }
 
 #' @export
@@ -601,7 +635,10 @@ KODAMA.matrix <- kodama_matrix
 #' @param folds Number of cross-validation folds used by the classifier.
 #' @param visual.init Whether to propagate the PCA starts stored in a
 #'   `KODAMA.graph` object.
-#' @param progress Whether the C++ core prints progress.
+#' @param progress Whether the C++ core records progress.
+#' @param progress.file Optional progress-log path. When `progress=TRUE`, the
+#'   native workers append M/Tcycle checkpoints here. A temporary path is
+#'   created and announced when this is `NULL`.
 #' @param apply.kodama.dissimilarity Whether to return the KODAMA-corrected
 #'   graph.
 #' @param return.graph `FALSE` omits the graph, `TRUE` materializes matrices,
@@ -650,6 +687,7 @@ kodama_matrix_graph <- function(indices,
                                 folds = 5L,
                                 visual.init = TRUE,
                                 progress = TRUE,
+                                progress.file = NULL,
                                 apply.kodama.dissimilarity = TRUE,
                                 return.graph = FALSE,
                                 ...) {
@@ -733,6 +771,7 @@ kodama_matrix_graph <- function(indices,
     folds = as.integer(folds),
     evolution.policy = .evolution.policy,
     visual.init = isTRUE(visual.init),
+    progress.file = progress.file,
     apply.kodama.dissimilarity = isTRUE(apply.kodama.dissimilarity),
     return.graph = if (graph_output == 2L) "handle" else graph_output == 1L
   )
@@ -767,6 +806,8 @@ kodama_matrix_graph <- function(indices,
     folds = as.integer(folds),
     evolution_policy = .evolution.policy
   )
+  progress_state <- kodama_begin_progress(progress, progress.file)
+  on.exit(kodama_end_progress(progress_state), add = TRUE)
   result <- if (is.null(graph_handle)) {
     do.call(kodama_matrix_graph_cpp, c(list(
       indices = as.matrix(indices),
@@ -785,7 +826,9 @@ kodama_matrix_graph <- function(indices,
       graph_handle = graph_handle
     ), common_args))
   }
-  as_kodama_matrix_result(result, parameters, visual_init = visual_init)
+  result <- as_kodama_matrix_result(result, parameters, visual_init = visual_init)
+  result$progress_file <- progress_state$path
+  result
 }
 
 #' @export

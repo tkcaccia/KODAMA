@@ -35,6 +35,7 @@ kodama_matrix_graph(
   folds = 5L,
   visual.init = TRUE,
   progress = TRUE,
+  progress.file = NULL,
   apply.kodama.dissimilarity = TRUE,
   return.graph = FALSE,
   ...
@@ -111,7 +112,11 @@ graph-only initialization. The standard path is
 \item{visual.init}{Whether to propagate the PCA starts stored in a
 \code{KODAMA.graph} object.}
 
-\item{progress}{Whether the C++ core prints progress.}
+\item{progress}{Whether the C++ core records progress.}
+
+\item{progress.file}{Optional progress-log path. When \code{progress=TRUE}, the
+native workers append M/Tcycle checkpoints here. A temporary path is
+created and announced when this is \code{NULL}.}
 
 \item{apply.kodama.dissimilarity}{Whether to return the KODAMA-corrected
 graph.}

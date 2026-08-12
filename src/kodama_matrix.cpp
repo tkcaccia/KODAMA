@@ -2978,36 +2978,6 @@ IterationResult run_iteration(
       );
       landmark_sampling_seconds = sampling_timer.seconds();
     }
-    scratch.coarse_labels = kmeans_labels(
-      full_float,
-      n,
-      p,
-      coarse_k,
-      rng,
-      10,
-      options.n_threads,
-      options.backend,
-      kmeans_gpu_device,
-      worker_lane,
-#if defined(KODAMA_ENABLE_CUDA)
-      execution_context == nullptr ? nullptr : execution_context->cuda_kmeans.get(),
-#else
-      nullptr,
-#endif
-#if defined(KODAMA_ENABLE_METAL)
-      execution_context == nullptr ? nullptr : execution_context->metal_kmeans.get()
-#else
-      nullptr
-#endif
-    );
-    const IndexedStrata indexed = index_strata(scratch.coarse_labels, coarse_k);
-    landmark_sample = quota_sample_landmarks(
-      indexed.offsets,
-      indexed.rows,
-      landmarks,
-      rng,
-      false
-    );
   }
   scratch.landpoints = std::move(landmark_sample.rows);
   const double landmark_seconds = iter_timer.seconds();
@@ -3137,6 +3107,9 @@ IterationResult run_iteration(
   MatrixView x_view{scratch.x_land.data(), landpoints.size(), full.cols};
   CoreOptions core;
   core.cycles = options.cycles;
+  core.progress = options.progress;
+  core.progress_run = run_id;
+  core.progress_runs = options.runs;
   core.seed = options.seed + static_cast<std::uint64_t>(run_id);
   core.classifier = options.classifier;
   core.evolution = options.evolution;

@@ -533,7 +533,25 @@ test_that("shared k-means landmark atlas is reported", {
     backend = "cpu", progress = FALSE
   )
   expect_true(result$shared_landmark_partition_used)
+  expect_length(result$coarse_partition_seconds, 1L)
+  expect_identical(result$coarse_partition_seconds, 0)
+  expect_length(result$core_evolution_seconds, 1L)
   expect_identical(result$shared_landmark_partition_strata, 8L)
+})
+
+test_that("progress checkpoints are written to a caller-visible file", {
+  set.seed(49)
+  x <- matrix(rnorm(80 * 4), 80, 4)
+  path <- tempfile(fileext = ".log")
+  result <- KODAMA.matrix(
+    x, M = 2L, Tcycle = 3L, landmarks = 50L, splitting = 6L,
+    graph.neighbors = 10L, knn.k = 5L, backend = "cpu", n.cores = 2L,
+    progress = TRUE, progress.file = path, visual.init = FALSE
+  )
+  expect_identical(result$progress_file, normalizePath(path))
+  lines <- readLines(path)
+  expect_true(any(grepl("M 1/2 Tcycle 0/3", lines, fixed = TRUE)))
+  expect_true(any(grepl("M 2/2 Tcycle 3/3", lines, fixed = TRUE)))
 })
 
 test_that("population spatial mode regularizes repeated coordinates reproducibly", {

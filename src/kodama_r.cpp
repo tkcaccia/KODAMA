@@ -650,6 +650,30 @@ Rcpp::List kodama_matrix_result_to_r(
     Rcpp::Named("landmark_seconds") = Rcpp::NumericVector(
       result.landmark_seconds.begin(), result.landmark_seconds.end()
     ),
+    Rcpp::Named("coarse_partition_seconds") = Rcpp::NumericVector(
+      result.coarse_partition_seconds.begin(), result.coarse_partition_seconds.end()
+    ),
+    Rcpp::Named("landmark_sampling_seconds") = Rcpp::NumericVector(
+      result.landmark_sampling_seconds.begin(), result.landmark_sampling_seconds.end()
+    ),
+    Rcpp::Named("constraint_seconds") = Rcpp::NumericVector(
+      result.constraint_seconds.begin(), result.constraint_seconds.end()
+    ),
+    Rcpp::Named("landmark_prepare_seconds") = Rcpp::NumericVector(
+      result.landmark_prepare_seconds.begin(), result.landmark_prepare_seconds.end()
+    ),
+    Rcpp::Named("landmark_initialization_seconds") = Rcpp::NumericVector(
+      result.landmark_initialization_seconds.begin(), result.landmark_initialization_seconds.end()
+    ),
+    Rcpp::Named("landmark_graph_seconds") = Rcpp::NumericVector(
+      result.landmark_graph_seconds.begin(), result.landmark_graph_seconds.end()
+    ),
+    Rcpp::Named("core_evolution_seconds") = Rcpp::NumericVector(
+      result.core_evolution_seconds.begin(), result.core_evolution_seconds.end()
+    ),
+    Rcpp::Named("projection_seconds") = Rcpp::NumericVector(
+      result.projection_seconds.begin(), result.projection_seconds.end()
+    ),
     Rcpp::Named("landmark_occupied_strata") = Rcpp::IntegerVector(
       result.landmark_occupied_strata.begin(), result.landmark_occupied_strata.end()
     ),

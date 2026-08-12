@@ -13,6 +13,12 @@
 #include <limits>
 #include <map>
 #include <memory>
+#if defined(KODAMA_DISABLE_NATIVE_PROGRESS)
+#include <fstream>
+#else
+#include <iostream>
+#endif
+#include <mutex>
 #include <numeric>
 #include <random>
 #include <stdexcept>
@@ -55,6 +61,49 @@ EvolutionPolicy EvolutionPolicy::from_name(const std::string& name) {
 }
 
 namespace {
+
+std::mutex& core_progress_mutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+
+void emit_core_progress(const std::string& message) {
+#if defined(KODAMA_DISABLE_NATIVE_PROGRESS)
+  const char* path = std::getenv("KODAMA_PROGRESS_FILE");
+  if (path == nullptr || path[0] == '\0') return;
+  std::ofstream output(path, std::ios::out | std::ios::app);
+  if (output) output << message << '\n';
+#else
+  std::cerr << message << std::endl;
+#endif
+}
+
+void report_core_progress(
+  const CoreOptions& options,
+  int cycle,
+  double accuracy,
+  double score,
+  int active_classes,
+  bool accepted,
+  double elapsed_seconds
+) {
+  if (!options.progress) return;
+  const int interval = std::max(1, options.cycles / 20);
+  if (cycle != 0 && cycle != options.cycles && cycle % interval != 0) return;
+  std::lock_guard<std::mutex> lock(core_progress_mutex());
+  std::string message = "[kodama]";
+  if (options.progress_run > 0) {
+    message += " M " + std::to_string(options.progress_run);
+    if (options.progress_runs > 0) message += "/" + std::to_string(options.progress_runs);
+  }
+  message += " Tcycle " + std::to_string(cycle) + "/" + std::to_string(options.cycles);
+  message += " acc=" + std::to_string(accuracy);
+  message += " score=" + std::to_string(score);
+  message += " classes=" + std::to_string(active_classes);
+  message += std::string(" accepted=") + (accepted ? "yes" : "no");
+  message += " elapsed=" + std::to_string(elapsed_seconds) + "s";
+  emit_core_progress(message);
+}
 
 struct CVPrediction {
   std::vector<int> predicted;
@@ -1273,6 +1322,16 @@ CoreResult maximize_core(
     : core_objective_score(result.clbest, result.accbest, options);
   result.peak_memory_mb = std::max(result.peak_memory_mb, best_cv.peak_memory_mb);
 
+  {
+    std::unordered_map<int, int> active;
+    active.reserve(result.clbest.size());
+    for (int label : result.clbest) ++active[label];
+    report_core_progress(
+      options, 0, result.accbest, result.scorebest,
+      static_cast<int>(active.size()), true, timer.seconds()
+    );
+  }
+
   std::vector<int> current_cl = result.clbest;
   std::vector<int> current_cvpred = result.cvpredbest;
   double current_acc = result.accbest;
@@ -1472,6 +1531,15 @@ CoreResult maximize_core(
     result.vect_acc[static_cast<std::size_t>(cycle)] = result.accbest;
     result.vect_score[static_cast<std::size_t>(cycle)] = result.scorebest;
     result.cycles_completed = cycle + 1;
+    report_core_progress(
+      options,
+      cycle + 1,
+      result.accbest,
+      result.scorebest,
+      result.active_classes[static_cast<std::size_t>(cycle)],
+      accepted_current,
+      timer.seconds()
+    );
     if (acc == 1.0 && std::isfinite(score)) result.success = true;
   }
 

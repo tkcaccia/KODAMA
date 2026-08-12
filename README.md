@@ -270,6 +270,13 @@ KODAMA.timing(kk)
 kk$landmark_seconds
 head(kk$best_labels)
 
+progress_path <- tempfile(fileext = ".log")
+kk_progress <- KODAMA.matrix(
+  x, M = 2, Tcycle = 10, progress = TRUE,
+  progress.file = progress_path
+)
+tail(readLines(kk_progress$progress_file))
+
 prepared <- KODAMA.graph(
   x, k = 30, backend = "cpu", storage = "handle"
 )
@@ -299,6 +306,10 @@ when R arrays are required. Both forms carry
 backend-matched UMAP/openTSNE PCA starts and never retain the raw matrix.
 External handles are process-local; materialize the graph before saving it for
 use in another R session.
+Native progress is written to a file because independent M workers must not
+call the R console from background threads. With `progress = TRUE`, the wrapper
+announces the path and returns it as `progress_file`; checkpoints report M,
+Tcycle, accuracy, score, active classes, acceptance, and elapsed time.
 Multiple slides can be kept distinct during spatial graph construction with
 the original KODAMA `samples` contract:
 

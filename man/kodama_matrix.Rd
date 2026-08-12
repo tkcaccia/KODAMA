@@ -32,6 +32,7 @@ kodama_matrix(
   folds = 5L,
   visual.init = TRUE,
   progress = TRUE,
+  progress.file = NULL,
   apply.kodama.dissimilarity = TRUE,
   return.graph = FALSE,
   ...
@@ -99,6 +100,10 @@ PCA and stores both UMAP and openTSNE initializations for reuse by
 \code{KODAMA.visualization}.}
 
 \item{progress}{Whether the C++ core prints run/cycle progress.}
+
+\item{progress.file}{Optional progress-log path. When \code{progress=TRUE}, the
+native workers append M/Tcycle checkpoints here. A temporary path is
+created and announced when this is \code{NULL}.}
 
 \item{apply.kodama.dissimilarity}{Whether to return the KODAMA-corrected
 neighbor graph rather than only the base graph.}
