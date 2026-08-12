@@ -1,8 +1,9 @@
-# KODAMA 0.99.0
+# KODAMA 0.99.1
 
-* Corrected the canonical source and issue-tracker URLs for Bioconductor new
-  package submission. The GPU-capable R package is maintained in
-  `tkcaccia/kodama-r`; `tkcaccia/KODAMA` contains the classic implementation.
+* Established `tkcaccia/KODAMA` as the canonical repository for the new
+  C++-backed R package and preserved the classic implementation in
+  `tkcaccia/KODAMAlegacy`, aligning the repository and package names required
+  for Bioconductor submission.
 * Added a session-wide backend selector through `KODAMA_backend()`,
   `options(KODAMA.backend = ...)`, and `KODAMA_BACKEND`. Explicit function
   arguments retain precedence and CPU remains the default.
