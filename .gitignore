@@ -1,5 +1,4 @@
 src/Makevars
-src/Makevars.win
 src/.kodama-core.signature
 src/.kodama-core.signature.tmp
 *.o

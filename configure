@@ -3,7 +3,6 @@ set -eu
 
 PKG_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 MAKEVARS="$PKG_DIR/src/Makevars"
-MAKEVARS_WIN="$PKG_DIR/src/Makevars.win"
 
 # Portable release mode: compile the vendored MIT-licensed CPU core. This is
 # the default used by CRAN and Bioconductor builders and needs no system KODAMA
@@ -14,10 +13,6 @@ if [ -z "${KODAMA_CPP_ROOT:-}" ]; then
 CXX_STD = CXX17
 PKG_CPPFLAGS = -I../inst/include -DKODAMA_DISABLE_NATIVE_PROGRESS
 PKG_LIBS = $(KODAMA_R_OPENMP_LIBS)
-EOF
-  cat > "$MAKEVARS_WIN" <<'EOF'
-CXX_STD = CXX17
-PKG_CPPFLAGS = -I../inst/include -DKODAMA_DISABLE_NATIVE_PROGRESS
 EOF
   exit 0
 fi
@@ -71,11 +66,4 @@ PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
 OBJECTS = RcppExports.o kodama_r.o
 PKG_LIBS = $PKG_LIBS_VALUE
 EOF
-cat > "$MAKEVARS_WIN" <<EOF
-CXX_STD = CXX17
-PKG_CPPFLAGS = -I"$KODAMA_CPP_ROOT/include"
-OBJECTS = RcppExports.o kodama_r.o
-PKG_LIBS = "$KODAMA_CPP_LIB"
-EOF
-
 rm -f "$PKG_DIR/src/.kodama-core.signature"

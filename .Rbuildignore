@@ -2,7 +2,6 @@
 ^\.gitignore$
 ^README\.Rmd$
 ^src/Makevars$
-^src/Makevars\.win$
 ^src/.*\.o$
 ^src/.*\.so$
 ^src/.*\.dll$

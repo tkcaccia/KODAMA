@@ -1,6 +1,6 @@
 Package: KODAMA
 Title: Knowledge Discovery by Accuracy Maximization
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: c(
     person("Stefano", "Cacciatore", role = c("aut", "cre"),
            email = "stefano.cacciatore@icgeb.org",
