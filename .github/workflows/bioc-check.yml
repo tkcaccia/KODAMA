@@ -14,6 +14,11 @@ jobs:
   bioc-check:
     runs-on: ubuntu-latest
     container: bioconductor/bioconductor_docker:devel
+    env:
+      # Seurat and the object-container adapters are optional integrations.
+      # Bioconductor's release builders provide them, but the minimal devel
+      # container used here does not install every package in Suggests.
+      _R_CHECK_FORCE_SUGGESTS_: "false"
     steps:
       - uses: actions/checkout@v5
       - name: Install package dependencies
@@ -28,6 +33,12 @@ jobs:
         run: R CMD build --no-build-vignettes .
       - name: Run R CMD check
         run: R CMD check --no-manual --no-build-vignettes KODAMA_*.tar.gz
+      - name: Show R CMD check log
+        if: always()
+        run: |
+          if test -f KODAMA.Rcheck/00check.log; then
+            cat KODAMA.Rcheck/00check.log
+          fi
       - name: Run BiocCheck for a new package
         shell: Rscript {0}
         run: |
