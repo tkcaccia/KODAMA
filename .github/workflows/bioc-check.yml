@@ -33,11 +33,11 @@ jobs:
             update = FALSE
           )
       - name: Build source package
-        run: R CMD build --no-build-vignettes .
+        run: R CMD build .
       - name: Run R CMD check
         run: |
           set +e
-          R CMD check --no-manual --no-build-vignettes KODAMA_*.tar.gz \
+          R CMD check --no-manual KODAMA_*.tar.gz \
             > rcmdcheck-console.log 2>&1
           status=$?
           cat rcmdcheck-console.log
