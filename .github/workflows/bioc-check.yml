@@ -65,14 +65,20 @@ jobs:
         run: |
           tarball <- Sys.glob("KODAMA_*.tar.gz")
           stopifnot(length(tarball) == 1L)
-          output <- capture.output(
+          capture.output(
             result <- BiocCheck::BiocCheck(
               tarball,
               `new-package` = TRUE,
               `quit-with-status` = FALSE
             ),
-            type = "output"
+            file = "bioccheck-console.log"
           )
+          log_file <- Sys.glob("*.BiocCheck/00BiocCheck.log")
+          output <- if (length(log_file)) {
+            readLines(log_file[[1L]], warn = FALSE)
+          } else {
+            readLines("bioccheck-console.log", warn = FALSE)
+          }
           cat(output, sep = "\n")
           writeLines(
             c("### BiocCheck output", "```text", output, "```"),
