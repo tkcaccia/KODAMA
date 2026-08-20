@@ -141,12 +141,14 @@ test_that("SpatialExperiment forwards coordinates and slide identities", {
     c(24L, 2L)
   )
 
-  features <- RunSpatialFeatureSelection(
+  object <- RunSpatialFeatureSelection(
     object, assay.type = "logcounts", n.cores = 1L
   )
+  features <- S4Vectors::metadata(object)$KODAMA$SpatialFeatureSelection
   expect_s3_class(features, "kodama_spatial_features")
   expect_length(features$score, nrow(counts))
   expect_identical(features$sample.labels, c("slide1", "slide2"))
+  expect_true("KODAMA_spatial_rank" %in% colnames(SummarizedExperiment::rowData(object)))
 })
 
 test_that("SpatialExperiment feature selection preserves sparse assays", {
@@ -171,12 +173,20 @@ test_that("SpatialExperiment feature selection preserves sparse assays", {
   )
 
   expect_warning(
-    features <- SpatialFeatureSelection(object, n.cores = 1L),
+    object <- SpatialFeatureSelection(object, n.cores = 1L),
     NA
   )
+  features <- S4Vectors::metadata(object)$KODAMA$SpatialFeatureSelection
   expect_s3_class(features, "kodama_spatial_features")
   expect_identical(features$input.storage, "sparse_or_delayed")
   expect_length(features$score, nrow(counts))
+  object <- RunFastPCA(
+    object, nfeatures = 4L, ncomp = 3L,
+    backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  expect_equal(
+    dim(SingleCellExperiment::reducedDim(object, "PCA")), c(24L, 3L)
+  )
 })
 
 test_that("Seurat stores state separately from the final reduction", {
@@ -238,9 +248,10 @@ test_that("Seurat stores state separately from the final reduction", {
   expect_equal(dim(SeuratObject::Embeddings(object, "KODAMA")), c(24L, 2L))
 
   expect_identical(SpatialFeatureSelection, RunSpatialFeatureSelection)
-  features <- SpatialFeatureSelection(
+  object <- SpatialFeatureSelection(
     object, layer = "data", n.cores = 1L
   )
+  features <- SeuratObject::Misc(object, slot = "KODAMA")$SpatialFeatureSelection
   expect_s3_class(features, "kodama_spatial_features")
   expect_length(features$score, nrow(counts))
   expect_identical(features$sample.labels, "slice1")
@@ -340,9 +351,14 @@ test_that("Giotto methods use public dimensional-reduction storage", {
   )
   expect_equal(dim(visualization), c(24L, 2L))
 
-  features <- RunSpatialFeatureSelection(
+  object <- RunSpatialFeatureSelection(
     object, values = "normalized", n.cores = 1L
   )
+  features <- attr(object, "KODAMA_spatial_features")
   expect_s3_class(features, "kodama_spatial_features")
   expect_length(features$score, nrow(expression))
+  feature_metadata <- as.data.frame(getExportedValue("Giotto", "getFeatureMetadata")(
+    object, output = "data.table", copy_obj = TRUE, set_defaults = TRUE
+  ))
+  expect_true("KODAMA_spatial_rank" %in% colnames(feature_metadata))
 })

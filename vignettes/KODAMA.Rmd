@@ -120,10 +120,11 @@ coordinate, sample, and label objects. `sample_id` and `spatialCoords()` are
 read automatically by the object methods.
 
 ```{r spatialexperiment-workflow, eval=FALSE}
+spe <- SpatialFeatureSelection(spe)
 subject <- "Br5595"
 spe_sub <- spe[, spe$subject == subject]
 spe_sub <- RunFastPCA(
-  spe_sub, features = head(top, gene_number), ncomp = 50,
+  spe_sub, nfeatures = gene_number, ncomp = 50,
   center = TRUE, scale = TRUE,
   backend = backend, n.cores = n.cores, seed = seed
 )

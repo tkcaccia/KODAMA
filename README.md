@@ -77,9 +77,10 @@ performed once and retained as an opaque native handle; the matrix step reuses
 that graph, and only the visualization step creates a KODAMA reduced dimension:
 
 ```r
+spe <- SpatialFeatureSelection(spe)
 spe_sub <- spe[, spe$subject == "Br5595"]
 spe_sub <- RunFastPCA(
-  spe_sub, features = head(top, gene_number), ncomp = 50,
+  spe_sub, nfeatures = gene_number, ncomp = 50,
   center = TRUE, scale = TRUE,
   backend = "cpu", n.cores = 4
 )

@@ -61,8 +61,8 @@ object, or list of Seurat objects.}
 default expression values.}
 }
 \value{
-A kodama_spatial_features result, or a list of results for a list
-of Seurat objects.
+A \code{kodama_spatial_features} result for a matrix input. Container methods
+return the updated object with statistics in feature metadata.
 }
 \description{
 Extracts expression values, coordinates, and slide identities from supported

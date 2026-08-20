@@ -12,6 +12,9 @@
   setting. Explicit `n.cores` arguments retain priority.
 * Preserved sparse assays during spatial feature selection and bounded dense
   C++ work buffers by feature batches.
+* Spatial feature-selection container methods now return the updated object,
+  store statistics and ranks in feature metadata, and allow
+  `RunFastPCA(nfeatures = ...)` to consume the ranking directly.
 
 # KODAMA 0.99.2
 

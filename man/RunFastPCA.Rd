@@ -17,6 +17,7 @@ RunFastPCA(object, ...)
   object,
   assay.type = NULL,
   features = NULL,
+  nfeatures = NULL,
   ncomp = 50L,
   reduction.name = "PCA",
   ...
@@ -26,6 +27,7 @@ RunFastPCA(object, ...)
   object,
   assay.type = NULL,
   features = NULL,
+  nfeatures = NULL,
   ncomp = 50L,
   reduction.name = "PCA",
   ...
@@ -36,6 +38,7 @@ RunFastPCA(object, ...)
   assay = NULL,
   layer = "data",
   features = NULL,
+  nfeatures = NULL,
   ncomp = 50L,
   reduction.name = "pca",
   ...
@@ -45,6 +48,7 @@ RunFastPCA(object, ...)
   object,
   values = NULL,
   features = NULL,
+  nfeatures = NULL,
   ncomp = 50L,
   reduction.name = "pca",
   ...
@@ -58,6 +62,9 @@ objects.}
 \item{...}{Arguments passed to \code{\link[=kodama_pca]{kodama_pca()}}.}
 
 \item{features}{Optional feature names, indices, or logical selector.}
+
+\item{nfeatures}{Number of top features from a preceding
+\code{SpatialFeatureSelection()} call. Cannot be combined with \code{features}.}
 
 \item{assay.type}{Assay to use. \code{NULL} prefers \code{logcounts}, then
 \code{normcounts}, then \code{counts}, and finally the first available assay.}
