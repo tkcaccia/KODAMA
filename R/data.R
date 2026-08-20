@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Stefano Cacciatore
+# SPDX-License-Identifier: MIT
+
 #' Nuclear Magnetic Resonance spectra of urine samples
 #'
 #' A longitudinal metabolomics cohort containing 873 urine spectra from 22

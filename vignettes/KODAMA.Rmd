@@ -30,14 +30,17 @@ backends. The R interface deliberately remains focused on the KODAMA workflow;
 general dimensionality-reduction and PLS modeling APIs are maintained in
 `fastEmbedR` and `fastPLS`.
 
-# Select a default execution backend
+# Select default execution resources
 
 Backend-capable functions use CPU unless a backend is selected for the R
-session. An explicit function argument has the highest priority.
+session. Pipeline functions also use a session-wide core count when supplied.
+Explicit function arguments have the highest priority.
 
 ```{r backend-configuration, eval=TRUE}
-# Session-wide default
+# Session-wide defaults
 old.backend <- KODAMA_backend("cpu")
+old.cores <- getOption("n.cores")
+options(n.cores = 4L)
 
 # The equivalent direct option is options(backend = "cpu")
 KODAMA_backend()
@@ -46,6 +49,7 @@ KODAMA_backend()
 # KODAMA.graph(x, backend = "cuda")
 
 options(backend = old.backend)
+options(n.cores = old.cores)
 ```
 
 For an accelerator session, set one of the following before the analysis:
@@ -53,6 +57,7 @@ For an accelerator session, set one of the following before the analysis:
 ```{r accelerator-configuration, eval=FALSE}
 KODAMA_backend("cuda")
 KODAMA_backend("metal")
+options(n.cores = 4L)
 
 # Uses the session default
 graph <- KODAMA.graph(x)
@@ -109,6 +114,41 @@ methods for `SingleCellExperiment`, `SpatialExperiment`, Seurat, and Giotto
 objects. Optional packages are checked at run time and remain in `Suggests`, so
 the base package can be installed without a complete single-cell ecosystem.
 
+The following compact workflow keeps the analysis and its reusable graph inside
+a `SpatialExperiment`. It replaces the legacy extraction of separate data,
+coordinate, sample, and label objects. `sample_id` and `spatialCoords()` are
+read automatically by the object methods.
+
+```{r spatialexperiment-workflow, eval=FALSE}
+subject <- "Br5595"
+spe_sub <- spe[, spe$subject == subject]
+spe_sub <- RunFastPCA(
+  spe_sub, features = head(top, gene_number), ncomp = 50,
+  center = TRUE, scale = TRUE,
+  backend = backend, n.cores = n.cores, seed = seed
+)
+
+spe_sub <- RunKODAMAgraph(
+  spe_sub, dims = 50, backend = backend, n.cores = n.cores
+)
+spe_sub <- RunKODAMAmatrix(
+  spe_sub, dims = 50, classifier = "pls_lda", M = 100, Tcycle = 100,
+  landmarks = 100000, splitting = splitting,
+  spatial.resolution = spatial.resolution,
+  backend = backend, n.cores = n.cores, seed = seed
+)
+spe_sub <- RunKODAMAvisualization(
+  spe_sub, dims = 50, method = "UMAP",
+  backend = backend, n.cores = n.cores
+)
+
+labels <- factor(spe_sub$layer_guess_reordered)
+plot(
+  SingleCellExperiment::reducedDim(spe_sub, "KODAMA"),
+  pch = 20, col = cols_cluster[labels]
+)
+```
+
 # Migration from KODAMA 2.4
 
 This package is a new implementation, not a byte-for-byte continuation of the
@@ -138,7 +178,7 @@ legacy R code. The previous implementation is archived as `KODAMAlegacy`.
 | `KODAMA.matrix()` | Retained with graph reuse, explicit classifier, backend, and diagnostics arguments. |
 | `KODAMA.visualization()` | Retained; configuration is supplied as named arguments rather than `config.*.default` lists. |
 | `core_cpp()` | Replaced by `CoreKNN()` and `CorePLSLDA()`. |
-| `pca()` | Use `fastEmbedR::pca()` for the general R workflow. `KODAMA.pca()` remains available for backend-native initialization and diagnostics. |
+| `pca()` | Use `RunFastPCA()` for backend-native float32 PCA on matrices or supported containers. |
 | `config.tsne.default` and `config.umap.default` | Use `fastEmbedR` for general embedding or named arguments to `KODAMA.visualization()`. |
 | `MDS.defaults` and the legacy MDS visualization path | Deprecated. Use the graph-based UMAP or openTSNE methods in `KODAMA.visualization()`, or a dedicated MDS implementation when metric MDS is specifically required. |
 | legacy PLS-DA helpers | Use `fastPLS::pls()` for general PLS modeling; KODAMA supports KNN and PLS-LDA classifiers. |

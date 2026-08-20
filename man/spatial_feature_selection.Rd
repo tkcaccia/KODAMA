@@ -9,7 +9,7 @@ spatial_feature_selection(
   data,
   spatial,
   samples = NULL,
-  n.cores = 4L,
+  n.cores = NULL,
   require.nonzero.each.sample = TRUE
 )
 
@@ -17,26 +17,30 @@ KODAMA.spatial.features(
   data,
   spatial,
   samples = NULL,
-  n.cores = 4L,
+  n.cores = NULL,
   require.nonzero.each.sample = TRUE
 )
 }
 \arguments{
-\item{data}{Numeric matrix with observations in rows and variables in columns.}
+\item{data}{Numeric matrix with observations in rows and variables in columns.
+Sparse and delayed matrix-like inputs are converted to dense float32 work
+buffers in bounded feature batches rather than densified in full.}
 
 \item{spatial}{Two- or three-column spatial-coordinate matrix.}
 
 \item{samples}{Optional slide/sample vector. Statistics are calculated
 independently within each value.}
 
-\item{n.cores}{Number of CPU threads.}
+\item{n.cores}{Number of CPU threads. \code{NULL} uses
+\code{options(n.cores = ...)}, then \code{N_CORES}, and otherwise 4.}
 
 \item{require.nonzero.each.sample}{Exclude variables that are identically
 zero in any slide, matching the filtering convention of \code{multi_SPARKX()}.}
 }
 \value{
 A list with rankings, scores, raw and BH-adjusted p-values,
-per-slide results, basis/statistic timings, and backend metadata.
+per-slide results, basis/statistic timings, resolved core count, and
+backend metadata.
 }
 \description{
 Independently screens variables with low-rank spatial covariance projections

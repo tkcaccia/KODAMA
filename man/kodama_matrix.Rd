@@ -18,7 +18,7 @@ kodama_matrix(
   ncomp = NULL,
   landmarks = 10000L,
   splitting = NULL,
-  n.cores = 4L,
+  n.cores = NULL,
   graph.neighbors = NULL,
   knn.k = 30L,
   spatial.resolution = 0.4,
@@ -67,8 +67,10 @@ KODAMA implementation before spatial graph and constraint construction.}
 
 \item{splitting}{Initial number of label classes used for each run.}
 
-\item{n.cores}{CPU worker count. For CUDA or Metal matrix optimization,
-\code{0} enables backend-specific automatic independent-run lane selection.}
+\item{n.cores}{CPU worker count. \code{NULL} uses \code{options(n.cores = ...)},
+then \code{N_CORES}, and otherwise 4. For CUDA or Metal matrix optimization,
+an explicit \code{0} enables backend-specific automatic independent-run lane
+selection.}
 
 \item{graph.neighbors}{Number of neighbors retained in the returned graph.}
 

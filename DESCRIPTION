@@ -29,6 +29,7 @@ Imports:
 Suggests:
     BiocStyle,
     knitr,
+    Matrix,
     rmarkdown,
     Seurat,
     SeuratObject,

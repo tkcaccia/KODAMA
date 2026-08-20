@@ -33,3 +33,42 @@ test_that("backend-capable KODAMA functions use NULL defaults", {
   expect_true(all(vapply(functions, function(fn) is.null(formals(fn)$backend), logical(1))))
   expect_null(formals(KODAMA.clustering)$graph.backend)
 })
+
+test_that("pipeline core count uses explicit, option, environment, default precedence", {
+  old_option <- getOption("n.cores", NULL)
+  old_environment <- Sys.getenv("N_CORES", unset = NA_character_)
+  on.exit({
+    options(n.cores = old_option)
+    if (is.na(old_environment)) {
+      Sys.unsetenv("N_CORES")
+    } else {
+      Sys.setenv(N_CORES = old_environment)
+    }
+  }, add = TRUE)
+
+  options(n.cores = NULL)
+  Sys.unsetenv("N_CORES")
+  expect_identical(KODAMA:::kodama_resolve_n_cores(NULL, 3L), 3L)
+  Sys.setenv(N_CORES = "5")
+  expect_identical(KODAMA:::kodama_resolve_n_cores(NULL, 3L), 5L)
+  options(n.cores = 7L)
+  expect_identical(KODAMA:::kodama_resolve_n_cores(NULL, 3L), 7L)
+  expect_identical(KODAMA:::kodama_resolve_n_cores(2L, 3L), 2L)
+  expect_error(KODAMA:::kodama_resolve_n_cores(0L, 3L), "greater than zero")
+  expect_identical(
+    KODAMA:::kodama_resolve_n_cores(0L, 3L, allow.zero = TRUE), 0L
+  )
+
+  pipeline <- list(KODAMA.matrix, KODAMA.graph, kodama_pca, KODAMA.visualization)
+  expect_true(all(vapply(
+    pipeline, function(fn) is.null(formals(fn)$n.cores), logical(1)
+  )))
+
+  options(n.cores = 2L)
+  set.seed(11L)
+  spatial <- matrix(runif(40), 20L, 2L)
+  data <- cbind(spatial[, 1L], matrix(rnorm(20L * 3L), 20L, 3L))
+  selection <- SpatialFeatureSelection(data, spatial)
+  expect_identical(selection$n.cores, 2L)
+  expect_null(formals(spatial_feature_selection)$n.cores)
+})

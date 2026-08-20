@@ -1,3 +1,18 @@
+# KODAMA 0.99.6
+
+* Added `RunFastPCA()` as the primary native float32 PCA interface for numeric
+  matrices, `SingleCellExperiment`, `SpatialExperiment`, Seurat, and Giotto.
+  Container methods select and transpose expression assays internally and
+  store PCA scores using each framework's dimensional-reduction interface.
+  The lower-level `kodama_pca()` and `KODAMA.pca()` names remain available for
+  compatibility.
+* Added a session-wide `options(n.cores = ...)` setting, with `N_CORES` as an
+  environment fallback, for PCA, graph construction, KODAMA optimization, and
+  visualization. CPU-only spatial feature selection follows the same core-count
+  setting. Explicit `n.cores` arguments retain priority.
+* Preserved sparse assays during spatial feature selection and bounded dense
+  C++ work buffers by feature batches.
+
 # KODAMA 0.99.2
 
 * Standardized session-wide backend selection across KODAMA, fastPLS,

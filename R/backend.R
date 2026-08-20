@@ -42,3 +42,31 @@ kodama_resolve_backend <- function(backend = NULL, argument = "backend") {
   if (nzchar(legacy_environment)) return(kodama_validate_backend(legacy_environment, "KODAMA_BACKEND"))
   "cpu"
 }
+
+kodama_resolve_n_cores <- function(n.cores = NULL, default = 1L,
+                                   allow.zero = FALSE) {
+  value <- n.cores
+  source <- "n.cores"
+  if (is.null(value)) {
+    value <- getOption("n.cores", NULL)
+    source <- "option n.cores"
+  }
+  if (is.null(value)) {
+    environment <- Sys.getenv("N_CORES", unset = "")
+    if (nzchar(environment)) {
+      value <- environment
+      source <- "N_CORES"
+    }
+  }
+  if (is.null(value)) value <- default
+  value <- suppressWarnings(as.integer(value))
+  minimum <- if (isTRUE(allow.zero)) 0L else 1L
+  if (length(value) != 1L || is.na(value) || value < minimum) {
+    stop(
+      "`", source, "` must be a single integer ",
+      if (minimum == 0L) "greater than or equal to zero" else "greater than zero",
+      ".", call. = FALSE
+    )
+  }
+  value
+}

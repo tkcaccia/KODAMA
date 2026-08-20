@@ -13,7 +13,7 @@ KODAMA.visualization(
   k = 30L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = NULL,
-  n.cores = 4L,
+  n.cores = NULL,
   gpu.device = 0L,
   n.epochs = 200L,
   n.iter = 500L,
@@ -46,7 +46,8 @@ default when no explicit \code{init} is supplied.}
 \item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"} for
 UMAP and openTSNE.}
 
-\item{n.cores}{Number of CPU worker threads requested by the wrapper.}
+\item{n.cores}{Number of worker threads. \code{NULL} uses
+\code{options(n.cores = ...)}, then \code{N_CORES}, and otherwise 4.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
 

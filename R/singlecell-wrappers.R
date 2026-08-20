@@ -229,8 +229,8 @@
 }
 
 .kodama_feature_rows <- function(expression, cells, framework) {
-  expression <- as.matrix(expression)
-  if (!is.numeric(expression) || length(dim(expression)) != 2L) {
+  if (length(dim(expression)) != 2L ||
+      (is.matrix(expression) && !is.numeric(expression))) {
     stop(framework, " expression data must be a numeric matrix.", call. = FALSE)
   }
   if (ncol(expression) != length(cells)) {
@@ -250,7 +250,12 @@
     }
     expression <- expression[, positions, drop = FALSE]
   }
-  t(expression)
+  if (inherits(expression, "Matrix")) {
+    .kodama_require_namespace("Matrix", framework)
+    Matrix::t(expression)
+  } else {
+    t(expression)
+  }
 }
 
 .kodama_giotto_state <- function(object, name) {
@@ -290,6 +295,167 @@
 .kodama_is_seurat_list <- function(object) {
   is.list(object) && length(object) > 0L &&
     all(vapply(object, inherits, logical(1), what = "Seurat"))
+}
+
+.kodama_subset_feature_rows <- function(expression, features, framework) {
+  if (is.null(features)) return(expression)
+  if (is.character(features)) {
+    available <- rownames(expression)
+    if (is.null(available) || anyNA(match(features, available))) {
+      stop(framework, " does not contain every requested feature.", call. = FALSE)
+    }
+  }
+  expression[features, , drop = FALSE]
+}
+
+.kodama_fit_expression_pca <- function(expression, cells, features,
+                                       framework, ...) {
+  expression <- .kodama_subset_feature_rows(expression, features, framework)
+  feature_names <- rownames(expression)
+  fit <- kodama_pca(
+    .kodama_feature_rows(expression, cells, framework), ...
+  )
+  component_names <- paste0("PC", seq_len(ncol(fit$scores)))
+  rownames(fit$scores) <- cells
+  colnames(fit$scores) <- component_names
+  rownames(fit$loadings) <- feature_names
+  colnames(fit$loadings) <- component_names
+  fit
+}
+
+.kodama_pca_misc <- function(fit) {
+  fit[c(
+    "singular_values", "sdev", "variance", "variance_explained",
+    "cumulative_variance_explained", "total_variance", "center", "scale",
+    "ncomp", "oversample", "power", "backend", "precision",
+    "runtime_seconds"
+  )]
+}
+
+#' Fast native PCA for matrices and single-cell containers
+#'
+#' Runs the standalone float32 randomized PCA and stores its scores directly in
+#' supported single-cell containers. Expression assays are transposed
+#' internally because their rows are features and their columns are cells.
+#'
+#' @param object Numeric matrix, `SingleCellExperiment`, `SpatialExperiment`,
+#'   Seurat object, Giotto object, or list of Seurat objects.
+#' @param ... Arguments passed to [kodama_pca()].
+#' @return A native PCA result for a matrix input, otherwise the updated
+#'   container with a PCA dimensional reduction.
+#' @export
+RunFastPCA <- function(object, ...) {
+  if (.kodama_is_seurat_list(object)) {
+    return(lapply(object, RunFastPCA.Seurat, ...))
+  }
+  UseMethod("RunFastPCA")
+}
+
+#' @rdname RunFastPCA
+#' @param features Optional feature names, indices, or logical selector.
+#' @export
+RunFastPCA.default <- function(object, features = NULL, ...) {
+  if (!is.null(features)) object <- object[, features, drop = FALSE]
+  kodama_pca(object, ...)
+}
+
+#' @rdname RunFastPCA
+#' @param assay.type Assay to use. `NULL` prefers `logcounts`, then
+#'   `normcounts`, then `counts`, and finally the first available assay.
+#' @param reduction.name Name used to store PCA scores.
+#' @export
+RunFastPCA.SingleCellExperiment <- function(
+    object, assay.type = NULL, features = NULL, ncomp = 50L,
+    reduction.name = "PCA", ...) {
+  .kodama_require_namespace("SummarizedExperiment", "SingleCellExperiment")
+  assay_names <- SummarizedExperiment::assayNames(object)
+  if (!length(assay_names)) {
+    stop("SingleCellExperiment does not contain an expression assay.", call. = FALSE)
+  }
+  if (is.null(assay.type)) {
+    preferred <- intersect(c("logcounts", "normcounts", "counts"), assay_names)
+    assay.type <- if (length(preferred)) preferred[[1L]] else assay_names[[1L]]
+  }
+  if (!assay.type %in% assay_names) {
+    stop(
+      "Assay '", assay.type, "' was not found. Available values: ",
+      paste(assay_names, collapse = ", "), ".", call. = FALSE
+    )
+  }
+  fit <- .kodama_fit_expression_pca(
+    SummarizedExperiment::assay(object, assay.type), colnames(object),
+    features, "SingleCellExperiment", ncomp = ncomp, ...
+  )
+  SingleCellExperiment::reducedDim(object, reduction.name) <- fit$scores
+  object
+}
+
+#' @rdname RunFastPCA
+#' @export
+RunFastPCA.SpatialExperiment <- function(
+    object, assay.type = NULL, features = NULL, ncomp = 50L,
+    reduction.name = "PCA", ...) {
+  RunFastPCA.SingleCellExperiment(
+    object, assay.type = assay.type, features = features, ncomp = ncomp,
+    reduction.name = reduction.name, ...
+  )
+}
+
+#' @rdname RunFastPCA
+#' @param assay Seurat assay containing the features.
+#' @param layer Seurat assay layer, normally `"data"`.
+#' @export
+RunFastPCA.Seurat <- function(
+    object, assay = NULL, layer = "data", features = NULL, ncomp = 50L,
+    reduction.name = "pca", ...) {
+  .kodama_require_namespace("SeuratObject", "Seurat")
+  if (!inherits(object, "Seurat")) {
+    stop("object is not a Seurat object.", call. = FALSE)
+  }
+  if (is.null(assay)) assay <- SeuratObject::DefaultAssay(object)
+  if (!assay %in% names(object)) {
+    stop("Assay '", assay, "' was not found in the Seurat object.", call. = FALSE)
+  }
+  expression <- SeuratObject::LayerData(object[[assay]], layer = layer)
+  fit <- .kodama_fit_expression_pca(
+    expression, colnames(expression), features, "Seurat",
+    ncomp = ncomp, ...
+  )
+  key <- paste0(gsub("[^A-Za-z0-9]", "", toupper(reduction.name)), "_")
+  object[[reduction.name]] <- SeuratObject::CreateDimReducObject(
+    embeddings = fit$scores, loadings = fit$loadings, assay = assay,
+    stdev = fit$sdev, key = key, misc = .kodama_pca_misc(fit)
+  )
+  object
+}
+
+#' @rdname RunFastPCA
+#' @param values Giotto expression-values selection. `NULL` uses the object's
+#'   default expression values.
+#' @export
+RunFastPCA.giotto <- function(
+    object, values = NULL, features = NULL, ncomp = 50L,
+    reduction.name = "pca", ...) {
+  expression <- .kodama_export("Giotto", "getExpression")(
+    object, values = values, output = "matrix", set_defaults = TRUE
+  )
+  cells <- colnames(expression)
+  if (is.null(cells)) {
+    stop("Giotto expression data must provide cell column names.", call. = FALSE)
+  }
+  fit <- .kodama_fit_expression_pca(
+    expression, cells, features, "Giotto", ncomp = ncomp, ...
+  )
+  dim_object <- .kodama_export("GiottoClass", "createDimObj", "Giotto")(
+    coordinates = fit$scores, name = reduction.name,
+    spat_unit = "cell", feat_type = "rna", method = "PCA",
+    reduction = "cells", provenance = NULL,
+    misc = .kodama_pca_misc(fit), my_rownames = cells
+  )
+  .kodama_export("Giotto", "setDimReduction")(
+    object, x = dim_object, name = reduction.name, reduction = "cells",
+    reduction_method = "pca", verbose = FALSE
+  )
 }
 
 .kodama_object_matrix <- function(data, graph = NULL, spatial = NULL,

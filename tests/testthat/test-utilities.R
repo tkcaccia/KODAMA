@@ -108,6 +108,34 @@ test_that("spatial feature selection recovers signals independently across slide
   expect_identical(result$features[1:2], colnames(data)[result$ranking[1:2]])
 })
 
+test_that("spatial feature selection preserves sparse input without full densification", {
+  skip_if_not_installed("Matrix")
+  set.seed(902L)
+  rows <- 32L
+  spatial <- cbind(seq_len(rows), rep(0:1, each = rows / 2L))
+  data <- matrix(rnorm(rows * 12L), nrow = rows)
+  data[, 1L] <- spatial[, 1L]
+  colnames(data) <- paste0("feature", seq_len(ncol(data)))
+  samples <- rep(c("slide1", "slide2"), each = rows / 2L)
+
+  dense <- spatial_feature_selection(
+    data, spatial, samples = samples, n.cores = 1L
+  )
+  sparse <- spatial_feature_selection(
+    Matrix::Matrix(data, sparse = TRUE), spatial,
+    samples = samples, n.cores = 1L
+  )
+
+  expect_identical(sparse$input.storage, "sparse_or_delayed")
+  expect_equal(sparse$score, dense$score, tolerance = 1e-7)
+  expect_equal(sparse$p.value, dense$p.value, tolerance = 1e-12)
+  expect_equal(sparse$adjusted.p.value, dense$adjusted.p.value,
+               tolerance = 1e-12)
+  expect_identical(sparse$ranking, dense$ranking)
+  expect_equal(sparse$per.sample.score, dense$per.sample.score,
+               tolerance = 1e-7)
+})
+
 test_that("synthetic manifolds preserve KODAMA constructions", {
   set.seed(17)
   dini <- dinisurface(25)

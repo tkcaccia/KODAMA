@@ -13,7 +13,7 @@ KODAMA.graph(
   k = 100L,
   metric = c("euclidean", "cosine", "inner_product"),
   backend = NULL,
-  n.cores = 4L,
+  n.cores = NULL,
   gpu.device = 0L,
   seed = 1234L,
   storage = c("handle", "matrix")
@@ -35,8 +35,8 @@ separated along spatial coordinate 1 using the original KODAMA rule.}
 
 \item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"}.}
 
-\item{n.cores}{Number of CPU worker threads used for native HNSW
-construction and graph querying.}
+\item{n.cores}{Number of worker threads. \code{NULL} uses
+\code{options(n.cores = ...)}, then \code{N_CORES}, and otherwise 4.}
 
 \item{gpu.device}{CUDA device id when \code{backend = "cuda"}.}
 

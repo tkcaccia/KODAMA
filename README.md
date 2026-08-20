@@ -32,12 +32,12 @@ Set one default backend for KODAMA, fastPLS, fastEmbedR, and faissR in the
 current R session, or through the process environment:
 
 ```r
-options(backend = "cuda")
-# or: Sys.setenv(BACKEND = "cuda")
+options(backend = "cuda", n.cores = 4L)
+# or: Sys.setenv(BACKEND = "cuda", N_CORES = "4")
 ```
 
-An explicit function argument such as `backend = "cpu"` always overrides the
-shared setting.
+Explicit function arguments such as `backend = "cpu"` or `n.cores = 8L`
+always override the shared settings.
 
 `KODAMA` does not reimplement the mathematics in R. It converts R matrices and
 vectors to the C++ API and returns R-friendly lists, matrices, and S3 objects.
@@ -58,7 +58,8 @@ The wrapper exports:
 - `CoreKNN()` and `CorePLSLDA()` for label-optimization kernels.
 - `KODAMA.matrix()` for complete KODAMA matrix construction.
 - `KODAMA.matrix.graph()` for bare neighbor-index/distance input.
-- `KODAMA.pca()` / `kodama_pca()` for backend-native float32 PCA.
+- `RunFastPCA()` for backend-native float32 PCA on matrices and supported
+  single-cell containers.
 - `KODAMA.visualization()` for UMAP/openTSNE embeddings from KODAMA graphs.
 - `KODAMA.graph()`, `KODAMA.makeSNNGraph()`, `makeSNNGraph()`, and
   `KODAMA.clustering()` for graph construction and CPU random-walk clustering.
@@ -76,6 +77,14 @@ performed once and retained as an opaque native handle; the matrix step reuses
 that graph, and only the visualization step creates a KODAMA reduced dimension:
 
 ```r
+spe_sub <- spe[, spe$subject == "Br5595"]
+spe_sub <- RunFastPCA(
+  spe_sub, features = head(top, gene_number), ncomp = 50,
+  center = TRUE, scale = TRUE,
+  backend = "cpu", n.cores = 4
+)
+
+object <- spe_sub
 object <- RunKODAMAgraph(
   object,
   reduction = "PCA", # use "pca" for Seurat and Giotto
@@ -253,7 +262,7 @@ lab <- rep(1:3, length.out = nrow(x))
 cv <- KNNCV(x, lab, folds = 3, k = 5, backend = "cpu")
 cv$accuracy
 
-pc <- KODAMA.pca(x, ncomp = 3, backend = "cpu")
+pc <- RunFastPCA(x, ncomp = 3, backend = "cpu")
 dim(pc$scores)
 
 kk <- KODAMA.matrix(

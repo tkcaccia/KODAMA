@@ -13,6 +13,9 @@ small_kodama_arguments <- function() {
 test_that("direct single-cell generics preserve the matrix API", {
   set.seed(20)
   x <- matrix(rnorm(24 * 5), 24, 5)
+  pca <- RunFastPCA(x, ncomp = 3L, backend = "cpu", n.cores = 1L)
+  expect_equal(dim(pca$scores), c(24L, 3L))
+  expect_identical(pca$precision, "float32")
   graph <- RunKODAMAgraph(
     x, k = 5L, backend = "cpu", n.cores = 1L, storage = "matrix"
   )
@@ -39,17 +42,21 @@ test_that("SingleCellExperiment stores and reuses KODAMA state", {
   skip_if_not_installed("SingleCellExperiment")
   skip_if_not_installed("S4Vectors")
   set.seed(21)
-  pca <- matrix(
-    rnorm(24 * 5), 24, 5,
-    dimnames = list(paste0("cell", seq_len(24)), paste0("PC", seq_len(5)))
-  )
   counts <- matrix(
     rpois(8 * 24, 3), 8, 24,
-    dimnames = list(paste0("gene", seq_len(8)), rownames(pca))
+    dimnames = list(
+      paste0("gene", seq_len(8)), paste0("cell", seq_len(24))
+    )
   )
   object <- SingleCellExperiment::SingleCellExperiment(
-    assays = list(counts = counts),
-    reducedDims = S4Vectors::SimpleList(PCA = pca)
+    assays = list(counts = counts)
+  )
+  object <- RunFastPCA(
+    object, features = seq_len(6L), ncomp = 5L,
+    backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  expect_equal(
+    dim(SingleCellExperiment::reducedDim(object, "PCA")), c(24L, 5L)
   )
   object <- RunKODAMAgraph(
     object, dims = 5L, k = 5L, backend = "cpu", n.cores = 1L
@@ -83,15 +90,20 @@ test_that("SpatialExperiment forwards coordinates and slide identities", {
   skip_if_not_installed("S4Vectors")
   set.seed(22)
   cells <- paste0("cell", seq_len(24))
-  pca <- matrix(rnorm(24 * 5), 24, 5, dimnames = list(cells, NULL))
   counts <- matrix(rpois(8 * 24, 3), 8, 24,
                    dimnames = list(paste0("gene", seq_len(8)), cells))
   coordinates <- cbind(x = rep(seq_len(6), 4), y = rep(seq_len(4), each = 6))
   object <- SpatialExperiment::SpatialExperiment(
     assays = list(counts = counts, logcounts = log1p(counts)),
-    reducedDims = S4Vectors::SimpleList(PCA = pca),
     spatialCoords = coordinates,
     colData = S4Vectors::DataFrame(sample_id = rep(c("slide1", "slide2"), each = 12))
+  )
+  object <- RunFastPCA(
+    object, features = seq_len(6L), ncomp = 5L,
+    backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  expect_equal(
+    dim(SingleCellExperiment::reducedDim(object, "PCA")), c(24L, 5L)
   )
   tutorial_object <- do.call(
     RunKODAMAmatrix,
@@ -137,14 +149,42 @@ test_that("SpatialExperiment forwards coordinates and slide identities", {
   expect_identical(features$sample.labels, c("slide1", "slide2"))
 })
 
+test_that("SpatialExperiment feature selection preserves sparse assays", {
+  skip_if_not_installed("Matrix")
+  skip_if_not_installed("SpatialExperiment")
+  skip_if_not_installed("S4Vectors")
+
+  cells <- paste0("cell", seq_len(24))
+  counts <- matrix(
+    rpois(8 * 24, 3), 8, 24,
+    dimnames = list(paste0("gene", seq_len(8)), cells)
+  )
+  object <- SpatialExperiment::SpatialExperiment(
+    assays = list(logcounts = Matrix::Matrix(log1p(counts), sparse = TRUE)),
+    spatialCoords = cbind(
+      x = rep(seq_len(6), 4),
+      y = rep(seq_len(4), each = 6)
+    ),
+    colData = S4Vectors::DataFrame(
+      sample_id = rep(c("slide1", "slide2"), each = 12)
+    )
+  )
+
+  expect_warning(
+    features <- SpatialFeatureSelection(object, n.cores = 1L),
+    NA
+  )
+  expect_s3_class(features, "kodama_spatial_features")
+  expect_identical(features$input.storage, "sparse_or_delayed")
+  expect_length(features$score, nrow(counts))
+})
+
 test_that("Seurat stores state separately from the final reduction", {
   skip_if_not_installed("SeuratObject")
   set.seed(23)
   cells <- paste0("cell", seq_len(24))
   counts <- matrix(rpois(8 * 24, 3), 8, 24,
                    dimnames = list(paste0("gene", seq_len(8)), cells))
-  pca <- matrix(rnorm(24 * 5), 24, 5,
-                dimnames = list(cells, paste0("PC_", seq_len(5))))
   object <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = counts))
   object <- Seurat::NormalizeData(object, verbose = FALSE)
   coordinates <- data.frame(
@@ -157,9 +197,11 @@ test_that("Seurat stores state separately from the final reduction", {
     )
     object
   })
-  object[["pca"]] <- SeuratObject::CreateDimReducObject(
-    embeddings = pca, key = "PC_", assay = SeuratObject::DefaultAssay(object)
+  object <- RunFastPCA(
+    object, features = rownames(object)[seq_len(6L)], ncomp = 5L,
+    backend = "cpu", n.cores = 1L, seed = 4L
   )
+  expect_equal(dim(SeuratObject::Embeddings(object, "pca")), c(24L, 5L))
   tutorial_object <- do.call(
     RunKODAMAmatrix,
     c(list(object = object, dims = 5L), small_kodama_arguments())
@@ -242,16 +284,16 @@ test_that("Giotto methods use public dimensional-reduction storage", {
   object <- suppressWarnings(Giotto::normalizeGiotto(
     object, scalefactor = 6000, verbose = FALSE
   ))
-  pca <- matrix(rnorm(24 * 5), 24, 5, dimnames = list(cells, NULL))
-  pca_object <- getExportedValue("GiottoClass", "createDimObj")(
-    coordinates = pca, name = "pca", spat_unit = "cell", feat_type = "rna",
-    method = "PCA", reduction = "cells", provenance = NULL, misc = list(),
-    my_rownames = cells
+  object <- RunFastPCA(
+    object, values = "normalized", features = rownames(expression)[seq_len(6L)],
+    ncomp = 5L, backend = "cpu", n.cores = 1L, seed = 4L
   )
-  object <- getExportedValue("Giotto", "setDimReduction")(
-    object, x = pca_object, name = "pca", reduction = "cells",
-    reduction_method = "pca", verbose = FALSE
+  pca <- getExportedValue("Giotto", "getDimReduction")(
+    object, spat_unit = "cell", feat_type = "rna", reduction = "cells",
+    reduction_method = "pca", name = "pca", output = "matrix",
+    set_defaults = FALSE
   )
+  expect_equal(dim(pca), c(24L, 5L))
   tutorial_object <- do.call(
     RunKODAMAmatrix,
     c(list(object = object, dims = 5L), small_kodama_arguments())

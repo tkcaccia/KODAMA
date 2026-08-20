@@ -11,7 +11,7 @@ kodama_pca(
   center = TRUE,
   scale = FALSE,
   backend = NULL,
-  n.cores = 1L,
+  n.cores = NULL,
   gpu.device = 0L,
   seed = 4L,
   oversample = NULL,
@@ -24,7 +24,7 @@ KODAMA.pca(
   center = TRUE,
   scale = FALSE,
   backend = NULL,
-  n.cores = 1L,
+  n.cores = NULL,
   gpu.device = 0L,
   seed = 4L,
   oversample = NULL,
@@ -42,17 +42,18 @@ KODAMA.pca(
 
 \item{backend}{Execution backend: \code{"cpu"}, \code{"cuda"}, or \code{"metal"}.}
 
-\item{n.cores}{Number of CPU worker threads.}
+\item{n.cores}{Number of worker threads. \code{NULL} uses
+\code{options(n.cores = ...)}, then \code{N_CORES}, and otherwise 1.}
 
 \item{gpu.device}{Accelerator device id.}
 
 \item{seed}{Random seed for the Gaussian subspace sketch.}
 
 \item{oversample}{Optional randomized-SVD oversampling width. \code{NULL} uses the
-backend policy from fastEmbedR.}
+standalone backend's automatic policy.}
 
-\item{power}{Optional randomized-SVD power count. \code{NULL} uses the backend
-policy from fastEmbedR.}
+\item{power}{Optional randomized-SVD power count. \code{NULL} uses the standalone
+backend's automatic policy.}
 }
 \value{
 A list containing scores, loadings, singular values, explained

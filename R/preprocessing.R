@@ -147,34 +147,100 @@ passing.message <- function(data, spatial, number_knn = 15L, samples = NULL,
 #' implementation was written independently and does not use SPARK-X code.
 #'
 #' @param data Numeric matrix with observations in rows and variables in columns.
+#'   Sparse and delayed matrix-like inputs are converted to dense float32 work
+#'   buffers in bounded feature batches rather than densified in full.
 #' @param spatial Two- or three-column spatial-coordinate matrix.
 #' @param samples Optional slide/sample vector. Statistics are calculated
 #'   independently within each value.
-#' @param n.cores Number of CPU threads.
+#' @param n.cores Number of CPU threads. `NULL` uses
+#'   `options(n.cores = ...)`, then `N_CORES`, and otherwise 4.
 #' @param require.nonzero.each.sample Exclude variables that are identically
 #'   zero in any slide, matching the filtering convention of `multi_SPARKX()`.
 #' @return A list with rankings, scores, raw and BH-adjusted p-values,
-#'   per-slide results, basis/statistic timings, and backend metadata.
+#'   per-slide results, basis/statistic timings, resolved core count, and
+#'   backend metadata.
 #' @export
 spatial_feature_selection <- function(
     data, spatial, samples = NULL,
-    n.cores = 4L, require.nonzero.each.sample = TRUE) {
-  data <- as.matrix(data)
+    n.cores = NULL, require.nonzero.each.sample = TRUE) {
+  n.cores <- kodama_resolve_n_cores(n.cores, default = 4L)
+  data_dimensions <- dim(data)
+  if (length(data_dimensions) != 2L ||
+      (is.matrix(data) && !is.numeric(data)) ||
+      anyNA(data_dimensions) || any(data_dimensions < 1L)) {
+    stop("data must be a non-empty numeric matrix-like object.")
+  }
   spatial <- as.matrix(spatial)
+  if (!is.numeric(spatial) || length(dim(spatial)) != 2L ||
+      nrow(spatial) != data_dimensions[[1L]]) {
+    stop("spatial must be a numeric matrix with one row per data observation.")
+  }
   sample_levels <- NULL
   sample_ids <- NULL
   if (!is.null(samples)) {
-    if (length(samples) != nrow(data) || anyNA(samples)) {
+    if (length(samples) != data_dimensions[[1L]] || anyNA(samples)) {
       stop("samples must contain one non-missing value per data row.")
     }
     samples <- factor(samples)
     sample_levels <- levels(samples)
     sample_ids <- as.integer(samples)
   }
-  result <- kodama_spatial_features_cpp(
-    data, spatial, sample_ids, as.integer(n.cores),
-    isTRUE(require.nonzero.each.sample)
-  )
+  run_dense <- function(x) {
+    x <- as.matrix(x)
+    if (!is.numeric(x)) {
+      stop("data must contain numeric values.")
+    }
+    kodama_spatial_features_cpp(
+      x, spatial, sample_ids, as.integer(n.cores),
+      isTRUE(require.nonzero.each.sample)
+    )
+  }
+  if (is.matrix(data)) {
+    result <- run_dense(data)
+    result$batches <- 1L
+    result$input.storage <- "dense"
+  } else {
+    # R's dense representation uses eight bytes per value. Bound each
+    # temporary conversion to approximately 64 MiB and retain feature order.
+    target_bytes <- 64 * 1024^2
+    columns_per_batch <- max(
+      1L,
+      min(data_dimensions[[2L]],
+          floor(target_bytes / (8 * data_dimensions[[1L]])))
+    )
+    batches <- split(
+      seq_len(data_dimensions[[2L]]),
+      ceiling(seq_len(data_dimensions[[2L]]) / columns_per_batch)
+    )
+    partial <- lapply(batches, function(columns) {
+      run_dense(as.matrix(data[, columns, drop = FALSE]))
+    })
+    result <- partial[[1L]]
+    result$score <- unlist(lapply(partial, `[[`, "score"), use.names = FALSE)
+    result$p.value <- unlist(
+      lapply(partial, `[[`, "p.value"), use.names = FALSE
+    )
+    result$adjusted.p.value <- stats::p.adjust(result$p.value, method = "BH")
+    result$ranking <- order(-result$score, seq_along(result$score), method = "radix")
+    result$per.sample.score <- do.call(
+      cbind, lapply(partial, `[[`, "per.sample.score")
+    )
+    result$per.sample.p.value <- do.call(
+      cbind, lapply(partial, `[[`, "per.sample.p.value")
+    )
+    result$variables <- data_dimensions[[2L]]
+    result$basis.seconds <- sum(vapply(
+      partial, function(x) x$basis.seconds, numeric(1L)
+    ))
+    result$statistic.seconds <- sum(vapply(
+      partial, function(x) x$statistic.seconds, numeric(1L)
+    ))
+    result$runtime.seconds <- sum(vapply(
+      partial, function(x) x$runtime.seconds, numeric(1L)
+    ))
+    result$batches <- length(batches)
+    result$input.storage <- "sparse_or_delayed"
+  }
   variable_names <- colnames(data)
   if (!is.null(variable_names)) {
     names(result$score) <- variable_names
@@ -191,6 +257,7 @@ spatial_feature_selection <- function(
     rownames(result$per.sample.p.value) <- sample_levels
     result$sample.labels <- sample_levels
   }
+  result$n.cores <- n.cores
   class(result) <- c("kodama_spatial_features", "list")
   result
 }
