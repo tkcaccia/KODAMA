@@ -14,7 +14,12 @@ test_that("direct single-cell generics preserve the matrix API", {
   set.seed(20)
   x <- matrix(rnorm(24 * 5), 24, 5)
   pca <- RunFastPCA(x, ncomp = 3L, backend = "cpu", n.cores = 1L)
+  reference_pca <- fastEmbedR::pca(
+    x, ncomp = 3L, backend = "cpu", n.cores = 1L
+  )
   expect_equal(dim(pca$scores), c(24L, 3L))
+  expect_equal(pca$scores, reference_pca$scores, tolerance = 0)
+  expect_s3_class(pca, "fastEmbedR_pca")
   expect_identical(pca$precision, "float32")
   graph <- RunKODAMAgraph(
     x, k = 5L, backend = "cpu", n.cores = 1L, storage = "matrix"
@@ -36,6 +41,53 @@ test_that("direct single-cell generics preserve the matrix API", {
     c(list(object = graph), small_kodama_arguments())
   )
   expect_s3_class(graph_only, "kodama_matrix")
+})
+
+test_that("KODAMA clustering delegates matrix work to fastEmbedR", {
+  set.seed(120)
+  x <- rbind(
+    matrix(rnorm(40, -2), 20, 2),
+    matrix(rnorm(40, 2), 20, 2)
+  )
+  observed <- RunKODAMAclustering(
+    x, method = "leiden", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L, seed = 7L
+  )
+  graph <- fastEmbedR::knn_graph(
+    x, k = 5L, backend = "cpu", weight = "snn", n.cores = 1L
+  )
+  expected <- fastEmbedR::graph_cluster(
+    graph, method = "leiden", backend = "cpu", seed = 7L
+  )
+  expect_s3_class(observed, "fastEmbedR_graph_cluster")
+  expect_identical(observed$membership, expected$membership)
+  expect_identical(observed$method, "leiden")
+})
+
+test_that("SingleCellExperiment clustering stores membership and diagnostics", {
+  skip_if_not_installed("SingleCellExperiment")
+  skip_if_not_installed("S4Vectors")
+  set.seed(121)
+  counts <- matrix(
+    rpois(8 * 24, 3), 8, 24,
+    dimnames = list(paste0("gene", seq_len(8)), paste0("cell", seq_len(24)))
+  )
+  object <- SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = counts)
+  )
+  SingleCellExperiment::reducedDim(object, "KODAMA") <- matrix(
+    rnorm(48), 24, 2,
+    dimnames = list(colnames(object), c("KODAMA_1", "KODAMA_2"))
+  )
+  object <- RunKODAMAclustering(
+    object, method = "louvain", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L, seed = 8L
+  )
+  expect_true("KODAMA_clusters" %in% colnames(SummarizedExperiment::colData(object)))
+  expect_s3_class(
+    S4Vectors::metadata(object)$KODAMA$KODAMA$clustering$KODAMA_clusters,
+    "fastEmbedR_graph_cluster"
+  )
 })
 
 test_that("SingleCellExperiment stores and reuses KODAMA state", {
@@ -82,6 +134,11 @@ test_that("SingleCellExperiment stores and reuses KODAMA state", {
     dim(SingleCellExperiment::reducedDim(object, "KODAMA")),
     c(24L, 2L)
   )
+  object <- RunKODAMAclustering(
+    object, method = "leiden", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  expect_true("KODAMA_clusters" %in% colnames(SummarizedExperiment::colData(object)))
 })
 
 test_that("SpatialExperiment forwards coordinates and slide identities", {
@@ -140,6 +197,11 @@ test_that("SpatialExperiment forwards coordinates and slide identities", {
     dim(SingleCellExperiment::reducedDim(object, "KODAMA")),
     c(24L, 2L)
   )
+  object <- RunKODAMAclustering(
+    object, method = "walktrap", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L
+  )
+  expect_true("KODAMA_clusters" %in% colnames(SummarizedExperiment::colData(object)))
 
   object <- RunSpatialFeatureSelection(
     object, assay.type = "logcounts", n.cores = 1L
@@ -246,6 +308,15 @@ test_that("Seurat stores state separately from the final reduction", {
   )
   expect_true("KODAMA" %in% names(methods::slot(object, "reductions")))
   expect_equal(dim(SeuratObject::Embeddings(object, "KODAMA")), c(24L, 2L))
+  object <- RunKODAMAclustering(
+    object, method = "louvain", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  expect_true("KODAMA_clusters" %in% colnames(object[[]]))
+  expect_s3_class(
+    SeuratObject::Misc(object, slot = "KODAMA")$KODAMA$clustering$KODAMA_clusters,
+    "fastEmbedR_graph_cluster"
+  )
 
   expect_identical(SpatialFeatureSelection, RunSpatialFeatureSelection)
   object <- SpatialFeatureSelection(
@@ -350,6 +421,15 @@ test_that("Giotto methods use public dimensional-reduction storage", {
     set_defaults = FALSE
   )
   expect_equal(dim(visualization), c(24L, 2L))
+
+  object <- RunKODAMAclustering(
+    object, method = "leiden", k = 5L, backend = "cpu",
+    graph.backend = "cpu", n.cores = 1L, seed = 4L
+  )
+  cell_metadata <- as.data.frame(getExportedValue("Giotto", "getCellMetadata")(
+    object, output = "data.table", copy_obj = TRUE, set_defaults = TRUE
+  ))
+  expect_true("KODAMA_clusters" %in% colnames(cell_metadata))
 
   object <- RunSpatialFeatureSelection(
     object, values = "normalized", n.cores = 1L

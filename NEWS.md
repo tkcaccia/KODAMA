@@ -1,3 +1,15 @@
+# KODAMA 0.99.7
+
+* Added `RunKODAMAclustering()` for matrices, KODAMA graphs,
+  `SingleCellExperiment`, `SpatialExperiment`, Seurat, Giotto, and lists of
+  Seurat objects.
+* Made `KODAMA.clustering()` a focused adapter to fastEmbedR's Louvain,
+  Leiden, and Walktrap implementations, removing competing R-level
+  clustering behavior from the KODAMA workflow.
+* Cluster memberships are stored in the native observation metadata of each
+  supported container, while complete clustering diagnostics are retained in
+  KODAMA state where available.
+
 # KODAMA 0.99.6
 
 * Added `RunFastPCA()` as the primary native float32 PCA interface for numeric

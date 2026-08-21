@@ -15,9 +15,9 @@ An \code{N} by 3 numeric matrix with columns \code{x}, \code{y}, and \code{z}.
 \description{
 Generates the three-dimensional Swiss roll used by the KODAMA R package.
 }
-\seealso{
-\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=helicoid]{helicoid()}}, \code{\link[=spirals]{spirals()}}
-}
 \examples{
 dim(swissroll(100))
+}
+\seealso{
+\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=helicoid]{helicoid()}}, \code{\link[=spirals]{spirals()}}
 }

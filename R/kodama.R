@@ -1259,79 +1259,84 @@ KODAMA.visualization <- function(x,
   )
 }
 
-#' Cluster a graph or embedding with random walks
+#' Cluster a graph or embedding with fastEmbedR
 #'
-#' @param x Input embedding matrix, KODAMA result, or KNN graph list.
-#' @param n.clusters Optional target number of clusters. Random-walk clustering
-#'   reports an error when it cannot produce the requested count exactly.
-#' @param weight Graph edge-weighting rule.
-#' @param k Number of neighbors used when `x` is an embedding matrix.
-#' @param metric Distance or similarity metric used when `x` is a matrix.
-#' @param graph.backend Backend used to construct a graph from an embedding:
-#'   `"cpu"`, `"cuda"`, or `"metal"`. Clustering itself runs on CPU.
-#' @param n.cores Number of CPU worker threads requested by the wrapper.
-#' @param n.iterations Number of clustering refinement iterations.
-#' @param random.walk.steps Number of random-walk steps.
-#' @param gpu.device CUDA device id when `graph.backend = "cuda"`.
-#' @return A list containing integer cluster membership, the number of
-#'   clusters, graph metadata, and runtime diagnostics.
+#' This is a KODAMA adapter around [fastEmbedR::knn_graph()] and
+#' [fastEmbedR::graph_cluster()]. It does not maintain a second clustering
+#' implementation. KODAMA and precomputed KNN graphs are converted once to
+#' fastEmbedR's compact graph representation before clustering.
+#'
+#' @param x Input embedding matrix, KODAMA result, KNN graph, or
+#'   `fastEmbedR_graph`.
+#' @param method Clustering method: `"leiden"`, `"louvain"`, or `"walktrap"`.
+#' @param k Number of neighbors used when a graph must be built from a matrix.
+#' @param metric Distance metric used only when neighbors must be calculated.
+#' @param weight Graph edge weighting used during graph construction.
+#' @param mutual Keep only reciprocal KNN edges.
+#' @param prune Remove graph edges with weight less than or equal to this value.
+#' @param graph.backend Backend used to construct a graph from a matrix.
+#' @param backend Backend used by Louvain or Leiden. Walktrap is CPU-only.
+#' @param resolution Modularity resolution for Louvain and Leiden.
+#' @param n.iterations Maximum local-moving iterations.
+#' @param n.runs Independent seeded Louvain or Leiden runs.
+#' @param steps Random-walk length for Walktrap.
+#' @param n.cores CPU workers used to construct the graph.
+#' @param seed Reproducible seed for Louvain and Leiden.
+#' @return A `fastEmbedR_graph_cluster` result containing one-based membership,
+#'   modularity, implementation metadata, and timing.
 #' @examples
 #' set.seed(1)
 #' x <- rbind(matrix(rnorm(40, -2), 20, 2), matrix(rnorm(40, 2), 20, 2))
-#' fit <- KODAMA.clustering(x, k = 5, n.cores = 1)
+#' fit <- KODAMA.clustering(x, method = "leiden", k = 5, n.cores = 1)
 #' table(fit$membership)
 #' @export
 KODAMA.clustering <- function(x,
-                              n.clusters = 0L,
-                              weight = c("distance", "snn", "adaptive", "binary"),
+                              method = c("leiden", "louvain", "walktrap"),
                               k = 30L,
-                              metric = c("euclidean", "cosine", "inner_product"),
+                              metric = c("euclidean", "cosine", "correlation"),
+                              weight = c("snn", "distance", "binary"),
+                              mutual = FALSE,
+                              prune = 0,
                               graph.backend = NULL,
-                              n.cores = 4L,
+                              backend = NULL,
+                              resolution = 1,
                               n.iterations = 10L,
-                              random.walk.steps = 4L,
-                              gpu.device = 0L) {
+                              n.runs = 1L,
+                              steps = 4L,
+                              n.cores = NULL,
+                              seed = 1L) {
+  method <- match.arg(method)
   weight <- match.arg(weight)
   metric <- match.arg(metric)
-  graph.backend <- kodama_resolve_backend(graph.backend, "graph.backend")
-  graph <- extract_kodama_graph(x)
-  if (!is.null(graph)) {
-    if (kodama_graph_is_handle(graph)) {
-      return(kodama_graph_handle_cluster_cpp(
-        graph$handle,
-        weight,
-        as.integer(n.cores),
-        as.integer(n.iterations),
-        as.integer(random.walk.steps),
-        as.integer(n.clusters),
-        0,
-        FALSE
-      ))
+  n.cores <- kodama_resolve_n_cores(n.cores, default = 1L)
+  graph_input <- extract_kodama_graph(x)
+  if (!is.null(graph_input)) {
+    if (kodama_graph_is_handle(graph_input)) {
+      graph_input <- KODAMA.graph.materialize(graph_input)
     }
-    return(kodama_graph_cluster_cpp(
-      graph$indices,
-      graph$distances,
-      weight,
-      as.integer(n.cores),
-      as.integer(n.iterations),
-      as.integer(random.walk.steps),
-      as.integer(n.clusters),
-      0,
-      FALSE
-    ))
+    x <- list(
+      indices = graph_input$indices,
+      distances = graph_input$distances
+    )
   }
-  kodama_embedding_cluster_cpp(
-    as_kodama_matrix(x),
-    graph.backend,
-    weight,
-    metric,
-    as.integer(k),
-    as.integer(n.cores),
-    as.integer(n.iterations),
-    as.integer(random.walk.steps),
-    as.integer(n.clusters),
-    0,
-    FALSE,
-    as.integer(gpu.device)
+  graph <- fastEmbedR::knn_graph(
+    x,
+    k = k,
+    backend = graph.backend,
+    metric = metric,
+    weight = weight,
+    mutual = mutual,
+    prune = prune,
+    n.cores = n.cores
+  )
+  fastEmbedR::graph_cluster(
+    graph,
+    method = method,
+    backend = backend,
+    resolution = resolution,
+    n_iterations = n.iterations,
+    n_runs = n.runs,
+    steps = steps,
+    seed = seed
   )
 }

@@ -15,8 +15,7 @@ The active backend. Setting returns the previous value invisibly.
 \description{
 KODAMA uses an explicit \code{backend} argument when supplied. Otherwise it reads
 \code{options(backend = ...)}, then \code{BACKEND}, and finally uses \code{"cpu"}.
-The former KODAMA-specific option and environment variable remain compatibility
-fallbacks. This function gets or sets the shared option.
+Package-specific settings remain supported as compatibility fallbacks.
 }
 \examples{
 KODAMA_backend()

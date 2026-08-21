@@ -170,14 +170,30 @@
 
 .kodama_giotto_data <- function(object, reduction, dims) {
   .kodama_require_namespace("Giotto", "Giotto")
-  data <- .kodama_export("Giotto", "getDimReduction")(
-    object,
-    reduction = "cells",
-    reduction_method = reduction,
-    name = reduction,
-    output = "matrix",
-    set_defaults = TRUE
+  get_reduction <- .kodama_export("Giotto", "getDimReduction")
+  data <- tryCatch(
+    get_reduction(
+      object,
+      reduction = "cells",
+      reduction_method = reduction,
+      name = reduction,
+      output = "matrix",
+      set_defaults = TRUE
+    ),
+    error = function(error) NULL
   )
+  if (is.null(data)) {
+    data <- get_reduction(
+      object,
+      spat_unit = "cell",
+      feat_type = "rna",
+      reduction = "cells",
+      reduction_method = "kodama",
+      name = reduction,
+      output = "matrix",
+      set_defaults = FALSE
+    )
+  }
   .kodama_select_dimensions(data, dims, paste0("Giotto reduction '", reduction, "'"))
 }
 
@@ -312,9 +328,9 @@
                                        framework, ...) {
   expression <- .kodama_subset_feature_rows(expression, features, framework)
   feature_names <- rownames(expression)
-  fit <- kodama_pca(
-    .kodama_feature_rows(expression, cells, framework), ...
-  )
+  observations <- .kodama_feature_rows(expression, cells, framework)
+  fit <- fastEmbedR::pca(observations, ...)
+  fit$sdev <- fit$singular_values / sqrt(max(1, nrow(observations) - 1L))
   component_names <- paste0("PC", seq_len(ncol(fit$scores)))
   rownames(fit$scores) <- cells
   colnames(fit$scores) <- component_names
@@ -364,13 +380,13 @@
 
 #' Fast native PCA for matrices and single-cell containers
 #'
-#' Runs the standalone float32 randomized PCA and stores its scores directly in
-#' supported single-cell containers. Expression assays are transposed
+#' Uses [fastEmbedR::pca()] for the numerical PCA and stores its scores directly
+#' in supported single-cell containers. Expression assays are transposed
 #' internally because their rows are features and their columns are cells.
 #'
 #' @param object Numeric matrix, `SingleCellExperiment`, `SpatialExperiment`,
 #'   Seurat object, Giotto object, or list of Seurat objects.
-#' @param ... Arguments passed to [kodama_pca()].
+#' @param ... Arguments passed to [fastEmbedR::pca()].
 #' @return A native PCA result for a matrix input, otherwise the updated
 #'   container with a PCA dimensional reduction.
 #' @export
@@ -386,7 +402,7 @@ RunFastPCA <- function(object, ...) {
 #' @export
 RunFastPCA.default <- function(object, features = NULL, ...) {
   if (!is.null(features)) object <- object[, features, drop = FALSE]
-  kodama_pca(object, ...)
+  fastEmbedR::pca(object, ...)
 }
 
 #' @rdname RunFastPCA
@@ -394,6 +410,7 @@ RunFastPCA.default <- function(object, features = NULL, ...) {
 #'   `normcounts`, then `counts`, and finally the first available assay.
 #' @param nfeatures Number of top features from a preceding
 #'   [SpatialFeatureSelection()] call. Cannot be combined with `features`.
+#' @param ncomp Number of principal components to calculate and store.
 #' @param reduction.name Name used to store PCA scores.
 #' @export
 RunFastPCA.SingleCellExperiment <- function(
@@ -837,6 +854,115 @@ RunKODAMAvisualization.giotto <- function(
   rownames(visualization) <- rownames(data)
   state$visualization <- visualization
   .kodama_set_giotto_state(object, reduction.save, visualization, state)
+}
+
+#' Cluster KODAMA reductions in matrices and single-cell containers
+#'
+#' This object-aware wrapper extracts a stored dimensional reduction, delegates
+#' graph construction and Louvain, Leiden, or Walktrap clustering to
+#' [KODAMA.clustering()], and writes the resulting membership back to the
+#' container. The clustering algorithms themselves are implemented only by
+#' [fastEmbedR::graph_cluster()].
+#'
+#' @param object Numeric matrix, KODAMA result, `SingleCellExperiment`,
+#'   `SpatialExperiment`, Seurat object, Giotto object, or list of Seurat
+#'   objects.
+#' @param ... Arguments passed to [KODAMA.clustering()].
+#' @return A `fastEmbedR_graph_cluster` result for direct matrix or graph input;
+#'   otherwise the updated container with cluster membership stored in its
+#'   observation metadata.
+#' @export
+RunKODAMAclustering <- function(object, ...) {
+  if (.kodama_is_seurat_list(object)) {
+    return(lapply(object, RunKODAMAclustering.Seurat, ...))
+  }
+  UseMethod("RunKODAMAclustering")
+}
+
+#' @rdname RunKODAMAclustering
+#' @param graph Optional precomputed KODAMA, KNN, or fastEmbedR graph for a
+#'   direct matrix call.
+#' @export
+RunKODAMAclustering.default <- function(object, graph = NULL, ...) {
+  KODAMA.clustering(if (is.null(graph)) object else graph, ...)
+}
+
+#' @rdname RunKODAMAclustering
+#' @param reduction Name of the dimensional reduction to cluster.
+#' @param dims Number of leading dimensions, or an integer vector selecting
+#'   dimensions.
+#' @param cluster.name Observation-metadata column used to store membership.
+#' @param graph.name Name of the KODAMA state entry used to store complete
+#'   clustering diagnostics.
+#' @export
+RunKODAMAclustering.SingleCellExperiment <- function(
+    object, reduction = "KODAMA", dims = 2L,
+    cluster.name = "KODAMA_clusters", graph.name = "KODAMA", ...) {
+  data <- .kodama_bioc_data(object, reduction, dims)
+  fit <- KODAMA.clustering(data, ...)
+  membership <- factor(fit$membership)
+  names(membership) <- rownames(data)
+  column_data <- SummarizedExperiment::colData(object)
+  column_data[[cluster.name]] <- membership
+  SummarizedExperiment::colData(object) <- column_data
+  state <- .kodama_bioc_state(object, graph.name)
+  if (is.null(state$clustering) || !is.list(state$clustering)) {
+    state$clustering <- list()
+  }
+  state$clustering[[cluster.name]] <- fit
+  .kodama_set_bioc_state(object, graph.name, state)
+}
+
+#' @rdname RunKODAMAclustering
+#' @export
+RunKODAMAclustering.SpatialExperiment <- function(
+    object, reduction = "KODAMA", dims = 2L,
+    cluster.name = "KODAMA_clusters", graph.name = "KODAMA", ...) {
+  RunKODAMAclustering.SingleCellExperiment(
+    object,
+    reduction = reduction,
+    dims = dims,
+    cluster.name = cluster.name,
+    graph.name = graph.name,
+    ...
+  )
+}
+
+#' @rdname RunKODAMAclustering
+#' @param reduction.save Name of the Seurat or Giotto KODAMA state entry.
+#' @export
+RunKODAMAclustering.Seurat <- function(
+    object, reduction = "KODAMA", dims = 2L,
+    cluster.name = "KODAMA_clusters", reduction.save = "KODAMA", ...) {
+  data <- .kodama_seurat_data(object, reduction, dims)
+  fit <- KODAMA.clustering(data, ...)
+  membership <- factor(fit$membership)
+  names(membership) <- rownames(data)
+  object <- SeuratObject::AddMetaData(
+    object, metadata = membership, col.name = cluster.name
+  )
+  state <- .kodama_seurat_state(object, reduction.save)
+  if (is.null(state$clustering) || !is.list(state$clustering)) {
+    state$clustering <- list()
+  }
+  state$clustering[[cluster.name]] <- fit
+  .kodama_set_seurat_state(object, reduction.save, state)
+}
+
+#' @rdname RunKODAMAclustering
+#' @export
+RunKODAMAclustering.giotto <- function(
+    object, reduction = "KODAMA", dims = 2L,
+    cluster.name = "KODAMA_clusters", reduction.save = "KODAMA", ...) {
+  data <- .kodama_giotto_data(object, reduction, dims)
+  fit <- KODAMA.clustering(data, ...)
+  membership <- factor(fit$membership)
+  names(membership) <- rownames(data)
+  .kodama_export("Giotto", "addCellMetadata")(
+    object,
+    new_metadata = membership,
+    vector_name = cluster.name
+  )
 }
 
 #' Spatial feature selection for matrices and spatial containers

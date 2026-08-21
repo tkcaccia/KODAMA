@@ -74,10 +74,3 @@ fuzzy graph.
 \description{
 Visualize a matrix or KODAMA graph with UMAP or openTSNE
 }
-\examples{
-fit <- KODAMA.visualization(
-  as.matrix(iris[, 1:4]), method = "UMAP", k = 5,
-  n.epochs = 5, n.cores = 1
-)
-dim(fit)
-}

@@ -40,6 +40,11 @@ and \code{coeXtest} when \code{Xtest} is supplied.
 Compatibility implementation of the preprocessing utility exposed by the
 KODAMA R package. Samples are stored in rows and variables in columns.
 }
+\examples{
+x <- abs(as.matrix(iris[, 1:4])) + 1
+fit <- normalization(x, method = "pqn")
+dim(fit$newXtrain)
+}
 \references{
 Dieterle F, Ross A, Schlotterbeck G, Senn H. Probabilistic
 quotient normalization as robust method to account for dilution of
@@ -48,9 +53,4 @@ complex biological mixtures. \emph{Analytical Chemistry} 78, 4281-4290
 }
 \seealso{
 \code{\link[=scaling]{scaling()}}
-}
-\examples{
-x <- abs(as.matrix(iris[, 1:4])) + 1
-fit <- normalization(x, method = "pqn")
-dim(fit$newXtrain)
 }

@@ -37,6 +37,10 @@ supplied.
 Compatibility implementation of the scaling utility exposed by the KODAMA
 R package. Training statistics are reused for an optional test matrix.
 }
+\examples{
+fit <- scaling(as.matrix(iris[, 1:4]), method = "autoscaling")
+dim(fit$newXtrain)
+}
 \references{
 van den Berg RA, Hoefsloot HCJ, Westerhuis JA, et al. Centering,
 scaling, and transformations: improving the biological information
@@ -44,8 +48,4 @@ content of metabolomics data. \emph{BMC Genomics} 7, 142 (2006).
 }
 \seealso{
 \code{\link[=normalization]{normalization()}}
-}
-\examples{
-fit <- scaling(as.matrix(iris[, 1:4]), method = "autoscaling")
-dim(fit$newXtrain)
 }

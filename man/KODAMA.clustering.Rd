@@ -2,54 +2,71 @@
 % Please edit documentation in R/kodama.R
 \name{KODAMA.clustering}
 \alias{KODAMA.clustering}
-\title{Cluster a graph or embedding with random walks}
+\title{Cluster a graph or embedding with fastEmbedR}
 \usage{
 KODAMA.clustering(
   x,
-  n.clusters = 0L,
-  weight = c("distance", "snn", "adaptive", "binary"),
+  method = c("leiden", "louvain", "walktrap"),
   k = 30L,
-  metric = c("euclidean", "cosine", "inner_product"),
+  metric = c("euclidean", "cosine", "correlation"),
+  weight = c("snn", "distance", "binary"),
+  mutual = FALSE,
+  prune = 0,
   graph.backend = NULL,
-  n.cores = 4L,
+  backend = NULL,
+  resolution = 1,
   n.iterations = 10L,
-  random.walk.steps = 4L,
-  gpu.device = 0L
+  n.runs = 1L,
+  steps = 4L,
+  n.cores = NULL,
+  seed = 1L
 )
 }
 \arguments{
-\item{x}{Input embedding matrix, KODAMA result, or KNN graph list.}
+\item{x}{Input embedding matrix, KODAMA result, KNN graph, or
+\code{fastEmbedR_graph}.}
 
-\item{n.clusters}{Optional target number of clusters. Random-walk clustering
-reports an error when it cannot produce the requested count exactly.}
+\item{method}{Clustering method: \code{"leiden"}, \code{"louvain"}, or \code{"walktrap"}.}
 
-\item{weight}{Graph edge-weighting rule.}
+\item{k}{Number of neighbors used when a graph must be built from a matrix.}
 
-\item{k}{Number of neighbors used when \code{x} is an embedding matrix.}
+\item{metric}{Distance metric used only when neighbors must be calculated.}
 
-\item{metric}{Distance or similarity metric used when \code{x} is a matrix.}
+\item{weight}{Graph edge weighting used during graph construction.}
 
-\item{graph.backend}{Backend used to construct a graph from an embedding:
-\code{"cpu"}, \code{"cuda"}, or \code{"metal"}. Clustering itself runs on CPU.}
+\item{mutual}{Keep only reciprocal KNN edges.}
 
-\item{n.cores}{Number of CPU worker threads requested by the wrapper.}
+\item{prune}{Remove graph edges with weight less than or equal to this value.}
 
-\item{n.iterations}{Number of clustering refinement iterations.}
+\item{graph.backend}{Backend used to construct a graph from a matrix.}
 
-\item{random.walk.steps}{Number of random-walk steps.}
+\item{backend}{Backend used by Louvain or Leiden. Walktrap is CPU-only.}
 
-\item{gpu.device}{CUDA device id when \code{graph.backend = "cuda"}.}
+\item{resolution}{Modularity resolution for Louvain and Leiden.}
+
+\item{n.iterations}{Maximum local-moving iterations.}
+
+\item{n.runs}{Independent seeded Louvain or Leiden runs.}
+
+\item{steps}{Random-walk length for Walktrap.}
+
+\item{n.cores}{CPU workers used to construct the graph.}
+
+\item{seed}{Reproducible seed for Louvain and Leiden.}
 }
 \value{
-A list containing integer cluster membership, cluster count, graph metadata,
-and runtime diagnostics.
+A \code{fastEmbedR_graph_cluster} result containing one-based membership,
+modularity, implementation metadata, and timing.
 }
 \description{
-Cluster a graph or embedding with random walks
+This is a KODAMA adapter around \code{\link[fastEmbedR:knn_graph]{fastEmbedR::knn_graph()}} and
+\code{\link[fastEmbedR:graph_cluster]{fastEmbedR::graph_cluster()}}. It does not maintain a second clustering
+implementation. KODAMA and precomputed KNN graphs are converted once to
+fastEmbedR's compact graph representation before clustering.
 }
 \examples{
 set.seed(1)
 x <- rbind(matrix(rnorm(40, -2), 20, 2), matrix(rnorm(40, 2), 20, 2))
-fit <- KODAMA.clustering(x, k = 5, n.cores = 1)
+fit <- KODAMA.clustering(x, method = "leiden", k = 5, n.cores = 1)
 table(fit$membership)
 }

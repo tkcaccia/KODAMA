@@ -32,6 +32,7 @@ test_that("backend-capable KODAMA functions use NULL defaults", {
   )
   expect_true(all(vapply(functions, function(fn) is.null(formals(fn)$backend), logical(1))))
   expect_null(formals(KODAMA.clustering)$graph.backend)
+  expect_null(formals(KODAMA.clustering)$backend)
 })
 
 test_that("pipeline core count uses explicit, option, environment, default precedence", {

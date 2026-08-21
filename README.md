@@ -62,17 +62,18 @@ The wrapper exports:
   single-cell containers.
 - `KODAMA.visualization()` for UMAP/openTSNE embeddings from KODAMA graphs.
 - `KODAMA.graph()`, `KODAMA.makeSNNGraph()`, `makeSNNGraph()`, and
-  `KODAMA.clustering()` for graph construction and CPU random-walk clustering.
+  `KODAMA.clustering()` for graph construction and fastEmbedR Louvain, Leiden,
+  or Walktrap clustering.
 - `RunKODAMAgraph()`, `RunKODAMAmatrix()`, and
-  `RunKODAMAvisualization()` for `SingleCellExperiment`, `SpatialExperiment`,
-  Seurat, and Giotto containers.
+  `RunKODAMAvisualization()`, and `RunKODAMAclustering()` for
+  `SingleCellExperiment`, `SpatialExperiment`, Seurat, and Giotto containers.
 - `SpatialFeatureSelection()` / `RunSpatialFeatureSelection()` for
   `SpatialExperiment`, Seurat, and Giotto containers. The selector is
   multicore CPU-only.
 
 ## Single-Cell Object Workflow
 
-The three object generics mirror the matrix pipeline. Graph construction is
+The object generics mirror the matrix pipeline. Graph construction is
 performed once and retained as an opaque native handle; the matrix step reuses
 that graph, and only the visualization step creates a KODAMA reduced dimension:
 
@@ -108,6 +109,15 @@ object <- RunKODAMAvisualization(
   method = "UMAP",
   backend = "cpu"
 )
+object <- RunKODAMAclustering(
+  object,
+  reduction = "KODAMA",
+  method = "leiden",
+  resolution = 1,
+  backend = "cpu",
+  graph.backend = "cpu",
+  n.cores = 4
+)
 ```
 
 For `SpatialExperiment`, spatial coordinates are used by default and
@@ -124,6 +134,10 @@ Bioconductor containers retain graph and matrix state under
 KODAMA dimensional-reduction object. The final coordinates are available from
 `reducedDim(object, "KODAMA")`, `Embeddings(object, "KODAMA")`, or the
 corresponding Giotto dimensional reduction.
+`RunKODAMAclustering()` stores membership as `KODAMA_clusters` in
+`colData()`, Seurat cell metadata, or Giotto cell metadata. Complete
+fastEmbedR clustering diagnostics are retained in KODAMA state where the
+container provides that state slot.
 
 ## Prerequisites
 
@@ -434,7 +448,10 @@ kk <- KODAMA.matrix(
 KODAMA.timing(kk)
 labels <- kk$best_labels
 um <- KODAMA.visualization(kk, "UMAP", k = 30, backend = "cuda")
-clu <- KODAMA.clustering(um, n.iterations = 10, random.walk.steps = 4)
+clu <- KODAMA.clustering(
+  um, method = "leiden", resolution = 1,
+  backend = "cuda", graph.backend = "cuda", n.iterations = 10
+)
 ```
 
 `KODAMA.matrix()` returns a `kodama_matrix` object. The raw C++ fields are still

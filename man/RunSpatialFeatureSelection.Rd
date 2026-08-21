@@ -61,19 +61,12 @@ object, or list of Seurat objects.}
 default expression values.}
 }
 \value{
-A \code{kodama_spatial_features} result for a matrix input. Container methods
-return the updated object with statistics in feature metadata.
+A \code{kodama_spatial_features} result for a matrix input. Container
+methods return the updated object with statistics in feature metadata.
 }
 \description{
 Extracts expression values, coordinates, and slide identities from supported
 containers, then calls the multicore CPU \code{\link[=spatial_feature_selection]{spatial_feature_selection()}}
 implementation. Expression values are passed without normalization or
 transformation.
-}
-\examples{
-set.seed(1)
-x <- matrix(rnorm(120), 30, 4)
-xy <- matrix(runif(60), 30, 2)
-fit <- RunSpatialFeatureSelection(x, spatial = xy, n.cores = 1)
-head(fit$ranking)
 }

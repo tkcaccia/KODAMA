@@ -637,6 +637,86 @@ std::vector<int> random_walk_cluster(const CsrGraph& g, int steps, int max_iter,
   return split_disconnected(g, labels);
 }
 
+std::vector<int> merge_communities_to_target(
+  const CsrGraph& g,
+  std::vector<int> membership,
+  int target
+) {
+  membership = compact(std::move(membership));
+  int communities = 0;
+  for (int label : membership) communities = std::max(communities, label + 1);
+  if (communities == target) return membership;
+
+  // A target cut is a graph coarsening operation. If random-walk refinement
+  // has already crossed below the requested cut, restart from singleton
+  // communities so that the target remains exact and deterministic.
+  if (communities < target) {
+    membership.resize(static_cast<std::size_t>(g.n));
+    std::iota(membership.begin(), membership.end(), 0);
+    communities = g.n;
+  }
+
+  while (communities > target) {
+    std::vector<double> volume(static_cast<std::size_t>(communities), 0.0);
+    std::unordered_map<std::uint64_t, double> between;
+    between.reserve(g.weight.size() / 2 + 1);
+    for (int u = 0; u < g.n; ++u) {
+      const int cu = membership[static_cast<std::size_t>(u)];
+      volume[static_cast<std::size_t>(cu)] += g.degree[static_cast<std::size_t>(u)];
+      for (int p = g.ptr[static_cast<std::size_t>(u)]; p < g.ptr[static_cast<std::size_t>(u + 1)]; ++p) {
+        const int cv = membership[static_cast<std::size_t>(g.to[static_cast<std::size_t>(p)])];
+        if (cu == cv) continue;
+        const std::uint32_t lo = static_cast<std::uint32_t>(std::min(cu, cv));
+        const std::uint32_t hi = static_cast<std::uint32_t>(std::max(cu, cv));
+        const std::uint64_t key = (static_cast<std::uint64_t>(lo) << 32) | hi;
+        between[key] += g.weight[static_cast<std::size_t>(p)];
+      }
+    }
+
+    int merge_a = -1;
+    int merge_b = -1;
+    double best = -1.0;
+    for (const auto& item : between) {
+      const int a = static_cast<int>(item.first >> 32);
+      const int b = static_cast<int>(item.first & 0xffffffffULL);
+      const double denom = std::sqrt(
+        std::max(volume[static_cast<std::size_t>(a)] *
+                 volume[static_cast<std::size_t>(b)], 1e-30)
+      );
+      const double score = item.second / denom;
+      if (score > best + 1e-15 ||
+          (std::abs(score - best) <= 1e-15 &&
+           (a < merge_a || (a == merge_a && b < merge_b)))) {
+        best = score;
+        merge_a = a;
+        merge_b = b;
+      }
+    }
+
+    if (merge_a < 0) {
+      // Disconnected components have no cross-edge. Join the two smallest
+      // communities only when an exact user-requested cut requires it.
+      std::vector<int> size(static_cast<std::size_t>(communities), 0);
+      for (int label : membership) ++size[static_cast<std::size_t>(label)];
+      for (int c = 0; c < communities; ++c) {
+        if (merge_a < 0 || size[static_cast<std::size_t>(c)] < size[static_cast<std::size_t>(merge_a)]) {
+          merge_b = merge_a;
+          merge_a = c;
+        } else if (merge_b < 0 || size[static_cast<std::size_t>(c)] < size[static_cast<std::size_t>(merge_b)]) {
+          merge_b = c;
+        }
+      }
+    }
+
+    for (int& label : membership) {
+      if (label == merge_b) label = merge_a;
+    }
+    membership = compact(std::move(membership));
+    --communities;
+  }
+  return membership;
+}
+
 GraphClusterResult make_result(const CsrGraph& g, const std::vector<int>& membership0, const GraphClusterOptions& options, int n_edges, Backend backend, double elapsed) {
   GraphClusterResult out;
   out.membership.resize(static_cast<std::size_t>(g.n));
@@ -675,6 +755,9 @@ GraphClusterResult run_cpu_cluster(const EdgeList& edge_list, const GraphCluster
     opts.n_iterations,
     opts.n_threads
   );
+  if (opts.target_clusters > 0) {
+    membership = merge_communities_to_target(g, std::move(membership), opts.target_clusters);
+  }
   GraphClusterResult out = make_result(
     g,
     membership,
@@ -683,13 +766,6 @@ GraphClusterResult run_cpu_cluster(const EdgeList& edge_list, const GraphCluster
     Backend::CPU,
     elapsed_start + timer.seconds()
   );
-  if (opts.target_clusters > 0 && !out.target_exact) {
-    std::ostringstream oss;
-    oss << "random_walking produced " << out.n_communities
-        << " clusters, but target_clusters=" << opts.target_clusters
-        << ". Random-walk clustering has no resolution parameter to tune exactly.";
-    throw std::runtime_error(oss.str());
-  }
   return out;
 }
 

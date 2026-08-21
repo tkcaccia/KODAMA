@@ -12,7 +12,9 @@ KODAMA.diagnostics(all = FALSE)
 platform linker tool. If \code{FALSE}, keep only likely runtime dependencies.}
 }
 \value{
-A \code{kodama_diagnostics} list describing package and runtime state.
+A \code{kodama_diagnostics} list describing the package version,
+platform, linked libraries, relevant environment variables, and any
+recommended runtime preload libraries.
 }
 \description{
 Diagnose wrapper runtime libraries and environment

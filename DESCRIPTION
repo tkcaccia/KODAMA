@@ -1,6 +1,6 @@
 Package: KODAMA
 Title: Knowledge Discovery by Accuracy Maximization
-Version: 0.99.6
+Version: 0.99.7
 Authors@R: c(
     person("Stefano", "Cacciatore", role = c("aut", "cre"),
            email = "stefano.cacciatore@icgeb.org",
@@ -22,6 +22,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LinkingTo: Rcpp
 Imports:
+    fastEmbedR (>= 0.99.5),
     methods,
     Rcpp,
     S4Vectors,

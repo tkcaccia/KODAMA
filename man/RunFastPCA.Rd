@@ -55,21 +55,20 @@ RunFastPCA(object, ...)
 )
 }
 \arguments{
-\item{object}{Numeric matrix, \code{SingleCellExperiment},
-\code{SpatialExperiment}, Seurat object, Giotto object, or list of Seurat
-objects.}
+\item{object}{Numeric matrix, \code{SingleCellExperiment}, \code{SpatialExperiment},
+Seurat object, Giotto object, or list of Seurat objects.}
 
-\item{...}{Arguments passed to \code{\link[=kodama_pca]{kodama_pca()}}.}
+\item{...}{Arguments passed to \code{\link[fastEmbedR:pca]{fastEmbedR::pca()}}.}
 
 \item{features}{Optional feature names, indices, or logical selector.}
-
-\item{nfeatures}{Number of top features from a preceding
-\code{SpatialFeatureSelection()} call. Cannot be combined with \code{features}.}
 
 \item{assay.type}{Assay to use. \code{NULL} prefers \code{logcounts}, then
 \code{normcounts}, then \code{counts}, and finally the first available assay.}
 
-\item{ncomp}{Number of principal components.}
+\item{nfeatures}{Number of top features from a preceding
+\code{\link[=SpatialFeatureSelection]{SpatialFeatureSelection()}} call. Cannot be combined with \code{features}.}
+
+\item{ncomp}{Number of principal components to calculate and store.}
 
 \item{reduction.name}{Name used to store PCA scores.}
 
@@ -77,20 +76,15 @@ objects.}
 
 \item{layer}{Seurat assay layer, normally \code{"data"}.}
 
-\item{values}{Giotto expression-values selection. \code{NULL} uses the
-object's default expression values.}
+\item{values}{Giotto expression-values selection. \code{NULL} uses the object's
+default expression values.}
 }
 \value{
-A native PCA result for a matrix input, otherwise the updated container with a
-PCA dimensional reduction.
+A native PCA result for a matrix input, otherwise the updated
+container with a PCA dimensional reduction.
 }
 \description{
-Runs the standalone float32 randomized PCA and stores its scores directly in
-supported single-cell containers. Expression assays are transposed internally
-because their rows are features and their columns are cells.
-}
-\examples{
-x <- matrix(rnorm(120), 30, 4)
-fit <- RunFastPCA(x, ncomp = 2, backend = "cpu")
-dim(fit$scores)
+Uses \code{\link[fastEmbedR:pca]{fastEmbedR::pca()}} for the numerical PCA and stores its scores directly
+in supported single-cell containers. Expression assays are transposed
+internally because their rows are features and their columns are cells.
 }

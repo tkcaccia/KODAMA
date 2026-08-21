@@ -78,8 +78,3 @@ The object methods extract an existing dimensional reduction, construct one
 reusable KODAMA graph, and store it in the container. The graph does not
 retain the original expression matrix.
 }
-\examples{
-x <- as.matrix(iris[, 1:4])
-g <- RunKODAMAgraph(x, k = 5, n.cores = 1)
-g$parameters
-}

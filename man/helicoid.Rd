@@ -16,9 +16,9 @@ An \code{N} by 3 numeric matrix with columns \code{x}, \code{y}, and \code{z}.
 Generates points distributed on a helicoid using the construction from the
 KODAMA R package.
 }
-\seealso{
-\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=spirals]{spirals()}}, \code{\link[=swissroll]{swissroll()}}
-}
 \examples{
 dim(helicoid(100))
+}
+\seealso{
+\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=spirals]{spirals()}}, \code{\link[=swissroll]{swissroll()}}
 }

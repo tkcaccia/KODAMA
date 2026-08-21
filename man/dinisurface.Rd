@@ -16,9 +16,9 @@ An \code{N} by 3 numeric matrix with columns \code{x}, \code{y}, and \code{z}.
 Generates points distributed on a Dini surface using the construction from
 the KODAMA R package.
 }
-\seealso{
-\code{\link[=helicoid]{helicoid()}}, \code{\link[=spirals]{spirals()}}, \code{\link[=swissroll]{swissroll()}}
-}
 \examples{
 dim(dinisurface(100))
+}
+\seealso{
+\code{\link[=helicoid]{helicoid()}}, \code{\link[=spirals]{spirals()}}, \code{\link[=swissroll]{swissroll()}}
 }

@@ -13,8 +13,8 @@ Matrix results include separate landmark-selection aggregates and
 classifier optimization timings.}
 }
 \value{
-A data frame with analysis steps, elapsed seconds, and percentage of the
-recorded total runtime.
+A data frame with analysis steps, elapsed seconds, and percentage
+of the recorded total runtime.
 }
 \description{
 Return a compact timing table for a KODAMA result

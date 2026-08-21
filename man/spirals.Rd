@@ -19,9 +19,9 @@ A \code{sum(n)} by 2 numeric matrix with columns \code{x} and \code{y}.
 Produces two-dimensional spiral clusters using the construction from the
 KODAMA R package.
 }
-\seealso{
-\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=helicoid]{helicoid()}}, \code{\link[=swissroll]{swissroll()}}
-}
 \examples{
 dim(spirals(c(50, 50)))
+}
+\seealso{
+\code{\link[=dinisurface]{dinisurface()}}, \code{\link[=helicoid]{helicoid()}}, \code{\link[=swissroll]{swissroll()}}
 }

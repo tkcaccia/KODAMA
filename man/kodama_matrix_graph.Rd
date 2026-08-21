@@ -128,7 +128,8 @@ and \code{"handle"} returns a reusable external C++ graph pointer.}
 }
 \value{
 A \code{kodama_matrix} result with evolved labels, accuracy traces,
-diagnostics, timing, and the corrected graph when requested.
+diagnostics, timing, and the corrected graph or graph handle when
+requested.
 }
 \description{
 KODAMA matrix from a precomputed KNN graph

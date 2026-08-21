@@ -67,10 +67,9 @@ KODAMA implementation before spatial graph and constraint construction.}
 
 \item{splitting}{Initial number of label classes used for each run.}
 
-\item{n.cores}{CPU worker count. \code{NULL} uses \code{options(n.cores = ...)},
-then \code{N_CORES}, and otherwise 4. For CUDA or Metal matrix optimization,
-an explicit \code{0} enables backend-specific automatic independent-run lane
-selection.}
+\item{n.cores}{CPU worker count. \code{NULL} uses \code{options(n.cores = ...)}, then
+\code{N_CORES}, and otherwise 4. For CUDA or Metal matrix optimization, an
+explicit \code{0} enables backend-specific automatic independent-run lanes.}
 
 \item{graph.neighbors}{Number of neighbors retained in the returned graph.}
 

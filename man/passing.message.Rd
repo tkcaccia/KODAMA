@@ -40,9 +40,3 @@ preprocessing operation from KODAMAextra using the native exact 2D/3D grid
 search. The weighted sum is intentionally not normalized by its total
 weight.
 }
-\examples{
-set.seed(1)
-x <- matrix(rnorm(40), 20, 2)
-xy <- matrix(runif(40), 20, 2)
-dim(passing.message(x, xy, number_knn = 5, n.cores = 1))
-}

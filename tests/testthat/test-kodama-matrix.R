@@ -232,7 +232,20 @@ test_that("public API wrappers are exposed", {
     early_exaggeration_iter = 1,
     backend = "cpu"
   )
-  clu <- KODAMA.clustering(graph, n.iterations = 2, random.walk.steps = 2)
+  clu <- KODAMA.clustering(
+    graph, method = "walktrap", backend = "cpu",
+    n.iterations = 2, steps = 2
+  )
+  clu_leiden <- KODAMA.clustering(
+    emb_default,
+    method = "leiden",
+    k = 5L,
+    n.cores = 1L,
+    n.iterations = 2L,
+    backend = "cpu",
+    graph.backend = "cpu",
+    seed = 4L
+  )
 
   expect_length(knncv$predicted, nrow(x))
   expect_length(pls$predicted, nrow(x))
@@ -293,6 +306,9 @@ test_that("public API wrappers are exposed", {
   expect_true(all(is.finite(emb_raw)))
   expect_true(all(is.finite(tsne_raw)))
   expect_length(clu$membership, nrow(x))
+  expect_identical(clu$method, "walktrap")
+  expect_length(clu_leiden$membership, nrow(x))
+  expect_identical(clu_leiden$method, "leiden")
   metal_graph <- KODAMA.graph.materialize(graph)
   metal_umap <- tryCatch(
     KODAMA:::kodama_umap_cpp(
