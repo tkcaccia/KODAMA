@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Stefano Cacciatore
+# SPDX-License-Identifier: MIT
+
 test_that("KODAMA backend precedence is explicit, option, environment, CPU", {
   old_global_option <- getOption("backend", NULL)
   old_option <- getOption("KODAMA.backend", NULL)
